@@ -1,4 +1,4 @@
-# Zap
+# ZipZapZop
 
 A path-drawing puzzle: draw one line through every cell, pass the numbers in order, finish on the highest one, and don't cross the walls. Inspired by LinkedIn's Zip.
 

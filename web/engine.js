@@ -1,4 +1,4 @@
-// Zap puzzle engine: generator + solver. Pure functions, no DOM.
+// ZipZapZop puzzle engine: generator + solver. Pure functions, no DOM.
 const ZapEngine = (() => {
   function mulberry32(seed) {
     return function () {

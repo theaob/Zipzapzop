@@ -7,7 +7,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-// Hosts the Zap web game, bundled under assets/, in a full-screen WebView.
+// Hosts the ZipZapZop web game, bundled under assets/, in a full-screen WebView.
 public class MainActivity extends Activity {
     private WebView web;
 

@@ -1,4 +1,4 @@
-<title>Zap</title>
+<title>ZipZapZop</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,7 +129,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 <div class="wrap">
   <header>
     <div>
-      <h1>Z<span>a</span>p</h1>
+      <h1>Zip<span>Zap</span>Zop</h1>
       <div class="tag">One line. Every cell. Numbers in order.</div>
     </div>
     <div class="modes" role="group" aria-label="Mode">
@@ -156,7 +156,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     <button id="new" class="primary">New puzzle</button>
   </div>
 
-  <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it, back as far as the last number you reached. Keyboard: arrow keys extend the line, Backspace undoes.</p>
+  <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it. When you let go, the line snaps back to the last number it reached. Keyboard: arrow keys extend the line, Backspace undoes.</p>
 </div>
 
 <script>
@@ -271,7 +271,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     wrap.style.setProperty('--step', step + 'ms');
     wrap.style.setProperty('--run', run + 'ms');
     if (party) { path.forEach((c, i) => cells[c].style.setProperty('--i', i)); wrap.classList.add('celebrate'); }
-    $('undo').disabled = won || path.length - 1 <= lockIndex();
+    $('undo').disabled = won || !path.length;
     $('clear').disabled = won || !path.length;
     $('hint').disabled = won;
     $('timer').textContent = fmt(elapsed);
@@ -283,7 +283,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     } else if (won) showWin();
   }
 
-  // Index of the last number the line has reached. Erasing never goes back past it.
+  // Index of the last number on the line. When a drag ends, the line is trimmed back to it.
   function lockIndex() {
     for (let i = path.length - 1; i >= 0; i--) if (puz.nums[path[i]]) return i;
     return -1;
@@ -336,11 +336,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     const head = path[path.length - 1];
     if (cell === head) return false;
     const at = path.indexOf(cell);
-    if (at >= 0) {
-      const keep = Math.max(at, lockIndex()) + 1;
-      if (keep === path.length) return false;
-      path.length = keep; return true;
-    }
+    if (at >= 0) { path.length = at + 1; return true; }
     if (canStep(head, cell)) { path.push(cell); checkWin(); if (puz.nums[cell] && !won) hitFx(cell); return true; }
     return false;
   }
@@ -412,7 +408,12 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (!dragging) return;
     if (dragTo(cellAt(e.clientX, e.clientY))) render();
   });
-  const end = () => { dragging = false; };
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    const keep = lockIndex() + 1;
+    if (!won && keep < path.length) { path.length = keep; render(); }
+  };
   board.addEventListener('pointerup', end);
   board.addEventListener('pointercancel', end);
 
@@ -432,7 +433,13 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   });
 
-  function undo() { if (!won && path.length - 1 > lockIndex()) { path.pop(); render(); } }
+  // Steps back to the previous number on the line.
+  function undo() {
+    if (won || !path.length) return;
+    path.pop();
+    path.length = lockIndex() + 1;
+    render();
+  }
 
   function hint() {
     if (won) return;
@@ -440,9 +447,9 @@ button:disabled { opacity: 0.45; cursor: default; }
     let ok = 0;
     while (ok < path.length && path[ok] === sol[ok]) ok++;
     if (ok < path.length) { path.length = Math.max(ok, 0); }
-    const target = sol[path.length];
+    // Reveal the route up to the next number, so the line rests on a number like after a drag.
     if (!path.length) { path.push(sol[0]); startTimer(); }
-    else path.push(target);
+    else do path.push(sol[path.length]); while (!puz.nums[path[path.length - 1]]);
     elapsed += 10000; // each hint costs ten seconds
     if (startTime) startTime -= 10000;
     checkWin(); render();

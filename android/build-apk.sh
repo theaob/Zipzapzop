@@ -1,7 +1,7 @@
 #!/bin/sh
-# Builds a signed debug APK of Zap without Gradle, using the Ubuntu-packaged SDK:
+# Builds a signed debug APK of ZipZapZop without Gradle, using the Ubuntu-packaged SDK:
 #   sudo apt-get install aapt android-sdk-platform-23 dalvik-exchange zipalign apksigner
-# Output: android/build/zap-debug.apk
+# Output: android/build/zipzapzop-debug.apk
 set -e
 cd "$(dirname "$0")"
 SDK_JAR=/usr/lib/android-sdk/platforms/android-23/android.jar
@@ -39,6 +39,6 @@ zipalign -f 4 build/unsigned.apk build/aligned.apk
 [ -f debug.keystore ] || keytool -genkeypair -keystore debug.keystore -storepass android -keypass android \
   -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" 2>/dev/null
 apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android \
-  --out build/zap-debug.apk build/aligned.apk
-apksigner verify build/zap-debug.apk
-echo "Built $(pwd)/build/zap-debug.apk"
+  --out build/zipzapzop-debug.apk build/aligned.apk
+apksigner verify build/zipzapzop-debug.apk
+echo "Built $(pwd)/build/zipzapzop-debug.apk"

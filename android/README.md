@@ -1,11 +1,11 @@
-# Zap for Android
+# ZipZapZop for Android
 
 A WebView wrapper around the same game as the web version (`../web/page.html` + `../web/engine.js`), with fonts bundled so it plays offline.
 
 ## Rebuild
 ```
 sudo apt-get install aapt android-sdk-platform-23 dalvik-exchange zipalign apksigner
-sh build-apk.sh        # -> build/zap-debug.apk
+sh build-apk.sh        # -> build/zipzapzop-debug.apk
 ```
 No Gradle or Google SDK download needed. `build-apk.sh` regenerates `assets/index.html` from the web source every time, so game changes only need to be made once.
 
