@@ -13,4 +13,4 @@ A path-drawing puzzle: draw one line through every cell, pass the numbers in ord
 | `web/build.sh` | Inlines the engine into `web/index.html`, the single-file playable page. Run it after editing either source. |
 | `android/` | WebView wrapper that bundles the same game for offline play. |
 
-Daily puzzles are seeded from the date and grid size, so everyone gets the same puzzle on the same day. Practice puzzles are random.
+Each day has three daily challenges (Easy 5×5, Medium 6×6, Hard 7×7), the same for everyone on that date. Ladder is an endless run of numbered levels: the grid grows from 4×4 to 8×8, and each level within a size starts with fewer numbers and more walls. Learn replays the four tutorial rounds.

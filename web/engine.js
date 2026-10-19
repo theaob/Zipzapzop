@@ -98,7 +98,10 @@ const ZapEngine = (() => {
     return { count, alt, exhausted };
   }
 
-  function generate(n, seed) {
+  // opts.clues scales how many numbers start on the board (fewer = harder);
+  // opts.walls adds starting walls. Uniqueness tightening may add more of both.
+  function generate(n, seed, opts = {}) {
+    const clueFactor = opts.clues == null ? 0.9 : opts.clues;
     const rand = mulberry32(seed);
     const sol = randomPath(n, rand);
     const L = sol.length;
@@ -106,7 +109,7 @@ const ZapEngine = (() => {
     sol.forEach((c, i) => (pos[c] = i));
 
     // Checkpoints: both ends plus a spread of interior points.
-    const want = Math.max(4, Math.round(n * 0.9 + rand() * 3));
+    const want = Math.max(3, Math.round(n * clueFactor + rand() * 3));
     const idxs = new Set([0, L - 1]);
     for (let k = 1; k < want - 1; k++) {
       const base = (k * (L - 1)) / (want - 1);
@@ -122,7 +125,7 @@ const ZapEngine = (() => {
       for (const j of neighbors(n, i))
         if (i < j && Math.abs(pos[i] - pos[j]) !== 1) candidates.push(wallKey(i, j));
     const walls = new Set();
-    const startWalls = Math.floor(n / 2 + rand() * 3);
+    const startWalls = Math.floor(n / 2 + rand() * 3) + (opts.walls || 0);
     for (let w = 0; w < startWalls && candidates.length; w++)
       walls.add(candidates.splice(Math.floor(rand() * candidates.length), 1)[0]);
 
