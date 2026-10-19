@@ -36,6 +36,13 @@
   --ink: #eef1f8; --muted: #9aa3bb; --wall: #eef1f8; --node: #eef1f8; --node-ink: #10131d;
   --trail: rgba(255, 138, 31, 0.16); --ok: #3ccf8e; --focus: #7d9bff; color-scheme: dark;
 }
+/* Accessibility: high contrast drops the checkerboard and darkens lines and secondary text. */
+:root[data-contrast="high"] { --line: #6f7890; --muted: #262c3f; --cell-alt: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  :root[data-contrast="high"]:not([data-theme="light"]) { --line: #8d97b0; --muted: #dfe4f0; --cell-alt: #1c2130; }
+}
+:root[data-contrast="high"][data-theme="dark"] { --line: #8d97b0; --muted: #dfe4f0; --cell-alt: #1c2130; }
+:root[data-text="large"] { font-size: 112.5%; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -131,7 +138,43 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 .toast.box { width: calc(100% - 24px); border-radius: 12px; pointer-events: auto; user-select: text; -webkit-user-select: text; white-space: pre-wrap; font-weight: 500; }
 @keyframes rise { from { transform: translateY(10px); opacity: 0.4; } }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+:root[data-motion="reduced"] *, :root[data-motion="reduced"] *::before, :root[data-motion="reduced"] *::after { animation: none !important; transition: none !important; }
+:root[data-text="large"] body { font-size: 17px; }
+.head-actions { display: flex; gap: 8px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sheet {
+  position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(10, 14, 30, 0.45);
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.sheet[hidden] { display: none; }
+@media (min-width: 560px) { .sheet { align-items: center; } }
+.sheet-card {
+  width: 100%; max-width: 480px; max-height: 100%; overflow-y: auto; background: var(--panel); color: var(--ink);
+  border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 18px; animation: rise 220ms ease-out;
+}
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { font-family: var(--display); font-weight: 800; font-size: 1.35rem; margin: 0; }
+.sheet-head button { height: 38px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; }
+.opt { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.opt legend { font-weight: 600; padding: 0; margin-bottom: 2px; }
+.opt .desc { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.seg { display: flex; gap: 4px; background: var(--bg); border-radius: 12px; padding: 4px; }
+.seg label { flex: 1 1 0; position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; text-align: center; padding: 9px 6px; border-radius: 9px; font-weight: 600; font-size: 0.88rem; color: var(--muted); }
+.seg input:checked + span { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(10, 14, 30, 0.18); }
+.seg input:focus-visible + span, .switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 1px; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+.switch .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.switch .txt b { font-weight: 600; }
+.switch .txt small { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch span.track { flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--line); position: relative; transition: background-color 150ms; }
+.switch span.track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(10, 14, 30, 0.3); transition: transform 150ms; }
+.switch input:checked + span.track { background: var(--ok); }
+.switch input:checked + span.track::after { transform: translateX(20px); }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
 </style>
 
@@ -141,9 +184,14 @@ button:disabled { opacity: 0.45; cursor: default; }
       <h1>Zip<span>Zap</span>Zop</h1>
       <div class="tag">One line. Every cell. Numbers in order.</div>
     </div>
-    <div class="modes" role="group" aria-label="Mode">
-      <button id="mode-daily" aria-pressed="true">Daily</button>
-      <button id="mode-practice" aria-pressed="false">Practice</button>
+    <div class="head-actions">
+      <div class="modes" role="group" aria-label="Mode">
+        <button id="mode-daily" aria-pressed="true">Daily</button>
+        <button id="mode-practice" aria-pressed="false">Practice</button>
+      </div>
+      <button class="icon-btn" id="a11y-open" aria-label="Accessibility settings" aria-haspopup="dialog" title="Accessibility">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v4.5M12 14.5L8.5 21M12 14.5l3.5 6.5"/></svg>
+      </button>
     </div>
   </header>
 
@@ -166,6 +214,38 @@ button:disabled { opacity: 0.45; cursor: default; }
   </div>
 
   <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it. When you let go, the line snaps back to the last number it reached. Keyboard: arrow keys extend the line, Backspace undoes.</p>
+  <div class="sr-only" id="announce" aria-live="polite"></div>
+</div>
+
+<div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="a11y-title">Accessibility</h2><button id="a11y-close">Done</button></div>
+    <fieldset class="opt">
+      <legend>Motion</legend>
+      <p class="desc">Animations when the line reaches a number and when you finish a puzzle. <span id="motion-note"></span></p>
+      <div class="seg">
+        <label><input type="radio" name="motion" value="system" id="motion-system"><span>Device</span></label>
+        <label><input type="radio" name="motion" value="on" id="motion-on"><span>On</span></label>
+        <label><input type="radio" name="motion" value="off" id="motion-off"><span>Off</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="opt">
+      <legend>Theme</legend>
+      <div class="seg">
+        <label><input type="radio" name="theme" value="system" id="theme-system"><span>Device</span></label>
+        <label><input type="radio" name="theme" value="light" id="theme-light"><span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark" id="theme-dark"><span>Dark</span></label>
+      </div>
+    </fieldset>
+    <label class="switch" for="opt-contrast">
+      <span class="txt"><b>High contrast</b><small>Darker grid lines and text, thicker walls, no checkerboard.</small></span>
+      <input type="checkbox" id="opt-contrast"><span class="track" aria-hidden="true"></span>
+    </label>
+    <label class="switch" for="opt-large">
+      <span class="txt"><b>Larger text and numbers</b><small>Bigger labels, buttons and checkpoint numbers.</small></span>
+      <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
+    </label>
+  </div>
 </div>
 
 <script>
@@ -359,7 +439,27 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   let practiceSeed = Math.floor(Math.random() * 1e9);
   let puz, path, won, startTime, elapsed, timerId, cells = [];
   let celebrate = false, celebrateTimer = null, hintsUsed = 0;
-  const reducedMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Accessibility settings, kept per device. "system" follows the phone or browser setting.
+  const rootEl = document.documentElement;
+  const hostTheme = rootEl.getAttribute('data-theme');
+  const motionQuery = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  const a11y = Object.assign({ motion: 'system', theme: 'system', contrast: false, large: false }, store.get('a11y', {}));
+  const reducedMotion = () => rootEl.dataset.motion === 'reduced';
+  const nodeSize = () => (a11y.large ? { r: 0.36, f: 0.4 } : { r: 0.3, f: 0.32 });
+
+  function applyA11y() {
+    const systemReduced = !!(motionQuery && motionQuery.matches);
+    rootEl.dataset.motion = a11y.motion === 'off' || (a11y.motion === 'system' && systemReduced) ? 'reduced' : 'full';
+    if (a11y.theme !== 'system') rootEl.setAttribute('data-theme', a11y.theme);
+    else if (hostTheme) rootEl.setAttribute('data-theme', hostTheme);
+    else rootEl.removeAttribute('data-theme');
+    if (a11y.contrast) rootEl.dataset.contrast = 'high'; else delete rootEl.dataset.contrast;
+    if (a11y.large) rootEl.dataset.text = 'large'; else delete rootEl.dataset.text;
+    $('motion-note').textContent = systemReduced ? 'Your device is set to reduce motion.' : '';
+    if (puz) render();
+  }
+
+  function announce(msg) { const el = $('announce'); el.textContent = ''; setTimeout(() => (el.textContent = msg), 30); }
 
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const fmt = (ms) => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
@@ -428,13 +528,13 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       const [a, b] = key.split('-').map(Number);
       const ra = Math.floor(a / n), ca = a % n;
       const ln = b - a === 1 ? [ca + 1, ra, ca + 1, ra + 1] : [ca, ra + 1, ca + 1, ra + 1];
-      s += `<line class="wall" x1="${ln[0]}" y1="${ln[1]}" x2="${ln[2]}" y2="${ln[3]}" stroke-width="0.09"/>`;
+      s += `<line class="wall" x1="${ln[0]}" y1="${ln[1]}" x2="${ln[2]}" y2="${ln[3]}" stroke-width="${a11y.contrast ? 0.14 : 0.09}"/>`;
     }
     // checkpoints
     const reached = reachedCount();
     for (const [cell, k] of Object.entries(puz.nums)) {
       const [x, y] = ctr(+cell);
-      s += `<g class="node${k <= reached ? ' done' : ''}" style="--i:${Math.max(0, path.indexOf(+cell))}"><circle cx="${x}" cy="${y}" r="0.3"/><text x="${x}" y="${y + 0.01}" font-size="0.32">${k}</text></g>`;
+      s += `<g class="node${k <= reached ? ' done' : ''}" style="--i:${Math.max(0, path.indexOf(+cell))}"><circle cx="${x}" cy="${y}" r="${nodeSize().r}"/><text x="${x}" y="${y + 0.01}" font-size="${nodeSize().f}">${k}</text></g>`;
     }
     const party = won && celebrate && !reducedMotion();
     const step = Math.max(18, Math.min(60, 1500 / path.length));
@@ -552,6 +652,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
 
   // Pop, ring and sparks on a checkpoint the line just reached.
   function hitFx(cell) {
+    announce(`Reached ${puz.nums[cell]} of ${Object.keys(puz.nums).length}`);
     if (reducedMotion()) return;
     const fx = $('fx'), n = puz.n, ns = 'http://www.w3.org/2000/svg';
     fx.setAttribute('viewBox', `0 0 ${n} ${n}`);
@@ -562,7 +663,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       const a = (k / 8) * Math.PI * 2 + Math.random() * 0.4, d = 0.55 + Math.random() * 0.35;
       h += `<circle class="hit-spark" cx="${x}" cy="${y}" r="0.055" fill="${lerpColor(k / 7)}" style="--dx:${(Math.cos(a) * d).toFixed(2)}px;--dy:${(Math.sin(a) * d).toFixed(2)}px"/>`;
     }
-    h += `<g class="hit-node"><circle cx="${x}" cy="${y}" r="0.3" fill="url(#fxGrad)"/><text x="${x}" y="${y + 0.01}" font-size="0.32">${puz.nums[cell]}</text></g>`;
+    h += `<g class="hit-node"><circle cx="${x}" cy="${y}" r="${nodeSize().r}" fill="url(#fxGrad)"/><text x="${x}" y="${y + 0.01}" font-size="${nodeSize().f}">${puz.nums[cell]}</text></g>`;
     g.innerHTML = h;
     fx.appendChild(g);
     setTimeout(() => g.remove(), 700);
@@ -571,6 +672,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   function checkWin() {
     if (E.isSolved(puz, path)) {
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
+      announce(`Solved in ${fmt(elapsed)}`);
       if (mode === 'daily') { store.set('daily:' + today() + ':' + size, elapsed); store.set('dailyhints:' + today() + ':' + size, hintsUsed); }
       else { const b = store.get('best:' + size, null); if (!b || elapsed < b) store.set('best:' + size, elapsed); }
     }
@@ -674,6 +776,33 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   $('new').onclick = nextPuzzle;
   $('mode-daily').onclick = () => { mode = 'daily'; store.set('mode', mode); load(); };
   $('mode-practice').onclick = () => { mode = 'practice'; store.set('mode', mode); practiceSeed = Math.floor(Math.random() * 1e9); load(); };
+
+  const sheet = $('a11y');
+  function openA11y() {
+    for (const k of ['motion', 'theme']) $(k + '-' + a11y[k]).checked = true;
+    $('opt-contrast').checked = a11y.contrast; $('opt-large').checked = a11y.large;
+    sheet.hidden = false;
+    sheet.querySelector('input:checked').focus();
+  }
+  function closeA11y() { sheet.hidden = true; $('a11y-open').focus(); }
+  function saveA11y() { store.set('a11y', a11y); applyA11y(); }
+  $('a11y-open').onclick = openA11y;
+  $('a11y-close').onclick = closeA11y;
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) closeA11y(); });
+  sheet.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeA11y(); }
+    if (e.key === 'Tab') { // keep focus inside the dialog
+      const f = [...sheet.querySelectorAll('button, input')].filter((el) => el.type !== 'radio' || el.checked);
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  sheet.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', () => { a11y[r.name] = r.value; saveA11y(); }));
+  $('opt-contrast').onchange = (e) => { a11y.contrast = e.target.checked; saveA11y(); };
+  $('opt-large').onchange = (e) => { a11y.large = e.target.checked; saveA11y(); };
+  if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', applyA11y);
+  applyA11y();
 
   window.__zap = { get puz() { return puz; }, get path() { return path; }, get won() { return won; } };
   load();
