@@ -121,6 +121,15 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win h2 { font-family: var(--display); font-weight: 800; font-size: 1.3rem; margin: 0; }
 .win p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .win button { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; white-space: nowrap; }
+.win { flex-wrap: wrap; }
+.win .actions { display: flex; gap: 8px; }
+.win button.share { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.toast {
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
+  background: var(--ink); color: var(--bg); font: 600 0.85rem var(--body); padding: 8px 14px; border-radius: 999px;
+  animation: rise 200ms ease-out; pointer-events: none;
+}
+.toast.box { width: calc(100% - 24px); border-radius: 12px; pointer-events: auto; user-select: text; -webkit-user-select: text; white-space: pre-wrap; font-weight: 500; }
 @keyframes rise { from { transform: translateY(10px); opacity: 0.4; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
@@ -349,7 +358,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   let size = store.get('size', 6);
   let practiceSeed = Math.floor(Math.random() * 1e9);
   let puz, path, won, startTime, elapsed, timerId, cells = [];
-  let celebrate = false, celebrateTimer = null;
+  let celebrate = false, celebrateTimer = null, hintsUsed = 0;
   const reducedMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -373,6 +382,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     puz = E.generate(size, seed);
     path = []; won = false; elapsed = 0; startTime = null;
     celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
+    hintsUsed = mode === 'daily' ? store.get('dailyhints:' + today() + ':' + size, 0) : 0;
     clearInterval(timerId); timerId = null;
     const best = store.get('best:' + size, null);
     $('label').textContent = mode === 'daily' ? 'Daily · ' + today() : 'Practice' + (best ? ' · best ' + fmt(best) : '');
@@ -471,9 +481,36 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     const best = store.get('best:' + size, null);
     const div = document.createElement('div');
     div.className = 'win';
-    div.innerHTML = `<div><h2>Solved</h2><p>${size}×${size} in ${fmt(elapsed)}${best && mode === 'practice' ? ' · best ' + fmt(best) : ''}</p></div><button>${mode === 'daily' ? 'Play practice' : 'Next puzzle'}</button>`;
-    div.querySelector('button').onclick = nextPuzzle;
+    div.innerHTML = `<div><h2>Solved</h2><p>${size}×${size} in ${fmt(elapsed)}${best && mode === 'practice' ? ' · best ' + fmt(best) : ''}</p></div><div class="actions"><button class="share">Share</button><button class="next">${mode === 'daily' ? 'Play practice' : 'Next puzzle'}</button></div>`;
+    div.querySelector('.next').onclick = nextPuzzle;
+    div.querySelector('.share').onclick = share;
     wrap.appendChild(div);
+  }
+
+  function shareText() {
+    const which = mode === 'daily' ? 'Daily ' + today() : 'Practice';
+    const hints = hintsUsed ? hintsUsed + (hintsUsed === 1 ? ' hint' : ' hints') : 'no hints';
+    return `ZipZapZop ${which} · ${size}×${size}\n⚡ Solved in ${fmt(elapsed)} with ${hints}`;
+  }
+
+  function toast(msg, box) {
+    const old = wrap.querySelector('.toast'); if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = 'toast' + (box ? ' box' : ''); t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => t.remove(), box ? 8000 : 2200);
+  }
+
+  // Android app: native share sheet. Browsers: Web Share, then clipboard, then show the text to copy by hand.
+  async function share() {
+    const text = shareText();
+    if (window.ZipZapZopAndroid) { window.ZipZapZopAndroid.share(text); return; }
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(text); toast('Result copied'); }
+    catch { toast(text, true); }
   }
 
   function nextPuzzle() {
@@ -534,7 +571,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   function checkWin() {
     if (E.isSolved(puz, path)) {
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
-      if (mode === 'daily') store.set('daily:' + today() + ':' + size, elapsed);
+      if (mode === 'daily') { store.set('daily:' + today() + ':' + size, elapsed); store.set('dailyhints:' + today() + ':' + size, hintsUsed); }
       else { const b = store.get('best:' + size, null); if (!b || elapsed < b) store.set('best:' + size, elapsed); }
     }
   }
@@ -623,6 +660,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (!path.length) { path.push(sol[0]); startTimer(); }
     else do path.push(sol[path.length]); while (!puz.nums[path[path.length - 1]]);
     elapsed += 10000; // each hint costs ten seconds
+    hintsUsed++;
     if (startTime) startTime -= 10000;
     checkWin(); render();
     if (puz.nums[path[path.length - 1]] && !won) hitFx(path[path.length - 1]);
