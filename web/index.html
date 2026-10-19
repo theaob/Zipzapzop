@@ -1,0 +1,626 @@
+<title>Zap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column, a compact masthead, the board as the hero, controls in a single row beneath it. */
+:root {
+  --bg: #eef1f6;
+  --panel: #ffffff;
+  --cell: #ffffff;
+  --cell-alt: #f6f7fb;
+  --line: #d7dce6;
+  --ink: #161b2e;
+  --muted: #5d6680;
+  --wall: #161b2e;
+  --node: #161b2e;
+  --node-ink: #ffffff;
+  --spark-a: #ff8a1f;
+  --spark-b: #e8336d;
+  --trail: rgba(255, 138, 31, 0.13);
+  --ok: #1f9d63;
+  --focus: #3466ff;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10131d; --panel: #181c29; --cell: #1c2130; --cell-alt: #191d2b; --line: #2d3346;
+    --ink: #eef1f8; --muted: #9aa3bb; --wall: #eef1f8; --node: #eef1f8; --node-ink: #10131d;
+    --trail: rgba(255, 138, 31, 0.16); --ok: #3ccf8e; --focus: #7d9bff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10131d; --panel: #181c29; --cell: #1c2130; --cell-alt: #191d2b; --line: #2d3346;
+  --ink: #eef1f8; --muted: #9aa3bb; --wall: #eef1f8; --node: #eef1f8; --node-ink: #10131d;
+  --trail: rgba(255, 138, 31, 0.16); --ok: #3ccf8e; --focus: #7d9bff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 28px;
+}
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 2.4rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tag { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+.modes { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.modes button { border: 0; background: transparent; color: var(--muted); font: 600 0.85rem var(--body); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sizes { display: flex; gap: 6px; }
+.sizes button { min-width: 44px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 600 0.85rem var(--body); cursor: pointer; font-variant-numeric: tabular-nums; }
+.sizes button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.meta { display: flex; gap: 14px; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.meta b { color: var(--ink); font-weight: 600; }
+.board-wrap { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1; }
+.board {
+  position: absolute; inset: 0; display: grid; border-radius: 14px; overflow: hidden;
+  border: 2px solid var(--wall); background: var(--line); gap: 1px; touch-action: none; user-select: none; -webkit-user-select: none;
+  cursor: crosshair; outline: none;
+}
+.board:focus-visible { box-shadow: 0 0 0 3px var(--focus); }
+.cell { background: var(--cell); position: relative; transition: background-color 120ms; }
+.cell.alt { background: var(--cell-alt); }
+.cell.on { background: color-mix(in srgb, var(--cell) 86%, var(--spark-a)); }
+.cell.hint { animation: hint 0.9s ease-in-out 3; }
+@keyframes hint { 50% { background: color-mix(in srgb, var(--cell) 40%, var(--focus)); } }
+svg.overlay { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); pointer-events: none; }
+.node circle { fill: var(--node); }
+.node text { fill: var(--node-ink); font-family: var(--display); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+.node.done circle { fill: url(#sparkGrad); }
+.node.done text { fill: #fff; }
+.wall { stroke: var(--wall); stroke-linecap: round; }
+.board-wrap.won .board { border-color: var(--ok); }
+.board-wrap.won .board { transition: border-color 300ms; }
+/* Completion: a spark runs the line from 1 to the end, cells and nodes light up as it passes, then the board bursts. */
+.celebrate .cell { animation: cellFlash 520ms ease-out calc(var(--i, 0) * var(--step)) both; }
+@keyframes cellFlash { 0% { background: var(--cell); } 35% { background: color-mix(in srgb, var(--cell) 45%, var(--spark-a)); } 100% { background: color-mix(in srgb, var(--cell) 86%, var(--spark-a)); } }
+.celebrate .seg { animation: segSurge 520ms ease-out calc(var(--i, 0) * var(--step)) both; }
+@keyframes segSurge { 40% { stroke-width: 0.6; filter: brightness(1.3) saturate(1.2); } }
+.celebrate .node { transform-box: fill-box; transform-origin: center; animation: nodePop 460ms cubic-bezier(.3, 1.6, .5, 1) calc(var(--i, 0) * var(--step)) both; }
+@keyframes nodePop { 45% { transform: scale(1.35); } }
+/* Checkpoint hit: drawn on its own layer so later redraws don't cut it short. */
+svg.fx { z-index: 1; }
+.fx * { transform-box: fill-box; transform-origin: center; }
+.fx .hit-node { animation: hitPop 520ms cubic-bezier(.3, 1.7, .5, 1) forwards; }
+.fx .hit-node text { fill: #fff; font-family: var(--display); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+@keyframes hitPop { 0% { transform: scale(0.8); } 40% { transform: scale(1.45); } 100% { transform: scale(1); opacity: 0; } }
+.fx .hit-ring { fill: none; stroke: url(#fxGrad); stroke-width: 0.07; animation: hitRing 560ms ease-out forwards; }
+@keyframes hitRing { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(2.6); opacity: 0; } }
+.fx .hit-spark { transform-box: view-box; transform-origin: 0 0; animation: hitSpark 520ms cubic-bezier(.15, .7, .3, 1) forwards; }
+@keyframes hitSpark { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+.pulse { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 0.16; stroke-dasharray: 0.03 1.2; stroke-dashoffset: 0.03; opacity: 0; filter: drop-shadow(0 0 0.12px #fff); animation: pulseRun var(--run) linear forwards; }
+@keyframes pulseRun { 0% { opacity: 1; stroke-dashoffset: 0.03; } 96% { opacity: 1; } 100% { opacity: 0; stroke-dashoffset: -1; } }
+.spark { transform-box: view-box; opacity: 0; animation: sparkFly 760ms cubic-bezier(.15, .7, .3, 1) var(--run) forwards; }
+@keyframes sparkFly { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); } }
+.ring { fill: none; stroke: url(#sparkGrad); stroke-width: 0.08; transform-box: fill-box; transform-origin: center; opacity: 0; animation: ringOut 700ms ease-out var(--run) forwards; }
+@keyframes ringOut { 0% { opacity: 1; transform: scale(0.6); } 100% { opacity: 0; transform: scale(4); } }
+.celebrate .board { animation: boardBump 520ms ease-out var(--run) both; }
+@keyframes boardBump { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } 30% { transform: scale(1.015); } 100% { box-shadow: 0 0 0 18px transparent; transform: none; } }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.controls button {
+  flex: 1 1 0; min-width: 72px; height: 44px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); font: 600 0.92rem var(--body); cursor: pointer;
+}
+.controls button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button:disabled { opacity: 0.45; cursor: default; }
+.rules { color: var(--muted); font-size: 0.88rem; line-height: 1.5; margin: 0; max-width: 65ch; }
+.rules b { color: var(--ink); font-weight: 600; }
+.win {
+  position: absolute; inset: auto 12px 12px 12px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  box-shadow: 0 12px 40px rgba(10, 14, 30, 0.22); animation: rise 260ms ease-out; z-index: 2;
+}
+.win h2 { font-family: var(--display); font-weight: 800; font-size: 1.3rem; margin: 0; }
+.win p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.win button { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; white-space: nowrap; }
+@keyframes rise { from { transform: translateY(10px); opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 420px) { h1 { font-size: 2rem; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Z<span>a</span>p</h1>
+      <div class="tag">One line. Every cell. Numbers in order.</div>
+    </div>
+    <div class="modes" role="group" aria-label="Mode">
+      <button id="mode-daily" aria-pressed="true">Daily</button>
+      <button id="mode-practice" aria-pressed="false">Practice</button>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="sizes" role="group" aria-label="Grid size" id="sizes"></div>
+    <div class="meta"><span id="label"></span><span><b id="timer">0:00</b></span></div>
+  </div>
+
+  <div class="board-wrap" id="boardWrap">
+    <div class="board" id="board" tabindex="0" aria-label="Puzzle grid. Drag to draw, or use arrow keys from the head of the line."></div>
+    <svg class="overlay" id="overlay" aria-hidden="true"></svg>
+    <svg class="overlay fx" id="fx" aria-hidden="true"><defs><linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient></defs></svg>
+  </div>
+
+  <div class="controls">
+    <button id="undo">Undo</button>
+    <button id="hint">Hint</button>
+    <button id="clear">Clear</button>
+    <button id="new" class="primary">New puzzle</button>
+  </div>
+
+  <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it. Keyboard: arrow keys extend the line, Backspace undoes.</p>
+</div>
+
+<script>
+// Zap puzzle engine: generator + solver. Pure functions, no DOM.
+const ZapEngine = (() => {
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashString(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+
+  const wallKey = (a, b) => (a < b ? a + '-' + b : b + '-' + a);
+
+  function neighbors(n, i) {
+    const r = Math.floor(i / n), c = i % n, out = [];
+    if (r > 0) out.push(i - n);
+    if (r < n - 1) out.push(i + n);
+    if (c > 0) out.push(i - 1);
+    if (c < n - 1) out.push(i + 1);
+    return out;
+  }
+
+  // Random Hamiltonian path via backbite moves on a serpentine start.
+  function randomPath(n, rand) {
+    let path = [];
+    for (let r = 0; r < n; r++)
+      for (let k = 0; k < n; k++) path.push(r * n + (r % 2 ? n - 1 - k : k));
+    const steps = n * n * 60;
+    for (let s = 0; s < steps; s++) {
+      if (rand() < 0.5) path.reverse();
+      const end = path[0];
+      const opts = neighbors(n, end).filter((x) => x !== path[1]);
+      const nb = opts[Math.floor(rand() * opts.length)];
+      const j = path.indexOf(nb);
+      path = path.slice(0, j).reverse().concat(path.slice(j));
+    }
+    return path;
+  }
+
+  // Counts solutions up to 2 within a node budget. Returns
+  // { count, alt, exhausted } where alt is a solution differing from `known`.
+  function solve(puz, known, budget = 300000) {
+    const { n, nums, walls } = puz;
+    const total = n * n;
+    const numAt = new Int16Array(total);
+    let K = 0, start = -1, endCell = -1;
+    for (const [cell, k] of Object.entries(nums)) {
+      numAt[+cell] = k;
+      if (k === 1) start = +cell;
+      if (k > K) { K = k; endCell = +cell; }
+    }
+    const adj = [];
+    for (let i = 0; i < total; i++)
+      adj.push(neighbors(n, i).filter((j) => !walls.has(wallKey(i, j))));
+    const visited = new Uint8Array(total);
+    const path = [start];
+    visited[start] = 1;
+    let nodes = 0, count = 0, alt = null, exhausted = false;
+    const knownStr = known ? known.join(',') : null;
+
+    function okCell(u, head) {
+      if (visited[u]) return true;
+      let d = 0;
+      for (const v of adj[u]) if (!visited[v] || v === head) d++;
+      return u === endCell ? d >= 1 : d >= 2;
+    }
+
+    function dfs(head, next) {
+      if (count >= 2 || exhausted) return;
+      if (++nodes > budget) { exhausted = true; return; }
+      if (path.length === total) {
+        if (head === endCell) {
+          count++;
+          if (!alt && path.join(',') !== knownStr) alt = path.slice();
+        }
+        return;
+      }
+      for (const nb of adj[head]) {
+        if (visited[nb]) continue;
+        const k = numAt[nb];
+        if (k && k !== next) continue;
+        if (nb === endCell && path.length + 1 !== total) continue;
+        visited[nb] = 1; path.push(nb);
+        let ok = true;
+        for (const u of adj[head]) if (!okCell(u, nb)) { ok = false; break; }
+        if (ok) for (const u of adj[nb]) if (!okCell(u, nb)) { ok = false; break; }
+        if (ok) dfs(nb, k ? next + 1 : next);
+        path.pop(); visited[nb] = 0;
+        if (count >= 2 || exhausted) return;
+      }
+    }
+    dfs(start, 2);
+    return { count, alt, exhausted };
+  }
+
+  function generate(n, seed) {
+    const rand = mulberry32(seed);
+    const sol = randomPath(n, rand);
+    const L = sol.length;
+    const pos = new Int16Array(L);
+    sol.forEach((c, i) => (pos[c] = i));
+
+    // Checkpoints: both ends plus a spread of interior points.
+    const want = Math.max(4, Math.round(n * 0.9 + rand() * 3));
+    const idxs = new Set([0, L - 1]);
+    for (let k = 1; k < want - 1; k++) {
+      const base = (k * (L - 1)) / (want - 1);
+      const jitter = (rand() - 0.5) * ((L - 1) / (want - 1)) * 0.6;
+      idxs.add(Math.min(L - 2, Math.max(1, Math.round(base + jitter))));
+    }
+    const nums = {};
+    [...idxs].sort((a, b) => a - b).forEach((pi, k) => (nums[sol[pi]] = k + 1));
+
+    // Candidate walls: adjacent pairs the solution never steps between.
+    const candidates = [];
+    for (let i = 0; i < L; i++)
+      for (const j of neighbors(n, i))
+        if (i < j && Math.abs(pos[i] - pos[j]) !== 1) candidates.push(wallKey(i, j));
+    const walls = new Set();
+    const startWalls = Math.floor(n / 2 + rand() * 3);
+    for (let w = 0; w < startWalls && candidates.length; w++)
+      walls.add(candidates.splice(Math.floor(rand() * candidates.length), 1)[0]);
+
+    const puz = { n, nums, walls, solution: sol, unique: false };
+    // Tighten until the solution is unique (or we run out of tries).
+    for (let iter = 0; iter < 60; iter++) {
+      const res = solve(puz, sol);
+      if (res.exhausted) break;
+      if (res.count <= 1) { puz.unique = true; break; }
+      const alt = res.alt;
+      let d = 0;
+      while (alt[d] === sol[d]) d++;
+      if (rand() < 0.55 || nums[sol[d]]) {
+        walls.add(wallKey(alt[d - 1], alt[d]));
+      } else {
+        // Add a checkpoint at the solution cell where they diverge, renumbering.
+        const order = Object.keys(nums).map(Number).concat([sol[d]])
+          .sort((a, b) => pos[a] - pos[b]);
+        for (const k in nums) delete nums[k];
+        order.forEach((c, i) => (nums[c] = i + 1));
+      }
+    }
+    return puz;
+  }
+
+  // Validate a player path against the rules (not against the stored solution).
+  function isSolved(puz, path) {
+    const { n, nums, walls } = puz;
+    if (path.length !== n * n) return false;
+    const seen = new Set(path);
+    if (seen.size !== n * n) return false;
+    let next = 1;
+    const K = Object.keys(nums).length;
+    for (let i = 0; i < path.length; i++) {
+      if (i > 0) {
+        const a = path[i - 1], b = path[i];
+        if (!neighbors(n, a).includes(b) || walls.has(wallKey(a, b))) return false;
+      }
+      const k = nums[path[i]];
+      if (k) { if (k !== next) return false; next++; }
+    }
+    return next === K + 1 && nums[path[path.length - 1]] === K;
+  }
+
+  return { generate, solve, isSolved, neighbors, wallKey, hashString, mulberry32 };
+})();
+if (typeof module !== 'undefined') module.exports = ZapEngine;
+
+</script>
+<script>
+(() => {
+  const E = ZapEngine;
+  const SIZES = [5, 6, 7, 8];
+  const $ = (id) => document.getElementById(id);
+  const board = $('board'), overlay = $('overlay'), wrap = $('boardWrap');
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('zap:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('zap:' + k, JSON.stringify(v)); } catch {} },
+  };
+
+  let mode = store.get('mode', 'daily');
+  let size = store.get('size', 6);
+  let practiceSeed = Math.floor(Math.random() * 1e9);
+  let puz, path, won, startTime, elapsed, timerId, cells = [];
+  let celebrate = false, celebrateTimer = null;
+  const reducedMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const fmt = (ms) => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  function buildSizes() {
+    const box = $('sizes'); box.innerHTML = '';
+    for (const n of SIZES) {
+      const b = document.createElement('button');
+      b.textContent = n + '×' + n; b.setAttribute('aria-pressed', String(n === size));
+      b.onclick = () => { size = n; store.set('size', n); practiceSeed = Math.floor(Math.random() * 1e9); load(); };
+      box.appendChild(b);
+    }
+  }
+
+  function load() {
+    buildSizes();
+    $('mode-daily').setAttribute('aria-pressed', String(mode === 'daily'));
+    $('mode-practice').setAttribute('aria-pressed', String(mode === 'practice'));
+    const seed = mode === 'daily' ? E.hashString('zap/' + today() + '/' + size) : practiceSeed;
+    puz = E.generate(size, seed);
+    path = []; won = false; elapsed = 0; startTime = null;
+    celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
+    clearInterval(timerId); timerId = null;
+    const best = store.get('best:' + size, null);
+    $('label').textContent = mode === 'daily' ? 'Daily · ' + today() : 'Practice' + (best ? ' · best ' + fmt(best) : '');
+    const saved = mode === 'daily' && store.get('daily:' + today() + ':' + size, null);
+    buildBoard();
+    if (saved) { path = puz.solution.slice(); won = true; elapsed = saved; }
+    render();
+  }
+
+  function buildBoard() {
+    const n = puz.n;
+    board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    board.innerHTML = ''; cells = [];
+    for (let i = 0; i < n * n; i++) {
+      const d = document.createElement('div');
+      d.className = 'cell' + (((Math.floor(i / n) + i) % 2) ? ' alt' : '');
+      board.appendChild(d); cells.push(d);
+    }
+  }
+
+  function lerpColor(t) {
+    const a = [255, 138, 31], b = [232, 51, 109];
+    return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+  }
+
+  function render() {
+    const n = puz.n, on = new Set(path);
+    cells.forEach((c, i) => c.classList.toggle('on', on.has(i)));
+    const ctr = (i) => [(i % n) + 0.5, Math.floor(i / n) + 0.5];
+    let s = `<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient></defs>`;
+    overlay.setAttribute('viewBox', `0 0 ${n} ${n}`);
+    // path segments, coloured along their length
+    for (let k = 1; k < path.length; k++) {
+      const [x1, y1] = ctr(path[k - 1]), [x2, y2] = ctr(path[k]);
+      s += `<line class="seg" style="--i:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${lerpColor(k / (n * n - 1))}" stroke-width="0.4" stroke-linecap="round"/>`;
+    }
+    if (path.length) {
+      const [hx, hy] = ctr(path[path.length - 1]);
+      s += `<circle cx="${hx}" cy="${hy}" r="0.2" fill="${lerpColor((path.length - 1) / (n * n - 1))}"/>`;
+    }
+    // walls
+    for (const key of puz.walls) {
+      const [a, b] = key.split('-').map(Number);
+      const ra = Math.floor(a / n), ca = a % n;
+      const ln = b - a === 1 ? [ca + 1, ra, ca + 1, ra + 1] : [ca, ra + 1, ca + 1, ra + 1];
+      s += `<line class="wall" x1="${ln[0]}" y1="${ln[1]}" x2="${ln[2]}" y2="${ln[3]}" stroke-width="0.09"/>`;
+    }
+    // checkpoints
+    const reached = reachedCount();
+    for (const [cell, k] of Object.entries(puz.nums)) {
+      const [x, y] = ctr(+cell);
+      s += `<g class="node${k <= reached ? ' done' : ''}" style="--i:${Math.max(0, path.indexOf(+cell))}"><circle cx="${x}" cy="${y}" r="0.3"/><text x="${x}" y="${y + 0.01}" font-size="0.32">${k}</text></g>`;
+    }
+    const party = won && celebrate && !reducedMotion();
+    const step = Math.max(18, Math.min(60, 1500 / path.length));
+    const run = Math.round(step * path.length);
+    if (party) {
+      s += `<polyline class="pulse" pathLength="1" points="${path.map((c) => ctr(c).join(',')).join(' ')}"/>`;
+      const [ex, ey] = ctr(path[path.length - 1]);
+      s += `<circle class="ring" cx="${ex}" cy="${ey}" r="0.3"/>`;
+      for (let k = 0; k < 20; k++) {
+        const a = (k / 20) * Math.PI * 2 + Math.random() * 0.3, d = 1 + Math.random() * 1.4;
+        s += `<circle class="spark" cx="${ex}" cy="${ey}" r="${(0.07 + Math.random() * 0.07).toFixed(3)}" fill="${lerpColor(k / 19)}" style="--dx:${(Math.cos(a) * d).toFixed(2)}px;--dy:${(Math.sin(a) * d).toFixed(2)}px"/>`;
+      }
+    }
+    overlay.innerHTML = s;
+    wrap.classList.toggle('won', won);
+    wrap.style.setProperty('--step', step + 'ms');
+    wrap.style.setProperty('--run', run + 'ms');
+    if (party) { path.forEach((c, i) => cells[c].style.setProperty('--i', i)); wrap.classList.add('celebrate'); }
+    $('undo').disabled = won || !path.length;
+    $('clear').disabled = won || !path.length;
+    $('hint').disabled = won;
+    $('timer').textContent = fmt(elapsed);
+    const old = wrap.querySelector('.win'); if (old) old.remove();
+    clearTimeout(celebrateTimer);
+    if (won && party) {
+      celebrate = false;
+      celebrateTimer = setTimeout(() => { showWin(); }, run + 650);
+    } else if (won) showWin();
+  }
+
+  function reachedCount() {
+    let r = 0;
+    for (const c of path) { const k = puz.nums[c]; if (k) r = k; }
+    return r;
+  }
+
+  function showWin() {
+    const best = store.get('best:' + size, null);
+    const div = document.createElement('div');
+    div.className = 'win';
+    div.innerHTML = `<div><h2>Solved</h2><p>${size}×${size} in ${fmt(elapsed)}${best && mode === 'practice' ? ' · best ' + fmt(best) : ''}</p></div><button>${mode === 'daily' ? 'Play practice' : 'Next puzzle'}</button>`;
+    div.querySelector('button').onclick = nextPuzzle;
+    wrap.appendChild(div);
+  }
+
+  function nextPuzzle() {
+    if (mode === 'daily') { mode = 'practice'; store.set('mode', mode); }
+    practiceSeed = Math.floor(Math.random() * 1e9);
+    load();
+  }
+
+  function tick() { elapsed = Date.now() - startTime; $('timer').textContent = fmt(elapsed); }
+  function startTimer() {
+    if (startTime || won) return;
+    startTime = Date.now() - elapsed;
+    timerId = setInterval(tick, 250);
+  }
+
+  function canStep(from, to) {
+    if (!E.neighbors(puz.n, from).includes(to)) return false;
+    if (puz.walls.has(E.wallKey(from, to))) return false;
+    if (path.includes(to)) return false;
+    const k = puz.nums[to];
+    if (k && k !== reachedCount() + 1) return false;
+    return true;
+  }
+
+  // Try to move the head to `cell`. Returns true if the path changed.
+  function moveTo(cell) {
+    if (won) return false;
+    if (!path.length) {
+      if (puz.nums[cell] === 1) { path.push(cell); startTimer(); hitFx(cell); return true; }
+      return false;
+    }
+    const head = path[path.length - 1];
+    if (cell === head) return false;
+    const at = path.indexOf(cell);
+    if (at >= 0) { path.length = at + 1; return true; }
+    if (canStep(head, cell)) { path.push(cell); checkWin(); if (puz.nums[cell] && !won) hitFx(cell); return true; }
+    return false;
+  }
+
+  // Pop, ring and sparks on a checkpoint the line just reached.
+  function hitFx(cell) {
+    if (reducedMotion()) return;
+    const fx = $('fx'), n = puz.n, ns = 'http://www.w3.org/2000/svg';
+    fx.setAttribute('viewBox', `0 0 ${n} ${n}`);
+    const x = (cell % n) + 0.5, y = Math.floor(cell / n) + 0.5;
+    const g = document.createElementNS(ns, 'g');
+    let h = `<circle class="hit-ring" cx="${x}" cy="${y}" r="0.32"/>`;
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2 + Math.random() * 0.4, d = 0.55 + Math.random() * 0.35;
+      h += `<circle class="hit-spark" cx="${x}" cy="${y}" r="0.055" fill="${lerpColor(k / 7)}" style="--dx:${(Math.cos(a) * d).toFixed(2)}px;--dy:${(Math.sin(a) * d).toFixed(2)}px"/>`;
+    }
+    h += `<g class="hit-node"><circle cx="${x}" cy="${y}" r="0.3" fill="url(#fxGrad)"/><text x="${x}" y="${y + 0.01}" font-size="0.32">${puz.nums[cell]}</text></g>`;
+    g.innerHTML = h;
+    fx.appendChild(g);
+    setTimeout(() => g.remove(), 700);
+  }
+
+  function checkWin() {
+    if (E.isSolved(puz, path)) {
+      won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
+      if (mode === 'daily') store.set('daily:' + today() + ':' + size, elapsed);
+      else { const b = store.get('best:' + size, null); if (!b || elapsed < b) store.set('best:' + size, elapsed); }
+    }
+  }
+
+  function cellAt(x, y) {
+    const r = board.getBoundingClientRect(), n = puz.n;
+    const c = Math.floor(((x - r.left) / r.width) * n), rr = Math.floor(((y - r.top) / r.height) * n);
+    if (c < 0 || rr < 0 || c >= n || rr >= n) return -1;
+    return rr * n + c;
+  }
+
+  // Step through intermediate cells when a fast drag skips over some.
+  function dragTo(cell) {
+    if (cell < 0) return false;
+    let changed = false;
+    for (let guard = 0; guard < 64; guard++) {
+      if (!path.length) return moveTo(cell) || changed;
+      const head = path[path.length - 1];
+      if (cell === head) break;
+      if (path.includes(cell) || E.neighbors(puz.n, head).includes(cell)) return moveTo(cell) || changed;
+      const n = puz.n, hr = Math.floor(head / n), hc = head % n, tr = Math.floor(cell / n), tc = cell % n;
+      const dr = tr - hr, dc = tc - hc;
+      const step = Math.abs(dr) >= Math.abs(dc) ? head + Math.sign(dr) * n : head + Math.sign(dc);
+      const alt = Math.abs(dr) >= Math.abs(dc) ? (dc ? head + Math.sign(dc) : -1) : (dr ? head + Math.sign(dr) * n : -1);
+      if (moveTo(step)) { changed = true; continue; }
+      if (alt >= 0 && moveTo(alt)) { changed = true; continue; }
+      break;
+    }
+    return changed;
+  }
+
+  let dragging = false;
+  board.addEventListener('pointerdown', (e) => {
+    if (won) return;
+    const cell = cellAt(e.clientX, e.clientY);
+    if (cell < 0) return;
+    if (!path.length && puz.nums[cell] !== 1) return;
+    dragging = true; board.setPointerCapture(e.pointerId);
+    if (path.length && !path.includes(cell)) { if (dragTo(cell)) render(); return; }
+    if (moveTo(cell)) render();
+  });
+  board.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    if (dragTo(cellAt(e.clientX, e.clientY))) render();
+  });
+  const end = () => { dragging = false; };
+  board.addEventListener('pointerup', end);
+  board.addEventListener('pointercancel', end);
+
+  board.addEventListener('keydown', (e) => {
+    if (won) return;
+    const n = puz.n;
+    const d = { ArrowUp: -n, ArrowDown: n, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+    if (d !== undefined) {
+      e.preventDefault();
+      if (!path.length) { const one = +Object.keys(puz.nums).find((c) => puz.nums[c] === 1); moveTo(one); render(); return; }
+      const head = path[path.length - 1];
+      const to = head + d;
+      if ((d === 1 && to % n === 0) || (d === -1 && head % n === 0) || to < 0 || to >= n * n) return;
+      if (moveTo(to)) render();
+    } else if (e.key === 'Backspace' || (e.key === 'z' && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault(); undo();
+    }
+  });
+
+  function undo() { if (!won && path.length) { path.pop(); render(); } }
+
+  function hint() {
+    if (won) return;
+    const sol = puz.solution;
+    let ok = 0;
+    while (ok < path.length && path[ok] === sol[ok]) ok++;
+    if (ok < path.length) { path.length = Math.max(ok, 0); }
+    const target = sol[path.length];
+    if (!path.length) { path.push(sol[0]); startTimer(); }
+    else path.push(target);
+    elapsed += 10000; // each hint costs ten seconds
+    if (startTime) startTime -= 10000;
+    checkWin(); render();
+    if (puz.nums[path[path.length - 1]] && !won) hitFx(path[path.length - 1]);
+    const c = cells[path[path.length - 1]];
+    c.classList.remove('hint'); void c.offsetWidth; c.classList.add('hint');
+  }
+
+  $('undo').onclick = undo;
+  $('clear').onclick = () => { if (!won) { path = []; render(); } };
+  $('hint').onclick = hint;
+  $('new').onclick = nextPuzzle;
+  $('mode-daily').onclick = () => { mode = 'daily'; store.set('mode', mode); load(); };
+  $('mode-practice').onclick = () => { mode = 'practice'; store.set('mode', mode); practiceSeed = Math.floor(Math.random() * 1e9); load(); };
+
+  window.__zap = { get puz() { return puz; }, get path() { return path; }, get won() { return won; } };
+  load();
+})();
+</script>

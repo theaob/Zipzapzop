@@ -1,0 +1,5 @@
+# Android build outputs and the locally generated debug signing key
+android/build/
+android/debug.keystore
+android/assets/index.html
+*.apk
