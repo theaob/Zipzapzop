@@ -1,4 +1,4 @@
-package com.zipzapzop.zap;
+package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.Intent;
