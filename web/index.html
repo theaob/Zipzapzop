@@ -179,6 +179,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .switch span.track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(10, 14, 30, 0.3); transition: transform 150ms; }
 .switch input:checked + span.track { background: var(--ok); }
 .switch input:checked + span.track::after { transform: translateX(20px); }
+.opt[hidden], .desc[hidden] { display: none; }
+.time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.time-row input { font: 600 1rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.time-row input:disabled { opacity: 0.5; }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
 </style>
 
@@ -247,6 +251,14 @@ button:disabled { opacity: 0.45; cursor: default; }
       <span class="txt"><b>High contrast</b><small>Darker grid lines and text, thicker walls, no checkerboard.</small></span>
       <input type="checkbox" id="opt-contrast"><span class="track" aria-hidden="true"></span>
     </label>
+    <div class="opt" id="reminder-opt" hidden>
+      <label class="switch" for="opt-reminder">
+        <span class="txt"><b>Daily reminder</b><small>A notification when today's challenges are ready. Skipped on days you've already solved all three.</small></span>
+        <input type="checkbox" id="opt-reminder"><span class="track" aria-hidden="true"></span>
+      </label>
+      <label class="time-row" for="opt-reminder-time"><span>Remind me at</span><input type="time" id="opt-reminder-time" value="09:00"></label>
+      <p class="desc" id="reminder-note" hidden></p>
+    </div>
     <label class="switch" for="opt-large">
       <span class="txt"><b>Larger text and numbers</b><small>Bigger labels, buttons and checkpoint numbers.</small></span>
       <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
@@ -765,7 +777,11 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
       announce(`Solved in ${fmt(elapsed)}`);
       if (mode === 'learn') { if (lesson === LESSONS.length - 1) store.set('tutorialDone', true); }
-      else if (mode === 'daily') { store.set(dailyKey(), elapsed); store.set('dailyhints:' + today() + ':' + dailyId, hintsUsed); buildSizes(); }
+      else if (mode === 'daily') {
+        store.set(dailyKey(), elapsed); store.set('dailyhints:' + today() + ':' + dailyId, hintsUsed); buildSizes();
+        const bridge = window.ZipZapZopAndroid;
+        if (!nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
+      }
     }
   }
 
@@ -893,6 +909,31 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   sheet.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', () => { a11y[r.name] = r.value; saveA11y(); }));
   $('opt-contrast').onchange = (e) => { a11y.contrast = e.target.checked; saveA11y(); };
   $('opt-large').onchange = (e) => { a11y.large = e.target.checked; saveA11y(); };
+
+  // Daily reminder: only in the Android app, which schedules a local notification.
+  const bridge = window.ZipZapZopAndroid;
+  const reminder = Object.assign({ on: false, time: '09:00' }, store.get('reminder', {}));
+  function syncReminderUi() {
+    $('opt-reminder').checked = reminder.on;
+    $('opt-reminder-time').value = reminder.time;
+    $('opt-reminder-time').disabled = !reminder.on;
+  }
+  function saveReminder() {
+    store.set('reminder', reminder); syncReminderUi();
+    const [h, m] = reminder.time.split(':').map(Number);
+    bridge.setReminder(reminder.on, h, m);
+  }
+  if (bridge && bridge.setReminder) {
+    $('reminder-opt').hidden = false;
+    syncReminderUi();
+    $('opt-reminder').onchange = (e) => { reminder.on = e.target.checked; saveReminder(); };
+    $('opt-reminder-time').onchange = (e) => { if (e.target.value) { reminder.time = e.target.value; saveReminder(); } };
+    window.zzzReminderDenied = () => {
+      reminder.on = false; store.set('reminder', reminder); syncReminderUi();
+      $('reminder-note').textContent = 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.';
+      $('reminder-note').hidden = false;
+    };
+  }
   if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', applyA11y);
   applyA11y();
 

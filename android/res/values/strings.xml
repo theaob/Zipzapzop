@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ZipZapZop</string>
+    <string name="reminder_channel">Daily challenge reminder</string>
+    <string name="reminder_title">Today\'s challenges are ready</string>
+    <string name="reminder_text">Easy, Medium and Hard are waiting. Keep your streak going.</string>
 </resources>
