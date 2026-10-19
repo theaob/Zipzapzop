@@ -156,7 +156,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     <button id="new" class="primary">New puzzle</button>
   </div>
 
-  <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it. Keyboard: arrow keys extend the line, Backspace undoes.</p>
+  <p class="rules">Start on <b>1</b> and drag one continuous line through <b>every cell</b>, passing the numbers in order and finishing on the highest one. Thick bars are <b>walls</b> you can't cross. Drag back over the line to erase it, back as far as the last number you reached. Keyboard: arrow keys extend the line, Backspace undoes.</p>
 </div>
 
 <script>
@@ -443,7 +443,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     wrap.style.setProperty('--step', step + 'ms');
     wrap.style.setProperty('--run', run + 'ms');
     if (party) { path.forEach((c, i) => cells[c].style.setProperty('--i', i)); wrap.classList.add('celebrate'); }
-    $('undo').disabled = won || !path.length;
+    $('undo').disabled = won || path.length - 1 <= lockIndex();
     $('clear').disabled = won || !path.length;
     $('hint').disabled = won;
     $('timer').textContent = fmt(elapsed);
@@ -453,6 +453,12 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       celebrate = false;
       celebrateTimer = setTimeout(() => { showWin(); }, run + 650);
     } else if (won) showWin();
+  }
+
+  // Index of the last number the line has reached. Erasing never goes back past it.
+  function lockIndex() {
+    for (let i = path.length - 1; i >= 0; i--) if (puz.nums[path[i]]) return i;
+    return -1;
   }
 
   function reachedCount() {
@@ -502,7 +508,11 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     const head = path[path.length - 1];
     if (cell === head) return false;
     const at = path.indexOf(cell);
-    if (at >= 0) { path.length = at + 1; return true; }
+    if (at >= 0) {
+      const keep = Math.max(at, lockIndex()) + 1;
+      if (keep === path.length) return false;
+      path.length = keep; return true;
+    }
     if (canStep(head, cell)) { path.push(cell); checkWin(); if (puz.nums[cell] && !won) hitFx(cell); return true; }
     return false;
   }
@@ -594,7 +604,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
   });
 
-  function undo() { if (!won && path.length) { path.pop(); render(); } }
+  function undo() { if (!won && path.length - 1 > lockIndex()) { path.pop(); render(); } }
 
   function hint() {
     if (won) return;
