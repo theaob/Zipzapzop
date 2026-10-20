@@ -54,6 +54,11 @@ public class MainActivity extends Activity {
         money = new Monetization(this, new Runnable() {
             @Override
             public void run() { pushAdsState(); }
+        }, new HintAdListener() {
+            @Override
+            public void hintAd(String result) {
+                web.evaluateJavascript("window.zzzHintAd && window.zzzHintAd('" + result + "')", null);
+            }
         });
         adsState = money.stateJson();
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
@@ -102,7 +107,7 @@ public class MainActivity extends Activity {
     }
 
     // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
-    // ads plus the remove-ads purchase, and analytics.
+    // ads (rewarded ones for extra hints) plus the remove-ads purchase, and analytics.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -118,6 +123,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void puzzleFinished(final String mode) {
             onUi(new Runnable() { @Override public void run() { money.puzzleFinished(mode); } });
+        }
+
+        @JavascriptInterface
+        public void watchHintAd() {
+            onUi(new Runnable() { @Override public void run() { money.watchHintAd(); } });
         }
 
         @JavascriptInterface
