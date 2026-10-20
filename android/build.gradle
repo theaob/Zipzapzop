@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId 'com.onurbaykal.zipzapzop'
-        minSdk 23
+        minSdk 24
         targetSdk 36
         versionCode((prop('versionCode', 'VERSION_CODE') ?: '1') as int)
         versionName '1.0'
