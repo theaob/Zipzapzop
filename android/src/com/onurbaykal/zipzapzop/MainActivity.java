@@ -6,10 +6,12 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowInsets;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 // Hosts the ZipZapZop web game, bundled under assets/, in a full-screen WebView.
 public class MainActivity extends Activity {
@@ -17,6 +19,8 @@ public class MainActivity extends Activity {
     private static final int REQ_NOTIFY = 1;
     private WebView web;
     private int pendingHour, pendingMinute;
+    private Monetization money;
+    private volatile String adsState; // read by the page from the JavaScript thread
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +35,43 @@ public class MainActivity extends Activity {
         s.setTextZoom(100);
         web.setWebViewClient(new WebViewClient());
         web.addJavascriptInterface(new Bridge(), "ZipZapZopAndroid");
-        setContentView(web);
+        // From targetSdk 35 the app draws behind the system bars; pad the game clear of them.
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(getResources().getColor(R.color.bg));
+        root.addView(web);
+        root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+                return insets.consumeSystemWindowInsets();
+            }
+        });
+        setContentView(root);
+        money = new Monetization(this, new Runnable() {
+            @Override
+            public void run() { pushAdsState(); }
+        });
+        adsState = money.stateJson();
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
+        money.start();
     }
+
+    // Sends the ads/purchase state to the page's settings sheet. Main thread only.
+    private void pushAdsState() {
+        adsState = money.stateJson();
+        web.evaluateJavascript("window.zzzAdsState && window.zzzAdsState(" + adsState + ")", null);
+    }
+
+    @Override
+    protected void onDestroy() {
+        money.destroy();
+        super.onDestroy();
+    }
+
+    private void onUi(Runnable r) { runOnUiThread(r); }
 
     // Turning the reminder on asks for the notification permission first on Android 13+.
     private void setReminder(boolean on, int hour, int minute) {
@@ -61,7 +97,8 @@ public class MainActivity extends Activity {
         web.saveState(out);
     }
 
-    // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API) and the daily reminder.
+    // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
+    // and ads plus the remove-ads purchase.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -69,6 +106,29 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() { MainActivity.this.setReminder(on, hour, minute); }
             });
+        }
+
+        @JavascriptInterface
+        public String adsState() { return adsState; }
+
+        @JavascriptInterface
+        public void puzzleFinished(final String mode) {
+            onUi(new Runnable() { @Override public void run() { money.puzzleFinished(mode); } });
+        }
+
+        @JavascriptInterface
+        public void buyRemoveAds() {
+            onUi(new Runnable() { @Override public void run() { money.buyRemoveAds(); } });
+        }
+
+        @JavascriptInterface
+        public void restorePurchase() {
+            onUi(new Runnable() { @Override public void run() { money.restore(); } });
+        }
+
+        @JavascriptInterface
+        public void privacyOptions() {
+            onUi(new Runnable() { @Override public void run() { money.showPrivacyOptions(); } });
         }
 
         @JavascriptInterface

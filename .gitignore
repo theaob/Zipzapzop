@@ -3,3 +3,6 @@ android/build/
 android/debug.keystore
 android/assets/index.html
 *.apk
+*.aab
+android/.gradle/
+android/local.properties

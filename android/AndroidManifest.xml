@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.onurbaykal.zipzapzop"
-    android:versionCode="1"
-    android:versionName="1.0">
-
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="34" />
+<!-- Gradle sets the package (namespace), SDK levels and version from build.gradle.
+     build-apk.sh fills those in itself for the local, ad-free debug build. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Daily challenge reminder (local only): post it, and re-arm it after a reboot. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Ads and Play purchases. The AdMob and Billing libraries add AD_ID and BILLING themselves. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
         android:theme="@style/ZapTheme">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
