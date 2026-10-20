@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel">Erinnerung an die Tagesrätsel</string>
+    <string name="reminder_title">Die heutigen Rätsel sind da</string>
+    <string name="reminder_text">Leicht, Mittel und Schwer warten. Halte deine Serie am Laufen.</string>
+</resources>

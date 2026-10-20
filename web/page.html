@@ -189,6 +189,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; }
 .time-row input { font: 600 1rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .time-row input:disabled { opacity: 0.5; }
+.lang-row select { font: 600 0.95rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .ads-txt { display: flex; flex-direction: column; gap: 2px; }
 .ads-txt b { font-weight: 600; }
 .ads-txt small { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
@@ -205,15 +206,15 @@ button:disabled { opacity: 0.45; cursor: default; }
   <header>
     <div>
       <h1>Zip<span>Zap</span>Zop</h1>
-      <div class="tag">One line. Every cell. Numbers in order.</div>
+      <div class="tag" data-i18n="tag">One line. Every cell. Numbers in order.</div>
     </div>
     <div class="head-actions">
-      <div class="modes" role="group" aria-label="Mode">
-        <button id="mode-daily" aria-pressed="true">Daily</button>
-        <button id="mode-ladder" aria-pressed="false">Ladder</button>
-        <button id="mode-learn" aria-pressed="false">Learn</button>
+      <div class="modes" role="group" aria-label="Mode" data-i18n-aria="mode_group">
+        <button id="mode-daily" aria-pressed="true" data-i18n="daily">Daily</button>
+        <button id="mode-ladder" aria-pressed="false" data-i18n="ladder">Ladder</button>
+        <button id="mode-learn" aria-pressed="false" data-i18n="learn">Learn</button>
       </div>
-      <button class="icon-btn" id="a11y-open" aria-label="Settings" aria-haspopup="dialog" title="Settings">
+      <button class="icon-btn" id="a11y-open" aria-label="Settings" aria-haspopup="dialog" title="Settings" data-i18n-aria="settings" data-i18n-title="settings">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
@@ -222,21 +223,21 @@ button:disabled { opacity: 0.45; cursor: default; }
   <div class="lesson" id="lesson" aria-live="polite" hidden><small id="lesson-step"></small><p id="lesson-text"></p></div>
 
   <div class="bar">
-    <div class="sizes" role="group" aria-label="Daily difficulty" id="sizes"></div>
+    <div class="sizes" role="group" aria-label="Daily difficulty" data-i18n-aria="difficulty_group" id="sizes"></div>
     <div class="meta"><span id="label"></span><span><b id="timer">0:00</b></span></div>
   </div>
 
   <div class="board-wrap" id="boardWrap">
-    <div class="board" id="board" tabindex="0" aria-label="Puzzle grid. Drag to draw, or use arrow keys from the head of the line."></div>
+    <div class="board" id="board" tabindex="0" aria-label="Puzzle grid. Drag to draw, or use arrow keys from the head of the line." data-i18n-aria="board_label"></div>
     <svg class="overlay" id="overlay" aria-hidden="true"></svg>
     <svg class="overlay fx" id="fx" aria-hidden="true"><defs><linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient></defs></svg>
   </div>
 
   <div class="controls">
-    <button id="undo">Undo</button>
-    <button id="hint">Hint</button>
-    <button id="clear">Clear</button>
-    <button id="new" class="primary">New puzzle</button>
+    <button id="undo" data-i18n="undo">Undo</button>
+    <button id="hint" data-i18n="hint">Hint</button>
+    <button id="clear" data-i18n="clear">Clear</button>
+    <button id="new" class="primary" data-i18n="new_puzzle">New puzzle</button>
   </div>
 
   <div class="sr-only" id="announce" aria-live="polite"></div>
@@ -244,46 +245,47 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 <div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
   <div class="sheet-card">
-    <div class="sheet-head"><h2 id="a11y-title">Settings</h2><button id="a11y-close">Done</button></div>
+    <div class="sheet-head"><h2 id="a11y-title" data-i18n="settings">Settings</h2><button id="a11y-close" data-i18n="done">Done</button></div>
+    <label class="time-row lang-row" for="opt-lang"><span data-i18n="language">Language</span><select id="opt-lang"></select></label>
     <fieldset class="opt">
-      <legend>Motion</legend>
-      <p class="desc">Animations when the line reaches a number and when you finish a puzzle. <span id="motion-note"></span></p>
+      <legend data-i18n="motion">Motion</legend>
+      <p class="desc"><span data-i18n="motion_desc">Animations when the line reaches a number and when you finish a puzzle.</span> <span id="motion-note"></span></p>
       <div class="seg">
-        <label><input type="radio" name="motion" value="system" id="motion-system"><span>Device</span></label>
-        <label><input type="radio" name="motion" value="on" id="motion-on"><span>On</span></label>
-        <label><input type="radio" name="motion" value="off" id="motion-off"><span>Off</span></label>
+        <label><input type="radio" name="motion" value="system" id="motion-system"><span data-i18n="device">Device</span></label>
+        <label><input type="radio" name="motion" value="on" id="motion-on"><span data-i18n="on">On</span></label>
+        <label><input type="radio" name="motion" value="off" id="motion-off"><span data-i18n="off">Off</span></label>
       </div>
     </fieldset>
     <fieldset class="opt">
-      <legend>Theme</legend>
+      <legend data-i18n="theme">Theme</legend>
       <div class="seg">
-        <label><input type="radio" name="theme" value="system" id="theme-system"><span>Device</span></label>
-        <label><input type="radio" name="theme" value="light" id="theme-light"><span>Light</span></label>
-        <label><input type="radio" name="theme" value="dark" id="theme-dark"><span>Dark</span></label>
+        <label><input type="radio" name="theme" value="system" id="theme-system"><span data-i18n="device">Device</span></label>
+        <label><input type="radio" name="theme" value="light" id="theme-light"><span data-i18n="light">Light</span></label>
+        <label><input type="radio" name="theme" value="dark" id="theme-dark"><span data-i18n="dark">Dark</span></label>
       </div>
     </fieldset>
     <label class="switch" for="opt-contrast">
-      <span class="txt"><b>High contrast</b><small>Darker grid lines and text, thicker walls, no checkerboard.</small></span>
+      <span class="txt"><b data-i18n="contrast">High contrast</b><small data-i18n="contrast_desc">Darker grid lines and text, thicker walls, no checkerboard.</small></span>
       <input type="checkbox" id="opt-contrast"><span class="track" aria-hidden="true"></span>
     </label>
     <div class="opt" id="reminder-opt" hidden>
       <label class="switch" for="opt-reminder">
-        <span class="txt"><b>Daily reminder</b><small>A notification when today's challenges are ready. Skipped on days you've already solved all three.</small></span>
+        <span class="txt"><b data-i18n="reminder">Daily reminder</b><small data-i18n="reminder_desc">A notification when today's challenges are ready. Skipped on days you've already solved all three.</small></span>
         <input type="checkbox" id="opt-reminder"><span class="track" aria-hidden="true"></span>
       </label>
-      <label class="time-row" for="opt-reminder-time"><span>Remind me at</span><input type="time" id="opt-reminder-time" value="09:00"></label>
+      <label class="time-row" for="opt-reminder-time"><span data-i18n="remind_at">Remind me at</span><input type="time" id="opt-reminder-time" value="09:00"></label>
       <p class="desc" id="reminder-note" hidden></p>
     </div>
     <div class="opt" id="ads-opt" hidden>
-      <div class="ads-txt"><b>Remove ads</b><small id="ads-desc">One purchase turns off ads between puzzles for good.</small></div>
+      <div class="ads-txt"><b data-i18n="remove_ads">Remove ads</b><small id="ads-desc">One purchase turns off ads between puzzles for good.</small></div>
       <div class="ads-row">
         <button id="ads-buy">Remove ads</button>
-        <button id="ads-restore" class="link">Restore purchase</button>
-        <button id="ads-privacy" class="link" hidden>Privacy choices</button>
+        <button id="ads-restore" class="link" data-i18n="restore">Restore purchase</button>
+        <button id="ads-privacy" class="link" hidden data-i18n="privacy">Privacy choices</button>
       </div>
     </div>
     <label class="switch" for="opt-large">
-      <span class="txt"><b>Larger text and numbers</b><small>Bigger labels, buttons and checkpoint numbers.</small></span>
+      <span class="txt"><b data-i18n="large">Larger text and numbers</b><small data-i18n="large_desc">Bigger labels, buttons and checkpoint numbers.</small></span>
       <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
     </label>
   </div>
@@ -309,9 +311,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
   // Three daily challenges, the same for everyone on a given date.
   const DAILY = [
-    { id: 'easy', label: 'Easy', n: 5, opts: { clues: 1.3 } },
-    { id: 'medium', label: 'Medium', n: 6, opts: { clues: 0.9 } },
-    { id: 'hard', label: 'Hard', n: 7, opts: { clues: 0.5, walls: 2 } },
+    { id: 'easy', n: 5, opts: { clues: 1.3 } },
+    { id: 'medium', n: 6, opts: { clues: 0.9 } },
+    { id: 'hard', n: 7, opts: { clues: 0.5, walls: 2 } },
   ];
   // Ladder: endless numbered levels. The grid grows in bands, and within a band
   // each level starts with fewer numbers and more walls. Level N is the same for everyone.
@@ -334,16 +336,261 @@ button:disabled { opacity: 0.45; cursor: default; }
     set(k, v) { try { localStorage.setItem('zap:' + k, JSON.stringify(v)); } catch {} },
   };
 
+  // Interface text in every supported language. {name} placeholders are filled by t().
+  // English is the fallback for any missing key.
+  const LANGS = { en: 'English', tr: 'Türkçe', es: 'Español', de: 'Deutsch', fr: 'Français', pt: 'Português' };
+  const STRINGS = {
+    en: {
+      tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
+      settings: 'Settings', done: 'Done', difficulty_group: 'Daily difficulty',
+      board_label: 'Puzzle grid. Drag to draw, or use arrow keys from the head of the line.',
+      undo: 'Undo', hint: 'Hint', clear: 'Clear', tap_again: 'Tap again', new_puzzle: 'New puzzle',
+      language: 'Language', language_device: 'Device language',
+      motion: 'Motion', motion_desc: 'Animations when the line reaches a number and when you finish a puzzle.',
+      motion_note: 'Your device is set to reduce motion.', device: 'Device', on: 'On', off: 'Off',
+      theme: 'Theme', light: 'Light', dark: 'Dark',
+      contrast: 'High contrast', contrast_desc: 'Darker grid lines and text, thicker walls, no checkerboard.',
+      reminder: 'Daily reminder', reminder_desc: "A notification when today's challenges are ready. Skipped on days you've already solved all three.",
+      remind_at: 'Remind me at', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
+      remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase turns off ads between puzzles for good.',
+      ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices',
+      large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
+      easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved',
+      lesson1: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.',
+      lesson2: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. If you let go, the line snaps back to the last number you reached.',
+      lesson3: "Thick bars are <b>walls</b>. Your line can't cross them.",
+      lesson4: 'Now all together: numbers in order, around the walls, through every square.',
+      lesson_step: 'Lesson {n} of {total}', how_to_play: 'How to play', level_size: 'Level {level} · {size}×{size}',
+      win_ready: "You're ready", win_nice: 'Nice', lesson_done: 'Lesson {n} of {total} done',
+      play_today: "Play today's puzzle", next_lesson: 'Next lesson',
+      solved: 'Solved', solved_in: '{what} in {time}', level: 'Level {level}', play_x: 'Play {label}', play_ladder: 'Play ladder', share: 'Share',
+      share_daily: 'Daily {date} · {label}', share_ladder: 'Ladder · Level {level}', share_line: 'Solved in {time} with {hints}',
+      hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
+      missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
+      msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
+      msg_billing_unavailable: "Google Play purchases aren't available on this device or account.",
+      msg_no_connection: "Couldn't reach Google Play. Check your connection and try again.",
+      msg_purchase_screen: "Couldn't open the Google Play purchase screen. Try again later.",
+      msg_purchase_failed: "The purchase didn't go through.",
+      msg_pending: 'Your purchase is pending. Ads turn off once it completes.',
+      msg_restored: 'Purchase restored. Ads are off.',
+      msg_no_purchase: 'No purchase found for this Google account.',
+      msg_play_unreachable: "Couldn't reach Google Play. Try again later.",
+    },
+    tr: {
+      tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
+      settings: 'Ayarlar', done: 'Tamam', difficulty_group: 'Günlük zorluk',
+      board_label: 'Bulmaca ızgarası. Çizmek için sürükleyin veya çizginin ucundan ok tuşlarını kullanın.',
+      undo: 'Geri al', hint: 'İpucu', clear: 'Temizle', tap_again: 'Tekrar dokun', new_puzzle: 'Yeni bulmaca',
+      language: 'Dil', language_device: 'Cihaz dili',
+      motion: 'Hareket', motion_desc: 'Çizgi bir sayıya ulaştığında ve bulmacayı bitirdiğinizde animasyonlar.',
+      motion_note: 'Cihazınız hareketi azaltacak şekilde ayarlı.', device: 'Cihaz', on: 'Açık', off: 'Kapalı',
+      theme: 'Tema', light: 'Açık', dark: 'Koyu',
+      contrast: 'Yüksek kontrast', contrast_desc: 'Daha koyu ızgara çizgileri ve yazılar, kalın duvarlar, dama deseni yok.',
+      reminder: 'Günlük hatırlatıcı', reminder_desc: 'Bugünün bulmacaları hazır olduğunda bir bildirim. Üçünü de çözdüğünüz günlerde gönderilmez.',
+      remind_at: 'Hatırlatma saati', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
+      remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, bulmacalar arasındaki reklamları kalıcı olarak kapatır.',
+      ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri',
+      large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
+      easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü',
+      lesson1: '<b>1</b>\'den <b>2</b>\'ye sürükleyin, ama yol boyunca <b>her kareden</b> geçin. Noktalar doldurulmamış kareleri gösterir.',
+      lesson2: 'Sayılardan <b>sırayla</b> geçin: önce 1, sonra 2, sonra 3. Parmağınızı kaldırırsanız çizgi ulaştığınız son sayıya geri döner.',
+      lesson3: 'Kalın çubuklar <b>duvardır</b>. Çizginiz onları geçemez.',
+      lesson4: 'Şimdi hepsi bir arada: sayılar sırayla, duvarların etrafından, her kareden geçerek.',
+      lesson_step: 'Ders {n} / {total}', how_to_play: 'Nasıl oynanır', level_size: 'Seviye {level} · {size}×{size}',
+      win_ready: 'Hazırsınız', win_nice: 'Harika', lesson_done: 'Ders {n} / {total} tamamlandı',
+      play_today: 'Bugünün bulmacasını oyna', next_lesson: 'Sonraki ders',
+      solved: 'Çözüldü', solved_in: '{what}: {time}', level: 'Seviye {level}', play_x: 'Sıradaki: {label}', play_ladder: 'Merdivene geç', share: 'Paylaş',
+      share_daily: 'Günlük {date} · {label}', share_ladder: 'Merdiven · Seviye {level}', share_line: '{time} sürede çözüldü, {hints}',
+      hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
+      missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
+      msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
+      msg_billing_unavailable: 'Bu cihazda veya hesapta Google Play satın almaları kullanılamıyor.',
+      msg_no_connection: 'Google Play\'e ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.',
+      msg_purchase_screen: 'Google Play satın alma ekranı açılamadı. Daha sonra tekrar deneyin.',
+      msg_purchase_failed: 'Satın alma tamamlanamadı.',
+      msg_pending: 'Satın alma işleminiz beklemede. Tamamlandığında reklamlar kapanır.',
+      msg_restored: 'Satın alma geri yüklendi. Reklamlar kapalı.',
+      msg_no_purchase: 'Bu Google hesabında satın alma bulunamadı.',
+      msg_play_unreachable: 'Google Play\'e ulaşılamadı. Daha sonra tekrar deneyin.',
+    },
+    es: {
+      tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
+      settings: 'Ajustes', done: 'Listo', difficulty_group: 'Dificultad diaria',
+      board_label: 'Tablero del puzle. Arrastra para dibujar o usa las flechas desde el extremo de la línea.',
+      undo: 'Deshacer', hint: 'Pista', clear: 'Borrar', tap_again: 'Toca otra vez', new_puzzle: 'Nuevo puzle',
+      language: 'Idioma', language_device: 'Idioma del dispositivo',
+      motion: 'Movimiento', motion_desc: 'Animaciones cuando la línea llega a un número y cuando terminas un puzle.',
+      motion_note: 'Tu dispositivo tiene activada la reducción de movimiento.', device: 'Dispositivo', on: 'Sí', off: 'No',
+      theme: 'Tema', light: 'Claro', dark: 'Oscuro',
+      contrast: 'Alto contraste', contrast_desc: 'Líneas y texto más oscuros, muros más gruesos, sin tablero de ajedrez.',
+      reminder: 'Recordatorio diario', reminder_desc: 'Una notificación cuando los retos de hoy estén listos. Se omite los días en que ya resolviste los tres.',
+      remind_at: 'Recordarme a las', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
+      remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra elimina para siempre los anuncios entre puzles.',
+      ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad',
+      large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
+      easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto',
+      lesson1: 'Arrastra del <b>1</b> al <b>2</b>, pero pasa por <b>todas las casillas</b>. Los puntos marcan las casillas que faltan.',
+      lesson2: 'Pasa por los números <b>en orden</b>: 1, luego 2, luego 3. Si sueltas, la línea vuelve al último número alcanzado.',
+      lesson3: 'Las barras gruesas son <b>muros</b>. Tu línea no puede cruzarlos.',
+      lesson4: 'Ahora todo junto: números en orden, rodeando los muros, por todas las casillas.',
+      lesson_step: 'Lección {n} de {total}', how_to_play: 'Cómo jugar', level_size: 'Nivel {level} · {size}×{size}',
+      win_ready: '¡Ya sabes jugar!', win_nice: '¡Bien!', lesson_done: 'Lección {n} de {total} completada',
+      play_today: 'Jugar el puzle de hoy', next_lesson: 'Siguiente lección',
+      solved: 'Resuelto', solved_in: '{what} en {time}', level: 'Nivel {level}', play_x: 'Jugar {label}', play_ladder: 'Jugar escalera', share: 'Compartir',
+      share_daily: 'Diario {date} · {label}', share_ladder: 'Escalera · Nivel {level}', share_line: 'Resuelto en {time} con {hints}',
+      hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
+      missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
+      msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
+      msg_billing_unavailable: 'Las compras de Google Play no están disponibles en este dispositivo o cuenta.',
+      msg_no_connection: 'No se pudo conectar con Google Play. Revisa tu conexión e inténtalo de nuevo.',
+      msg_purchase_screen: 'No se pudo abrir la pantalla de compra de Google Play. Inténtalo más tarde.',
+      msg_purchase_failed: 'La compra no se completó.',
+      msg_pending: 'Tu compra está pendiente. Los anuncios se quitarán cuando se complete.',
+      msg_restored: 'Compra restaurada. Anuncios desactivados.',
+      msg_no_purchase: 'No se encontró ninguna compra en esta cuenta de Google.',
+      msg_play_unreachable: 'No se pudo conectar con Google Play. Inténtalo más tarde.',
+    },
+    de: {
+      tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
+      settings: 'Einstellungen', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
+      board_label: 'Rätselgitter. Zum Zeichnen ziehen oder vom Ende der Linie aus die Pfeiltasten nutzen.',
+      undo: 'Zurück', hint: 'Tipp', clear: 'Löschen', tap_again: 'Nochmal tippen', new_puzzle: 'Neues Rätsel',
+      language: 'Sprache', language_device: 'Gerätesprache',
+      motion: 'Bewegung', motion_desc: 'Animationen, wenn die Linie eine Zahl erreicht und wenn du ein Rätsel löst.',
+      motion_note: 'Auf deinem Gerät ist „Bewegung reduzieren“ aktiviert.', device: 'Gerät', on: 'An', off: 'Aus',
+      theme: 'Design', light: 'Hell', dark: 'Dunkel',
+      contrast: 'Hoher Kontrast', contrast_desc: 'Dunklere Linien und Texte, dickere Wände, kein Schachbrettmuster.',
+      reminder: 'Tägliche Erinnerung', reminder_desc: 'Eine Benachrichtigung, wenn die heutigen Rätsel bereit sind. Entfällt an Tagen, an denen du alle drei gelöst hast.',
+      remind_at: 'Erinnern um', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
+      remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf entfernt die Werbung zwischen Rätseln für immer.',
+      ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen',
+      large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
+      easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst',
+      lesson1: 'Ziehe von <b>1</b> nach <b>2</b>, aber durch <b>jedes Feld</b>. Die Punkte zeigen Felder, die noch fehlen.',
+      lesson2: 'Erreiche die Zahlen <b>der Reihe nach</b>: 1, dann 2, dann 3. Lässt du los, springt die Linie zur zuletzt erreichten Zahl zurück.',
+      lesson3: 'Dicke Balken sind <b>Wände</b>. Deine Linie kann sie nicht überqueren.',
+      lesson4: 'Jetzt alles zusammen: Zahlen der Reihe nach, um die Wände herum, durch jedes Feld.',
+      lesson_step: 'Lektion {n} von {total}', how_to_play: 'So wird gespielt', level_size: 'Stufe {level} · {size}×{size}',
+      win_ready: 'Du bist bereit', win_nice: 'Super', lesson_done: 'Lektion {n} von {total} geschafft',
+      play_today: 'Heutiges Rätsel spielen', next_lesson: 'Nächste Lektion',
+      solved: 'Gelöst', solved_in: '{what} in {time}', level: 'Stufe {level}', play_x: '{label} spielen', play_ladder: 'Leiter spielen', share: 'Teilen',
+      share_daily: 'Täglich {date} · {label}', share_ladder: 'Leiter · Stufe {level}', share_line: 'Gelöst in {time}, {hints}',
+      hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
+      missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
+      msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
+      msg_billing_unavailable: 'Google-Play-Käufe sind auf diesem Gerät oder Konto nicht verfügbar.',
+      msg_no_connection: 'Google Play ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.',
+      msg_purchase_screen: 'Der Google-Play-Kaufbildschirm konnte nicht geöffnet werden. Versuche es später erneut.',
+      msg_purchase_failed: 'Der Kauf wurde nicht abgeschlossen.',
+      msg_pending: 'Dein Kauf ist ausstehend. Die Werbung verschwindet, sobald er abgeschlossen ist.',
+      msg_restored: 'Kauf wiederhergestellt. Werbung ist aus.',
+      msg_no_purchase: 'Für dieses Google-Konto wurde kein Kauf gefunden.',
+      msg_play_unreachable: 'Google Play ist nicht erreichbar. Versuche es später erneut.',
+    },
+    fr: {
+      tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
+      settings: 'Réglages', done: 'OK', difficulty_group: 'Difficulté du jour',
+      board_label: 'Grille du puzzle. Faites glisser pour tracer, ou utilisez les flèches depuis le bout de la ligne.',
+      undo: 'Annuler', hint: 'Indice', clear: 'Effacer', tap_again: 'Touchez encore', new_puzzle: 'Nouveau puzzle',
+      language: 'Langue', language_device: 'Langue de l\'appareil',
+      motion: 'Animations', motion_desc: 'Animations quand la ligne atteint un nombre et quand vous terminez un puzzle.',
+      motion_note: 'Votre appareil est réglé pour réduire les animations.', device: 'Appareil', on: 'Oui', off: 'Non',
+      theme: 'Thème', light: 'Clair', dark: 'Sombre',
+      contrast: 'Contraste élevé', contrast_desc: 'Lignes et texte plus foncés, murs plus épais, sans damier.',
+      reminder: 'Rappel quotidien', reminder_desc: 'Une notification quand les défis du jour sont prêts. Ignoré les jours où vous avez déjà résolu les trois.',
+      remind_at: 'Me rappeler à', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
+      remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat supprime définitivement les pubs entre les puzzles.',
+      ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité',
+      large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
+      easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu',
+      lesson1: 'Allez du <b>1</b> au <b>2</b>, en passant par <b>toutes les cases</b>. Les points marquent les cases restantes.',
+      lesson2: 'Passez par les nombres <b>dans l\'ordre</b> : 1, puis 2, puis 3. Si vous lâchez, la ligne revient au dernier nombre atteint.',
+      lesson3: 'Les barres épaisses sont des <b>murs</b>. Votre ligne ne peut pas les traverser.',
+      lesson4: 'Maintenant tout ensemble : les nombres dans l\'ordre, autour des murs, par toutes les cases.',
+      lesson_step: 'Leçon {n} sur {total}', how_to_play: 'Comment jouer', level_size: 'Niveau {level} · {size}×{size}',
+      win_ready: 'Vous êtes prêt', win_nice: 'Bravo', lesson_done: 'Leçon {n} sur {total} terminée',
+      play_today: 'Jouer le puzzle du jour', next_lesson: 'Leçon suivante',
+      solved: 'Résolu', solved_in: '{what} en {time}', level: 'Niveau {level}', play_x: 'Jouer {label}', play_ladder: 'Jouer à l\'échelle', share: 'Partager',
+      share_daily: 'Du jour {date} · {label}', share_ladder: 'Échelle · Niveau {level}', share_line: 'Résolu en {time} avec {hints}',
+      hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
+      missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
+      msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
+      msg_billing_unavailable: 'Les achats Google Play ne sont pas disponibles sur cet appareil ou ce compte.',
+      msg_no_connection: 'Impossible de joindre Google Play. Vérifiez votre connexion et réessayez.',
+      msg_purchase_screen: 'Impossible d\'ouvrir l\'écran d\'achat Google Play. Réessayez plus tard.',
+      msg_purchase_failed: 'L\'achat n\'a pas abouti.',
+      msg_pending: 'Votre achat est en attente. Les pubs disparaîtront une fois l\'achat terminé.',
+      msg_restored: 'Achat restauré. Pubs désactivées.',
+      msg_no_purchase: 'Aucun achat trouvé pour ce compte Google.',
+      msg_play_unreachable: 'Impossible de joindre Google Play. Réessayez plus tard.',
+    },
+    pt: {
+      tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
+      settings: 'Configurações', done: 'OK', difficulty_group: 'Dificuldade diária',
+      board_label: 'Grade do quebra-cabeça. Arraste para desenhar ou use as setas a partir da ponta da linha.',
+      undo: 'Desfazer', hint: 'Dica', clear: 'Limpar', tap_again: 'Toque de novo', new_puzzle: 'Novo desafio',
+      language: 'Idioma', language_device: 'Idioma do aparelho',
+      motion: 'Movimento', motion_desc: 'Animações quando a linha chega a um número e quando você termina um desafio.',
+      motion_note: 'Seu aparelho está configurado para reduzir movimento.', device: 'Aparelho', on: 'Ligado', off: 'Desligado',
+      theme: 'Tema', light: 'Claro', dark: 'Escuro',
+      contrast: 'Alto contraste', contrast_desc: 'Linhas e textos mais escuros, paredes mais grossas, sem xadrez.',
+      reminder: 'Lembrete diário', reminder_desc: 'Uma notificação quando os desafios de hoje estiverem prontos. Não é enviada nos dias em que você já resolveu os três.',
+      remind_at: 'Lembrar às', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
+      remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra remove para sempre os anúncios entre os desafios.',
+      ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade',
+      large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
+      easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido',
+      lesson1: 'Arraste do <b>1</b> ao <b>2</b>, passando por <b>todas as casas</b>. Os pontos marcam as casas que faltam.',
+      lesson2: 'Passe pelos números <b>em ordem</b>: 1, depois 2, depois 3. Se você soltar, a linha volta ao último número alcançado.',
+      lesson3: 'Barras grossas são <b>paredes</b>. Sua linha não pode atravessá-las.',
+      lesson4: 'Agora tudo junto: números em ordem, contornando as paredes, por todas as casas.',
+      lesson_step: 'Lição {n} de {total}', how_to_play: 'Como jogar', level_size: 'Nível {level} · {size}×{size}',
+      win_ready: 'Você está pronto', win_nice: 'Muito bem', lesson_done: 'Lição {n} de {total} concluída',
+      play_today: 'Jogar o desafio de hoje', next_lesson: 'Próxima lição',
+      solved: 'Resolvido', solved_in: '{what} em {time}', level: 'Nível {level}', play_x: 'Jogar {label}', play_ladder: 'Jogar escada', share: 'Compartilhar',
+      share_daily: 'Diário {date} · {label}', share_ladder: 'Escada · Nível {level}', share_line: 'Resolvido em {time} com {hints}',
+      hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
+      missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
+      msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
+      msg_billing_unavailable: 'Compras do Google Play não estão disponíveis neste aparelho ou conta.',
+      msg_no_connection: 'Não foi possível acessar o Google Play. Verifique sua conexão e tente de novo.',
+      msg_purchase_screen: 'Não foi possível abrir a tela de compra do Google Play. Tente mais tarde.',
+      msg_purchase_failed: 'A compra não foi concluída.',
+      msg_pending: 'Sua compra está pendente. Os anúncios saem quando ela for concluída.',
+      msg_restored: 'Compra restaurada. Anúncios desativados.',
+      msg_no_purchase: 'Nenhuma compra encontrada nesta conta Google.',
+      msg_play_unreachable: 'Não foi possível acessar o Google Play. Tente mais tarde.',
+    },
+  };
+
+  let lang = 'en';
+  function pickLang() {
+    const chosen = store.get('lang', 'system');
+    if (chosen !== 'system' && STRINGS[chosen]) return chosen;
+    for (const l of navigator.languages || [navigator.language || 'en']) {
+      const code = String(l).slice(0, 2).toLowerCase();
+      if (STRINGS[code]) return code;
+    }
+    return 'en';
+  }
+  function t(key, vars) {
+    let str = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
+    if (vars) str = str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+    return str;
+  }
+  lang = pickLang();
+
   // Tutorial rounds: tiny hand-made puzzles, each teaching one rule. Cells are numbered row by row.
   const LESSONS = [
     { n: 3, nums: { 0: 1, 8: 2 }, walls: [], solution: [0, 1, 2, 5, 4, 3, 6, 7, 8],
-      text: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.' },
+      text: 'lesson1' },
     { n: 3, nums: { 0: 1, 6: 2, 8: 3 }, walls: [], solution: [0, 3, 6, 7, 4, 1, 2, 5, 8],
-      text: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. If you let go, the line snaps back to the last number you reached.' },
+      text: 'lesson2' },
     { n: 4, nums: { 0: 1, 3: 2 }, walls: ['4-5', '9-10', '6-7', '13-14'], solution: [0, 4, 8, 12, 13, 9, 5, 1, 2, 6, 10, 14, 15, 11, 7, 3],
-      text: 'Thick bars are <b>walls</b>. Your line can\'t cross them.' },
+      text: 'lesson3' },
     { n: 4, nums: { 0: 1, 3: 2, 4: 3, 9: 4, 11: 5 }, walls: ['5-9', '10-11', '2-6'], solution: [0, 1, 2, 3, 7, 6, 5, 4, 8, 12, 13, 9, 10, 14, 15, 11],
-      text: 'Now all together: numbers in order, around the walls, through every square.' },
+      text: 'lesson4' },
   ];
   let lesson = Math.min(store.get('lesson', 0), LESSONS.length - 1);
   // New players start in the tutorial; returning players keep their last mode.
@@ -371,7 +618,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     else rootEl.removeAttribute('data-theme');
     if (a11y.contrast) rootEl.dataset.contrast = 'high'; else delete rootEl.dataset.contrast;
     if (a11y.large) rootEl.dataset.text = 'large'; else delete rootEl.dataset.text;
-    $('motion-note').textContent = systemReduced ? 'Your device is set to reduce motion.' : '';
+    $('motion-note').textContent = systemReduced ? t('motion_note') : '';
     if (puz) render();
   }
 
@@ -385,7 +632,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     for (const d of DAILY) {
       const b = document.createElement('button');
       const done = store.get(dailyKey(d.id), null) != null;
-      b.innerHTML = d.label + (done ? '<span class="tick" aria-label="solved">✓</span>' : '');
+      b.innerHTML = t(d.id) + (done ? `<span class="tick" aria-label="${t('solved_mark')}">✓</span>` : '');
       b.setAttribute('aria-pressed', String(d.id === dailyId));
       b.onclick = () => { dailyId = d.id; store.set('dailyDiff', dailyId); load(); };
       box.appendChild(b);
@@ -404,8 +651,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (learn) {
       const L = LESSONS[lesson];
       puz = { n: L.n, nums: L.nums, walls: new Set(L.walls), solution: L.solution, unique: true };
-      $('lesson-step').textContent = `Lesson ${lesson + 1} of ${LESSONS.length}`;
-      $('lesson-text').innerHTML = L.text;
+      $('lesson-step').textContent = t('lesson_step', { n: lesson + 1, total: LESSONS.length });
+      $('lesson-text').innerHTML = t(L.text);
     } else if (mode === 'daily') {
       const d = daily();
       puz = E.generate(d.n, E.hashString('zap/' + today() + '/' + d.id), d.opts);
@@ -417,7 +664,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
     hintsUsed = mode === 'daily' ? store.get('dailyhints:' + today() + ':' + dailyId, 0) : 0;
     clearInterval(timerId); timerId = null;
-    $('label').textContent = learn ? 'How to play' : mode === 'daily' ? today() : `Level ${level} · ${puz.n}×${puz.n}`;
+    $('label').textContent = learn ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
     const saved = mode === 'daily' && store.get(dailyKey(), null);
     buildBoard();
     if (saved) { path = puz.solution.slice(); won = true; elapsed = saved; }
@@ -514,7 +761,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     div.className = 'win';
     if (mode === 'learn') {
       const last = lesson === LESSONS.length - 1;
-      div.innerHTML = `<div><h2>${last ? 'You\'re ready' : 'Nice'}</h2><p>Lesson ${lesson + 1} of ${LESSONS.length} done</p></div><div class="actions"><button class="next">${last ? 'Play today\'s puzzle' : 'Next lesson'}</button></div>`;
+      div.innerHTML = `<div><h2>${t(last ? 'win_ready' : 'win_nice')}</h2><p>${t('lesson_done', { n: lesson + 1, total: LESSONS.length })}</p></div><div class="actions"><button class="next">${t(last ? 'play_today' : 'next_lesson')}</button></div>`;
       div.querySelector('.next').onclick = () => {
         if (last) { finishTutorial(); return; }
         lesson++; store.set('lesson', lesson); load();
@@ -523,18 +770,18 @@ button:disabled { opacity: 0.45; cursor: default; }
       return;
     }
     const next = nextDaily();
-    const what = mode === 'daily' ? daily().label : 'Level ' + level;
-    const nextLabel = mode === 'ladder' ? `Level ${level + 1}` : next ? 'Play ' + next.label : 'Play ladder';
-    div.innerHTML = `<div><h2>Solved</h2><p>${what} in ${fmt(elapsed)}</p></div><div class="actions"><button class="share">Share</button><button class="next">${nextLabel}</button></div>`;
+    const what = mode === 'daily' ? t(daily().id) : t('level', { level });
+    const nextLabel = mode === 'ladder' ? t('level', { level: level + 1 }) : next ? t('play_x', { label: t(next.id) }) : t('play_ladder');
+    div.innerHTML = `<div><h2>${t('solved')}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
     div.querySelector('.next').onclick = nextPuzzle;
     div.querySelector('.share').onclick = share;
     wrap.appendChild(div);
   }
 
   function shareText() {
-    const which = mode === 'daily' ? `Daily ${today()} · ${daily().label}` : `Ladder · Level ${level}`;
-    const hints = hintsUsed ? hintsUsed + (hintsUsed === 1 ? ' hint' : ' hints') : 'no hints';
-    return `ZipZapZop ${which}\n⚡ Solved in ${fmt(elapsed)} with ${hints}`;
+    const which = mode === 'daily' ? t('share_daily', { date: today(), label: t(daily().id) }) : t('share_ladder', { level });
+    const hints = !hintsUsed ? t('hints_none') : hintsUsed === 1 ? t('hints_one') : t('hints_many', { n: hintsUsed });
+    return `ZipZapZop ${which}\n⚡ ${t('share_line', { time: fmt(elapsed), hints })}`;
   }
 
   function toast(msg, box) {
@@ -553,7 +800,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       try { await navigator.share({ text }); return; }
       catch (e) { if (e && e.name === 'AbortError') return; }
     }
-    try { await navigator.clipboard.writeText(text); toast('Result copied'); }
+    try { await navigator.clipboard.writeText(text); toast(t('copied')); }
     catch { toast(text, true); }
   }
 
@@ -628,13 +875,13 @@ button:disabled { opacity: 0.45; cursor: default; }
     cells.forEach((c, i) => { if (!on.has(i)) left.push(c); });
     left.forEach((c) => { c.classList.remove('missed'); void c.offsetWidth; c.classList.add('missed'); });
     setTimeout(() => left.forEach((c) => c.classList.remove('missed')), 1500);
-    const msg = `Almost! The line must cover every square. ${left.length} left.`;
+    const msg = t('missed', { n: left.length });
     toast(msg); announce(msg);
   }
 
   // Pop, ring and sparks on a checkpoint the line just reached.
   function hitFx(cell) {
-    announce(`Reached ${puz.nums[cell]} of ${Object.keys(puz.nums).length}`);
+    announce(t('reached', { k: puz.nums[cell], total: Object.keys(puz.nums).length }));
     if (reducedMotion()) return;
     const fx = $('fx'), n = puz.n, ns = 'http://www.w3.org/2000/svg';
     fx.setAttribute('viewBox', `0 0 ${n} ${n}`);
@@ -654,7 +901,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   function checkWin() {
     if (E.isSolved(puz, path)) {
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
-      announce(`Solved in ${fmt(elapsed)}`);
+      announce(t('solved_announce', { time: fmt(elapsed) }));
       if (mode !== 'learn') track('puzzle_solve', Object.assign(puzzleInfo(), { seconds: Math.round(elapsed / 1000), hints: hintsUsed }));
       else if (lesson === LESSONS.length - 1) track('tutorial_complete');
       if (mode === 'learn') { if (lesson === LESSONS.length - 1) store.set('tutorialDone', true); }
@@ -790,11 +1037,11 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (won || !path.length) return;
     const b = $('clear');
     if (!clearArmed) {
-      b.textContent = 'Tap again'; b.classList.add('confirm');
-      clearArmed = setTimeout(() => { clearArmed = null; b.textContent = 'Clear'; b.classList.remove('confirm'); }, 2500);
+      b.textContent = t('tap_again'); b.classList.add('confirm');
+      clearArmed = setTimeout(() => { clearArmed = null; b.textContent = t('clear'); b.classList.remove('confirm'); }, 2500);
       return;
     }
-    clearTimeout(clearArmed); clearArmed = null; b.textContent = 'Clear'; b.classList.remove('confirm');
+    clearTimeout(clearArmed); clearArmed = null; b.textContent = t('clear'); b.classList.remove('confirm');
     path = []; render();
   };
   $('hint').onclick = hint;
@@ -853,26 +1100,31 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('opt-reminder-time').onchange = (e) => { if (e.target.value) { reminder.time = e.target.value; saveReminder(); } };
     window.zzzReminderDenied = () => {
       reminder.on = false; store.set('reminder', reminder); syncReminderUi();
-      $('reminder-note').textContent = 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.';
+      $('reminder-note').textContent = t('reminder_blocked');
       $('reminder-note').hidden = false;
     };
   }
+  let lastAdsState = null;
   // Ads and the "Remove ads" purchase: only in the Android app; the browser version has no ads.
   if (bridge && bridge.adsState) {
     const showAds = (st) => {
+      if (st) lastAdsState = Object.assign({}, st, { message: null });
       if (!st || !st.available) { $('ads-opt').hidden = true; return; }
       $('ads-opt').hidden = false;
       const buy = $('ads-buy');
       if (st.adsRemoved) {
-        $('ads-desc').textContent = 'Ads are off. Thanks for supporting ZipZapZop!';
+        $('ads-desc').textContent = t('ads_off');
         buy.hidden = true; $('ads-restore').hidden = true;
       } else {
-        $('ads-desc').textContent = 'One purchase turns off ads between puzzles for good.';
+        $('ads-desc').textContent = t('ads_desc');
         buy.hidden = false; $('ads-restore').hidden = false;
-        buy.textContent = st.price ? 'Remove ads · ' + st.price : 'Remove ads';
+        buy.textContent = st.price ? t('remove_ads_price', { price: st.price }) : t('remove_ads');
       }
       $('ads-privacy').hidden = !st.privacyOptions;
-      if (st.message) { $('ads-desc').textContent = st.message; toast(st.message); }
+      if (st.message) {
+        const msg = STRINGS.en['msg_' + st.message] ? t('msg_' + st.message) : st.message; // the app sends message keys
+        $('ads-desc').textContent = msg; toast(msg);
+      }
     };
     window.zzzAdsState = showAds;
     try { showAds(JSON.parse(bridge.adsState())); } catch (_) {}
@@ -880,6 +1132,34 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('ads-restore').onclick = () => bridge.restorePurchase();
     $('ads-privacy').onclick = () => bridge.privacyOptions();
   }
+  // Language: follows the device unless the player picks one. Static text carries data-i18n keys;
+  // text built in code is redrawn by relabel() without restarting the puzzle.
+  function applyLang() {
+    lang = pickLang();
+    rootEl.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => el.setAttribute('title', t(el.dataset.i18nTitle)));
+    const sel = $('opt-lang');
+    sel.innerHTML = `<option value="system">${t('language_device')}</option>` +
+      Object.entries(LANGS).map(([code, name]) => `<option value="${code}" lang="${code}">${name}</option>`).join('');
+    sel.value = store.get('lang', 'system');
+  }
+  function relabel() {
+    if (!puz) return;
+    buildSizes();
+    if (mode === 'learn') {
+      $('lesson-step').textContent = t('lesson_step', { n: lesson + 1, total: LESSONS.length });
+      $('lesson-text').innerHTML = t(LESSONS[lesson].text);
+    }
+    $('label').textContent = mode === 'learn' ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
+    if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
+    const card = wrap.querySelector('.win');
+    if (card) { card.remove(); showWin(); }
+    applyA11y();
+  }
+  $('opt-lang').onchange = (e) => { store.set('lang', e.target.value); applyLang(); relabel(); };
+  applyLang();
   if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', applyA11y);
   applyA11y();
 
