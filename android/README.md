@@ -5,7 +5,7 @@ A WebView wrapper around the same game as the web version (`../web/page.html` + 
 ## Gradle build (ads, purchases, Play release)
 GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug bundleRelease` on every change and uploads the debug APK and the release AAB as artifacts. Locally, with the Android SDK installed: `./gradlew assembleDebug`.
 
-- Package `com.onurbaykal.zipzapzop`, min Android 6.0 (API 23), target and compile API 36.
+- Package `com.onurbaykal.zipzapzop`, min Android 7.0 (API 24), target and compile API 36.
 - Ads: AdMob interstitials between solved Daily/Ladder puzzles (at most one every 3 solves and 3 minutes, never in Learn or before the first daily is solved), after Google's consent form (UMP). Code in `src-ads/.../Monetization.java`.
 - Remove ads: one-time Play product `remove_ads`, re-checked on every launch so it survives reinstalls. "Restore purchase" and "Privacy choices" are in the settings sheet.
 - Debug builds always use Google's test ad IDs. Release builds use `ADMOB_APP_ID` / `ADMOB_INTERSTITIAL_ID` secrets (or `-PadmobAppId=` / `-PadmobInterstitialId=`), falling back to the test IDs.
