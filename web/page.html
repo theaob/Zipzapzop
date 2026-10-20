@@ -290,6 +290,18 @@ button:disabled { opacity: 0.45; cursor: default; }
 <script>
 (() => {
   const E = ZapEngine;
+
+  // Android app only: gameplay events for Analytics and page errors for Crashlytics. The app sends
+  // them only with the player's consent; the browser version sends nothing.
+  const telemetry = window.ZipZapZopAndroid && window.ZipZapZopAndroid.track ? window.ZipZapZopAndroid : null;
+  function track(name, params) { if (telemetry) try { telemetry.track(name, JSON.stringify(params || {})); } catch (_) {} }
+  if (telemetry && telemetry.pageError) {
+    window.addEventListener('error', (e) => { try { telemetry.pageError(`${e.message} at ${e.lineno}:${e.colno}`); } catch (_) {} });
+    window.addEventListener('unhandledrejection', (e) => { try { telemetry.pageError('Unhandled rejection: ' + (e.reason && e.reason.message || e.reason)); } catch (_) {} });
+  }
+  function puzzleInfo() {
+    return { mode, puzzle: mode === 'daily' ? dailyId : mode === 'ladder' ? 'level_' + level : 'lesson_' + (lesson + 1), size: puz.n };
+  }
   // Three daily challenges, the same for everyone on a given date.
   const DAILY = [
     { id: 'easy', label: 'Easy', n: 5, opts: { clues: 1.3 } },
@@ -571,6 +583,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   function tick() { elapsed = Date.now() - startTime; $('timer').textContent = fmt(elapsed); }
   function startTimer() {
     if (startTime || won) return;
+    if (!elapsed && mode !== 'learn') track('puzzle_start', puzzleInfo());
     startTime = Date.now() - elapsed;
     timerId = setInterval(tick, 250);
   }
@@ -622,6 +635,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (E.isSolved(puz, path)) {
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
       announce(`Solved in ${fmt(elapsed)}`);
+      if (mode !== 'learn') track('puzzle_solve', Object.assign(puzzleInfo(), { seconds: Math.round(elapsed / 1000), hints: hintsUsed }));
+      else if (lesson === LESSONS.length - 1) track('tutorial_complete');
       if (mode === 'learn') { if (lesson === LESSONS.length - 1) store.set('tutorialDone', true); }
       else if (window.zzzArmReminder) window.zzzArmReminder();
       if (mode === 'daily') {

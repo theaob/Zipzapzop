@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
     private WebView web;
     private int pendingHour, pendingMinute;
     private Monetization money;
+    private Telemetry telemetry;
     private volatile String adsState; // read by the page from the JavaScript thread
 
     @Override
@@ -48,6 +49,8 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(root);
+        telemetry = new Telemetry(this);
+        telemetry.refreshConsent();
         money = new Monetization(this, new Runnable() {
             @Override
             public void run() { pushAdsState(); }
@@ -61,6 +64,7 @@ public class MainActivity extends Activity {
 
     // Sends the ads/purchase state to the page's settings sheet. Main thread only.
     private void pushAdsState() {
+        telemetry.refreshConsent(); // consent changes arrive the same way
         adsState = money.stateJson();
         web.evaluateJavascript("window.zzzAdsState && window.zzzAdsState(" + adsState + ")", null);
     }
@@ -98,7 +102,7 @@ public class MainActivity extends Activity {
     }
 
     // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
-    // and ads plus the remove-ads purchase.
+    // ads plus the remove-ads purchase, and analytics.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -129,6 +133,17 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void privacyOptions() {
             onUi(new Runnable() { @Override public void run() { money.showPrivacyOptions(); } });
+        }
+
+        // Gameplay events and JavaScript errors for Analytics and Crashlytics (only with consent).
+        @JavascriptInterface
+        public void track(final String name, final String params) {
+            onUi(new Runnable() { @Override public void run() { telemetry.event(name, params); } });
+        }
+
+        @JavascriptInterface
+        public void pageError(final String message) {
+            onUi(new Runnable() { @Override public void run() { telemetry.pageError(message); } });
         }
 
         @JavascriptInterface
