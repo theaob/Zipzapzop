@@ -6,11 +6,11 @@ import android.app.Activity;
 // The page hides everything ad-related when adsState() reports available: false.
 // The Gradle build uses src-ads/ instead.
 final class Monetization {
-    Monetization(Activity activity, Runnable onChange, HintAdListener onHintAd) {}
+    Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {}
 
     void start() {}
     void puzzleFinished(String mode) {}
-    void watchHintAd() {}
+    void watchRewardedAd(String purpose) {}
     void buyRemoveAds() {}
     void restore() {}
     void showPrivacyOptions() {}

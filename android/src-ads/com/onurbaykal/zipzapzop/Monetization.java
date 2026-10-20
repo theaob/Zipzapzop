@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob interstitials between solved puzzles, rewarded ads for extra hints, Google's consent flow (UMP),
+// AdMob interstitials between solved puzzles, rewarded ads for extra hints and Ladder energy, Google's consent flow (UMP),
 // and the one-time "remove_ads" Play purchase. Every callback that touches state runs on the main thread.
 final class Monetization {
     static final String PRODUCT = "remove_ads";
@@ -44,7 +44,7 @@ final class Monetization {
 
     private final Activity activity;
     private final Runnable onChange;
-    private final HintAdListener onHintAd;
+    private final RewardedAdListener onRewarded;
     private final SharedPreferences prefs;
     private final ConsentInformation consent;
     private final AtomicBoolean adsStarted = new AtomicBoolean(false);
@@ -58,10 +58,10 @@ final class Monetization {
     private long lastAdAt = -MIN_GAP_MS;
     private String message;
 
-    Monetization(Activity activity, Runnable onChange, HintAdListener onHintAd) {
+    Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
         this.activity = activity;
         this.onChange = onChange;
-        this.onHintAd = onHintAd;
+        this.onRewarded = onRewarded;
         this.prefs = activity.getSharedPreferences("monetization", Activity.MODE_PRIVATE);
         this.consent = UserMessagingPlatform.getConsentInformation(activity);
     }
@@ -115,28 +115,28 @@ final class Monetization {
             });
     }
 
-    // The player chose to watch an ad for a hint. Reports "reward", "closed" (left before the reward)
-    // or "unavailable" (no ad loaded yet, offline, or no consent to request ads).
-    void watchHintAd() {
-        if (rewarded == null) { onHintAd.hintAd("unavailable"); startAds(); loadRewarded(); return; }
+    // The player chose to watch an ad for a reward (`purpose`: "hint" or "energy"). Reports "reward",
+    // "closed" (left before the reward) or "unavailable" (no ad loaded yet, offline, or no consent to request ads).
+    void watchRewardedAd(final String purpose) {
+        if (rewarded == null) { onRewarded.rewardedAd(purpose, "unavailable"); startAds(); loadRewarded(); return; }
         RewardedAd ad = rewarded;
         rewarded = null;
         final boolean[] earned = { false };
         ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             @Override
             public void onAdDismissedFullScreenContent() {
-                if (!earned[0]) onHintAd.hintAd("closed");
+                if (!earned[0]) onRewarded.rewardedAd(purpose, "closed");
                 loadRewarded();
             }
 
             @Override
             public void onAdFailedToShowFullScreenContent(AdError error) {
-                onHintAd.hintAd("unavailable");
+                onRewarded.rewardedAd(purpose, "unavailable");
                 loadRewarded();
             }
         });
         lastAdAt = SystemClock.elapsedRealtime(); // no interstitial straight after a rewarded ad
-        ad.show(activity, reward -> { earned[0] = true; onHintAd.hintAd("reward"); });
+        ad.show(activity, reward -> { earned[0] = true; onRewarded.rewardedAd(purpose, "reward"); });
     }
 
     // Called by the page when the player taps Next on a solved Daily or Ladder puzzle.
