@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel">Recordatorio del reto diario</string>
+    <string name="reminder_title">Los retos de hoy están listos</string>
+    <string name="reminder_text">Fácil, Medio y Difícil te esperan. Mantén tu racha.</string>
+</resources>

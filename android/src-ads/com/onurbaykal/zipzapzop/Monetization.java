@@ -141,8 +141,8 @@ final class Monetization {
                 activity.runOnUiThread(() -> {
                     if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                         if (report) say(result.getResponseCode() == BillingClient.BillingResponseCode.BILLING_UNAVAILABLE
-                            ? "Google Play purchases aren't available on this device or account."
-                            : "Couldn't reach Google Play. Check your connection and try again.");
+                            ? "billing_unavailable"
+                            : "no_connection");
                         return;
                     }
                     queryProduct(null);
@@ -178,7 +178,7 @@ final class Monetization {
             // The product may not have loaded at launch (offline, or just created in Play Console): ask again.
             queryProduct(() -> {
                 if (product != null) launchPurchase();
-                else say("Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.");
+                else say("store_unavailable");
             });
         }, true);
     }
@@ -192,7 +192,7 @@ final class Monetization {
         int code = result.getResponseCode();
         if (code == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) checkOwned(true);
         else if (code != BillingClient.BillingResponseCode.OK && code != BillingClient.BillingResponseCode.USER_CANCELED)
-            say("Couldn't open the Google Play purchase screen. Try again later.");
+            say("purchase_screen");
     }
 
     void restore() { connect(() -> checkOwned(true), true); }
@@ -202,13 +202,13 @@ final class Monetization {
             QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
             (result, purchases) -> activity.runOnUiThread(() -> {
                 if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                    if (report) say("Couldn't reach Google Play. Try again later.");
+                    if (report) say("play_unreachable");
                     return;
                 }
                 boolean owned = handle(purchases);
                 // Refunds and revoked purchases disappear from this list, so ads come back.
                 if (!owned && adsRemoved()) setAdsRemoved(false);
-                if (report) say(owned ? "Purchase restored. Ads are off." : "No purchase found for this Google account.");
+                if (report) say(owned ? "restored" : "no_purchase");
             }));
     }
 
@@ -217,7 +217,7 @@ final class Monetization {
             int code = result.getResponseCode();
             if (code == BillingClient.BillingResponseCode.OK && purchases != null) handle(purchases);
             else if (code == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) checkOwned(true);
-            else if (code != BillingClient.BillingResponseCode.USER_CANCELED) say("The purchase didn't go through.");
+            else if (code != BillingClient.BillingResponseCode.USER_CANCELED) say("purchase_failed");
         });
     }
 
@@ -226,7 +226,7 @@ final class Monetization {
         boolean owned = false;
         for (Purchase p : purchases) {
             if (!p.getProducts().contains(PRODUCT)) continue;
-            if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) { say("Your purchase is pending. Ads turn off once it completes."); continue; }
+            if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) { say("pending"); continue; }
             if (p.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
             owned = true;
             if (!adsRemoved()) setAdsRemoved(true);
@@ -247,7 +247,8 @@ final class Monetization {
         onChange.run();
     }
 
-    private void say(String text) { message = text; onChange.run(); }
+    // Messages are keys; the page shows them in the player's language (msg_<key> in its STRINGS).
+    private void say(String key) { message = key; onChange.run(); }
 
     // State for the page's settings sheet; a message is delivered once. Main thread only.
     String stateJson() {

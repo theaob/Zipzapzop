@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel">Lembrete do desafio diário</string>
+    <string name="reminder_title">Os desafios de hoje estão prontos</string>
+    <string name="reminder_text">Fácil, Médio e Difícil estão esperando. Mantenha sua sequência.</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_channel">Günlük bulmaca hatırlatıcısı</string>
+    <string name="reminder_title">Bugünün bulmacaları hazır</string>
+    <string name="reminder_text">Kolay, Orta ve Zor seni bekliyor. Serini sürdür.</string>
+</resources>
