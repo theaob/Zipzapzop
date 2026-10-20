@@ -1,0 +1,84 @@
+// The real Android build: ads, Play purchases, and the release AAB for Play.
+// It runs in GitHub Actions (.github/workflows/android.yml); build-apk.sh is a local, ad-free shortcut.
+plugins {
+    id 'com.android.application' version '8.10.1'
+}
+
+// Google's sample AdMob IDs, which only ever show test ads. Release builds take the real ones from
+// -PadmobAppId=... -PadmobInterstitialId=... (or ADMOB_APP_ID / ADMOB_INTERSTITIAL_ID in CI).
+def testAppId = 'ca-app-pub-3940256099942544~3347511713'
+def testInterstitialId = 'ca-app-pub-3940256099942544/1033173712'
+def prop = { String name, String env -> findProperty(name) ?: System.getenv(env) ?: null }
+def releaseAppId = prop('admobAppId', 'ADMOB_APP_ID') ?: testAppId
+def releaseInterstitialId = prop('admobInterstitialId', 'ADMOB_INTERSTITIAL_ID') ?: testInterstitialId
+def keystore = System.getenv('ZZZ_KEYSTORE_FILE')
+
+android {
+    namespace 'com.onurbaykal.zipzapzop'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.onurbaykal.zipzapzop'
+        minSdk 23
+        targetSdk 36
+        versionCode((prop('versionCode', 'VERSION_CODE') ?: '1') as int)
+        versionName '1.0'
+    }
+
+    // Keeps the flat layout build-apk.sh uses; src-ads/ holds the ads and billing code.
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src', 'src-ads']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv('ZZZ_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ZZZ_KEY_ALIAS')
+                keyPassword System.getenv('ZZZ_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders = [admobAppId: testAppId]
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL', "\"${testInterstitialId}\""
+        }
+        release {
+            minifyEnabled false
+            manifestPlaceholders = [admobAppId: releaseAppId]
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL', "\"${releaseInterstitialId}\""
+            if (keystore) signingConfig signingConfigs.release
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.android.gms:play-services-ads:24.4.0'
+    implementation 'com.google.android.ump:user-messaging-platform:3.2.0'
+    implementation 'com.android.billingclient:billing:8.0.0'
+}
+
+// assets/index.html is generated from the web game, same as in build-apk.sh.
+def gamePage = tasks.register('gamePage', Exec) {
+    commandLine 'python3', 'make_page.py'
+    inputs.files('make_page.py', '../web/page.html', '../web/engine.js')
+    outputs.file('assets/index.html')
+}
+tasks.named('preBuild') { dependsOn gamePage }

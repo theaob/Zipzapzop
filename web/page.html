@@ -184,6 +184,15 @@ button:disabled { opacity: 0.45; cursor: default; }
 .time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; }
 .time-row input { font: 600 1rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .time-row input:disabled { opacity: 0.5; }
+.ads-txt { display: flex; flex-direction: column; gap: 2px; }
+.ads-txt b { font-weight: 600; }
+.ads-txt small { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.ads-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ads-row button { height: 38px; padding: 0 14px; border-radius: 10px; font: 600 0.9rem var(--body); cursor: pointer; }
+#ads-buy { border: 0; background: var(--ink); color: var(--bg); }
+#ads-buy:disabled { opacity: 0.5; cursor: default; }
+.ads-row .link { border: 1px solid var(--line); background: transparent; color: var(--ink); }
+.ads-row button[hidden] { display: none; }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
 </style>
 
@@ -259,6 +268,14 @@ button:disabled { opacity: 0.45; cursor: default; }
       </label>
       <label class="time-row" for="opt-reminder-time"><span>Remind me at</span><input type="time" id="opt-reminder-time" value="09:00"></label>
       <p class="desc" id="reminder-note" hidden></p>
+    </div>
+    <div class="opt" id="ads-opt" hidden>
+      <div class="ads-txt"><b>Remove ads</b><small id="ads-desc">One purchase turns off ads between puzzles for good.</small></div>
+      <div class="ads-row">
+        <button id="ads-buy">Remove ads</button>
+        <button id="ads-restore" class="link">Restore purchase</button>
+        <button id="ads-privacy" class="link" hidden>Privacy choices</button>
+      </div>
     </div>
     <label class="switch" for="opt-large">
       <span class="txt"><b>Larger text and numbers</b><small>Bigger labels, buttons and checkpoint numbers.</small></span>
@@ -539,6 +556,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   function nextPuzzle() {
     if (mode === 'learn') { finishTutorial(); return; }
+    // Android app: the native side may show an ad between solved puzzles (it applies its own limits).
+    const android = window.ZipZapZopAndroid;
+    if (won && android && android.puzzleFinished) android.puzzleFinished(mode);
     if (mode === 'ladder') { level++; store.set('ladderLevel', level); }
     else {
       const d = nextDaily();
@@ -795,6 +815,30 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('reminder-note').textContent = 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.';
       $('reminder-note').hidden = false;
     };
+  }
+  // Ads and the "Remove ads" purchase: only in the Android app; the browser version has no ads.
+  if (bridge && bridge.adsState) {
+    const showAds = (st) => {
+      if (!st || !st.available) { $('ads-opt').hidden = true; return; }
+      $('ads-opt').hidden = false;
+      const buy = $('ads-buy');
+      if (st.adsRemoved) {
+        $('ads-desc').textContent = 'Ads are off. Thanks for supporting ZipZapZop!';
+        buy.hidden = true; $('ads-restore').hidden = true;
+      } else {
+        $('ads-desc').textContent = 'One purchase turns off ads between puzzles for good.';
+        buy.hidden = false; $('ads-restore').hidden = false;
+        buy.textContent = st.price ? 'Remove ads · ' + st.price : 'Remove ads';
+        buy.disabled = !st.price;
+      }
+      $('ads-privacy').hidden = !st.privacyOptions;
+      if (st.message) { $('ads-desc').textContent = st.message; toast(st.message); }
+    };
+    window.zzzAdsState = showAds;
+    try { showAds(JSON.parse(bridge.adsState())); } catch (_) {}
+    $('ads-buy').onclick = () => bridge.buyRemoveAds();
+    $('ads-restore').onclick = () => bridge.restorePurchase();
+    $('ads-privacy').onclick = () => bridge.privacyOptions();
   }
   if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', applyA11y);
   applyA11y();
