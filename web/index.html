@@ -798,7 +798,8 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       won = true; celebrate = true; tick(); clearInterval(timerId); timerId = null;
       announce(`Solved in ${fmt(elapsed)}`);
       if (mode === 'learn') { if (lesson === LESSONS.length - 1) store.set('tutorialDone', true); }
-      else if (mode === 'daily') {
+      else if (window.zzzArmReminder) window.zzzArmReminder();
+      if (mode === 'daily') {
         store.set(dailyKey(), elapsed); store.set('dailyhints:' + today() + ':' + dailyId, hintsUsed); buildSizes();
         const bridge = window.ZipZapZopAndroid;
         if (!nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
@@ -969,7 +970,9 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
 
   // Daily reminder: only in the Android app, which schedules a local notification.
   const bridge = window.ZipZapZopAndroid;
-  const reminder = Object.assign({ on: false, time: '09:00' }, store.get('reminder', {}));
+  // On by default at 09:00. It is switched on for real (asking for notification permission on
+  // Android 13+) after the first solved Daily or Ladder puzzle, unless the player set it already.
+  const reminder = Object.assign({ on: true, time: '09:00' }, store.get('reminder', {}));
   function syncReminderUi() {
     $('opt-reminder').checked = reminder.on;
     $('opt-reminder-time').value = reminder.time;
@@ -984,6 +987,9 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('reminder-opt').hidden = false;
     syncReminderUi();
     $('opt-reminder').onchange = (e) => { reminder.on = e.target.checked; saveReminder(); };
+    if (store.get('reminder', null) == null) {
+      window.zzzArmReminder = () => { window.zzzArmReminder = null; if (store.get('reminder', null) == null) saveReminder(); };
+    }
     $('opt-reminder-time').onchange = (e) => { if (e.target.value) { reminder.time = e.target.value; saveReminder(); } };
     window.zzzReminderDenied = () => {
       reminder.on = false; store.set('reminder', reminder); syncReminderUi();
