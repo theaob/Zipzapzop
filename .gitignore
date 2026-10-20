@@ -6,3 +6,4 @@ android/assets/index.html
 *.aab
 android/.gradle/
 android/local.properties
+android/google-services.json

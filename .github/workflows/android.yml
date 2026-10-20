@@ -4,6 +4,7 @@ name: Android build
 # Optional repository secrets:
 #   RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD  sign the AAB for upload
 #   ADMOB_APP_ID, ADMOB_INTERSTITIAL_ID  real ad IDs for the release build (Google's test IDs otherwise)
+#   GOOGLE_SERVICES_JSON  contents of Firebase's google-services.json; turns on Analytics and Crashlytics
 on:
   push:
     branches: [main]
@@ -37,6 +38,16 @@ jobs:
             echo "ZZZ_KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
           else
             echo "::notice::No RELEASE_KEYSTORE_BASE64 secret, so the release AAB is unsigned."
+          fi
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > google-services.json
+          else
+            echo "::notice::No GOOGLE_SERVICES_JSON secret, so this build has no Analytics or Crashlytics."
           fi
 
       - name: Build

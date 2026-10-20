@@ -64,13 +64,16 @@ final class Monetization {
 
     void start() {
         startBilling();
-        if (adsRemoved()) return;
         // Ask for consent where the law requires it (EEA, UK, Switzerland, some US states), then start ads.
+        // The status is also fetched after ads are removed, because analytics and crash reports follow it.
         consent.requestConsentInfoUpdate(activity, new ConsentRequestParameters.Builder().build(),
-            () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, formError -> {
-                startAds();
-                onChange.run(); // the "Privacy choices" button may now be required
-            }),
+            () -> {
+                if (adsRemoved()) { onChange.run(); return; }
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, formError -> {
+                    startAds();
+                    onChange.run(); // the "Privacy choices" button may now be required
+                });
+            },
             requestError -> startAds()); // offline or misconfigured: fall back to any earlier consent
         startAds(); // consent from an earlier launch is enough to start right away
     }

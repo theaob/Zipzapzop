@@ -2,6 +2,15 @@
 // It runs in GitHub Actions (.github/workflows/android.yml); build-apk.sh is a local, ad-free shortcut.
 plugins {
     id 'com.android.application' version '8.10.1'
+    id 'com.google.gms.google-services' version '4.4.3' apply false
+    id 'com.google.firebase.crashlytics' version '3.0.4' apply false
+}
+
+// Firebase (Analytics, Crashlytics) is wired up only when google-services.json is present: CI writes it from
+// the GOOGLE_SERVICES_JSON secret. Without it the app builds the same and sends nothing.
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
 }
 
 // Google's sample AdMob IDs, which only ever show test ads. Release builds take the real ones from
@@ -73,6 +82,9 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:24.4.0'
     implementation 'com.google.android.ump:user-messaging-platform:3.2.0'
     implementation 'com.android.billingclient:billing:8.0.0'
+    implementation platform('com.google.firebase:firebase-bom:34.0.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
 }
 
 // assets/index.html is generated from the web game, same as in build-apk.sh.
