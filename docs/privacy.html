@@ -24,11 +24,11 @@ a { color: var(--b); }
 <body>
 <main>
   <h1>Zip<span>Zap</span>Zop privacy policy</h1>
-  <p class="updated">Last updated: October 20, 2026</p>
+  <p class="updated">Last updated: October 20, 2026 (ads and in-app purchase added)</p>
 
   <section>
     <h2>The short version</h2>
-    <p>ZipZapZop does not collect, store on a server, or share any personal data. There are no accounts, ads, analytics or tracking. Everything the game remembers stays on your device.</p>
+    <p>The game itself has no accounts and keeps your progress only on your device. The Android app shows ads through Google AdMob, which collects device and usage information to show and measure ads, as described below. Buying "Remove ads" turns the ads off. The browser version has no ads.</p>
   </section>
 
   <section>
@@ -46,7 +46,23 @@ a { color: var(--b); }
       <li><b>Notifications</b> (<code>POST_NOTIFICATIONS</code>): used only if you turn on the daily reminder, to show one local notification a day, at the time you pick, reminding you to play the daily puzzles. It is skipped on days you have already solved all of them.</li>
       <li><b>Run at startup</b> (<code>RECEIVE_BOOT_COMPLETED</code>): used only to re-schedule that reminder after your phone restarts.</li>
     </ul>
-    <p>The reminder is scheduled on the device. No server sends it, and the app does not request internet access.</p>
+    <p>The reminder is scheduled on the device. No server sends it.</p>
+    <ul>
+      <li><b>Internet and network state</b>: used only to load ads and to talk to Google Play for the Remove ads purchase. Puzzles work offline.</li>
+      <li><b>Advertising ID</b>: used by AdMob, see below.</li>
+      <li><b>Google Play billing</b>: used for the Remove ads purchase.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ads (Android app)</h2>
+    <p>The Android app shows an occasional full-screen ad between puzzles, served by Google AdMob. To show, limit and measure ads and to prevent fraud, Google's ads SDK collects and shares with Google information such as your device's advertising ID and other device identifiers, approximate location derived from your IP address, ad interactions, and diagnostic data. Google uses this under its own policies; see <a href="https://policies.google.com/technologies/partner-sites">how Google uses information from apps that use its services</a> and <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
+    <p>Where the law requires it (for example in the EEA, the UK and Switzerland, and some US states), the app asks for your consent or choices before ads use personal data. You can change them at any time with <b>Privacy choices</b> in the app's settings when it is shown. You can also reset or delete your advertising ID, or opt out of personalized ads, in your Android device settings.</p>
+  </section>
+
+  <section>
+    <h2>Purchases</h2>
+    <p>"Remove ads" is bought through Google Play. Google processes the payment under its own terms; ZipZapZop never sees your payment details. The app only asks Google Play whether you own the purchase, so it can turn ads off and restore the purchase on a new phone.</p>
   </section>
 
   <section>
@@ -61,7 +77,7 @@ a { color: var(--b); }
 
   <section>
     <h2>Children</h2>
-    <p>Because the game collects no personal information from anyone, it collects none from children.</p>
+    <p>ZipZapZop is not directed at children under 13, and the game itself collects no personal information from anyone. Ads are served by Google AdMob as described above.</p>
   </section>
 
   <section>
