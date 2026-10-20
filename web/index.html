@@ -79,6 +79,11 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .cell.on { background: color-mix(in srgb, var(--cell) 86%, var(--spark-a)); }
 .cell.hint { animation: hint 0.9s ease-in-out 3; }
 @keyframes hint { 50% { background: color-mix(in srgb, var(--cell) 40%, var(--focus)); } }
+/* Squares the line still has to cover: dotted in the tutorial, flashed when the line ends too early. */
+.board-wrap.learning .cell:not(.on)::after { content: ""; position: absolute; inset: 0; margin: auto; width: 14%; height: 14%; border-radius: 50%; background: var(--muted); opacity: 0.5; }
+.cell.missed { animation: missed 0.7s ease-in-out 2; }
+@keyframes missed { 50% { background: color-mix(in srgb, var(--cell) 55%, var(--spark-b)); } }
+[data-motion="reduced"] .cell.missed { animation: none; background: color-mix(in srgb, var(--cell) 75%, var(--spark-b)); }
 svg.overlay { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); pointer-events: none; }
 .node circle { fill: var(--node); }
 .node text { fill: var(--node-ink); font-family: var(--display); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
@@ -208,8 +213,8 @@ button:disabled { opacity: 0.45; cursor: default; }
         <button id="mode-ladder" aria-pressed="false">Ladder</button>
         <button id="mode-learn" aria-pressed="false">Learn</button>
       </div>
-      <button class="icon-btn" id="a11y-open" aria-label="Accessibility settings" aria-haspopup="dialog" title="Accessibility">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v4.5M12 14.5L8.5 21M12 14.5l3.5 6.5"/></svg>
+      <button class="icon-btn" id="a11y-open" aria-label="Settings" aria-haspopup="dialog" title="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
   </header>
@@ -239,7 +244,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 <div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
   <div class="sheet-card">
-    <div class="sheet-head"><h2 id="a11y-title">Accessibility</h2><button id="a11y-close">Done</button></div>
+    <div class="sheet-head"><h2 id="a11y-title">Settings</h2><button id="a11y-close">Done</button></div>
     <fieldset class="opt">
       <legend>Motion</legend>
       <p class="desc">Animations when the line reaches a number and when you finish a puzzle. <span id="motion-note"></span></p>
@@ -507,7 +512,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // Tutorial rounds: tiny hand-made puzzles, each teaching one rule. Cells are numbered row by row.
   const LESSONS = [
     { n: 3, nums: { 0: 1, 8: 2 }, walls: [], solution: [0, 1, 2, 5, 4, 3, 6, 7, 8],
-      text: 'Start on <b>1</b> and drag one line through <b>every square</b>, finishing on <b>2</b>.' },
+      text: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.' },
     { n: 3, nums: { 0: 1, 6: 2, 8: 3 }, walls: [], solution: [0, 3, 6, 7, 4, 1, 2, 5, 8],
       text: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. If you let go, the line snaps back to the last number you reached.' },
     { n: 4, nums: { 0: 1, 3: 2 }, walls: ['4-5', '9-10', '6-7', '13-14'], solution: [0, 4, 8, 12, 13, 9, 5, 1, 2, 6, 10, 14, 15, 11, 7, 3],
@@ -569,6 +574,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('mode-learn').setAttribute('aria-pressed', String(mode === 'learn'));
     const learn = mode === 'learn';
     $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
+    wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn;
     if (learn) {
       const L = LESSONS[lesson];
@@ -783,8 +789,22 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (cell === head) return false;
     const at = path.indexOf(cell);
     if (at >= 0) { path.length = at + 1; return true; }
-    if (canStep(head, cell)) { path.push(cell); checkWin(); if (puz.nums[cell] && !won) hitFx(cell); return true; }
+    if (canStep(head, cell)) {
+      path.push(cell); checkWin();
+      if (puz.nums[cell] && !won) { hitFx(cell); if (puz.nums[cell] === Object.keys(puz.nums).length) showMissed(); }
+      return true;
+    }
     return false;
+  }
+
+  // The line reached the last number with squares left over: point at them.
+  function showMissed() {
+    const on = new Set(path), left = [];
+    cells.forEach((c, i) => { if (!on.has(i)) left.push(c); });
+    left.forEach((c) => { c.classList.remove('missed'); void c.offsetWidth; c.classList.add('missed'); });
+    setTimeout(() => left.forEach((c) => c.classList.remove('missed')), 1500);
+    const msg = `Almost! The line must cover every square. ${left.length} left.`;
+    toast(msg); announce(msg);
   }
 
   // Pop, ring and sparks on a checkpoint the line just reached.
@@ -1025,7 +1045,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         $('ads-desc').textContent = 'One purchase turns off ads between puzzles for good.';
         buy.hidden = false; $('ads-restore').hidden = false;
         buy.textContent = st.price ? 'Remove ads · ' + st.price : 'Remove ads';
-        buy.disabled = !st.price;
       }
       $('ads-privacy').hidden = !st.privacyOptions;
       if (st.message) { $('ads-desc').textContent = st.message; toast(st.message); }

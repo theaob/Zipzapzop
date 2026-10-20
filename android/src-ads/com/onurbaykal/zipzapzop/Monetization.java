@@ -129,17 +129,23 @@ final class Monetization {
             .setListener(this::onPurchasesUpdated)
             .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
             .build();
-        connect(null);
+        connect(null, false);
     }
 
-    private void connect(Runnable then) {
+    // Runs `then` once billing is connected, or tells the player why it couldn't connect when `report` is set.
+    private void connect(Runnable then, boolean report) {
         if (billing.isReady()) { if (then != null) then.run(); return; }
         billing.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult result) {
                 activity.runOnUiThread(() -> {
-                    if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) return;
-                    queryProduct();
+                    if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                        if (report) say(result.getResponseCode() == BillingClient.BillingResponseCode.BILLING_UNAVAILABLE
+                            ? "Google Play purchases aren't available on this device or account."
+                            : "Couldn't reach Google Play. Check your connection and try again.");
+                        return;
+                    }
+                    queryProduct(null);
                     checkOwned(false); // also restores the purchase on a new phone or after a reinstall
                     if (then != null) then.run();
                 });
@@ -150,32 +156,46 @@ final class Monetization {
         });
     }
 
-    private void queryProduct() {
+    // Loads the product and its local price; `then` runs afterwards whether or not it was found.
+    private void queryProduct(Runnable then) {
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
             .setProductList(Collections.singletonList(QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PRODUCT).setProductType(BillingClient.ProductType.INAPP).build()))
             .build();
         billing.queryProductDetailsAsync(params, (result, details) -> activity.runOnUiThread(() -> {
             List<ProductDetails> list = details.getProductDetailsList();
-            if (result.getResponseCode() == BillingClient.BillingResponseCode.OK && !list.isEmpty()) {
+            if (result.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null && !list.isEmpty()) {
                 product = list.get(0);
                 onChange.run();
             }
+            if (then != null) then.run();
         }));
     }
 
     void buyRemoveAds() {
         connect(() -> {
-            if (product == null) { say("The store isn't available right now. Try again later."); return; }
-            BillingFlowParams params = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(Collections.singletonList(
-                    BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product).build()))
-                .build();
-            billing.launchBillingFlow(activity, params);
-        });
+            if (product != null) { launchPurchase(); return; }
+            // The product may not have loaded at launch (offline, or just created in Play Console): ask again.
+            queryProduct(() -> {
+                if (product != null) launchPurchase();
+                else say("Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.");
+            });
+        }, true);
     }
 
-    void restore() { connect(() -> checkOwned(true)); }
+    private void launchPurchase() {
+        BillingFlowParams params = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(Collections.singletonList(
+                BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product).build()))
+            .build();
+        BillingResult result = billing.launchBillingFlow(activity, params);
+        int code = result.getResponseCode();
+        if (code == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) checkOwned(true);
+        else if (code != BillingClient.BillingResponseCode.OK && code != BillingClient.BillingResponseCode.USER_CANCELED)
+            say("Couldn't open the Google Play purchase screen. Try again later.");
+    }
+
+    void restore() { connect(() -> checkOwned(true), true); }
 
     private void checkOwned(boolean report) {
         billing.queryPurchasesAsync(
