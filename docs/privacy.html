@@ -24,11 +24,11 @@ a { color: var(--b); }
 <body>
 <main>
   <h1>Zip<span>Zap</span>Zop privacy policy</h1>
-  <p class="updated">Last updated: October 20, 2026 (ads and in-app purchase added)</p>
+  <p class="updated">Last updated: October 20, 2026 (ads, in-app purchase, analytics and crash reports)</p>
 
   <section>
     <h2>The short version</h2>
-    <p>The game itself has no accounts and keeps your progress only on your device. The Android app shows ads through Google AdMob, which collects device and usage information to show and measure ads, as described below. Buying "Remove ads" turns the ads off. The browser version has no ads.</p>
+    <p>The game itself has no accounts and keeps your progress only on your device. The Android app shows ads through Google AdMob and uses Google's Firebase Analytics and Crashlytics to understand how the game is played and to fix crashes. These collect device and usage information, as described below. Buying "Remove ads" turns the ads off. The browser version has no ads.</p>
   </section>
 
   <section>
@@ -43,12 +43,12 @@ a { color: var(--b); }
   <section>
     <h2>Permissions (Android app)</h2>
     <ul>
-      <li><b>Notifications</b> (<code>POST_NOTIFICATIONS</code>): used only if you turn on the daily reminder, to show one local notification a day, at the time you pick, reminding you to play the daily puzzles. It is skipped on days you have already solved all of them.</li>
+      <li><b>Notifications</b> (<code>POST_NOTIFICATIONS</code>): used for the daily reminder, one local notification a day at the time you pick, reminding you to play the daily puzzles. It is skipped on days you have already solved all of them. The reminder is on by default at 9:00 and starts after your first solved puzzle (on Android 13 and newer, Android asks for your permission then); you can turn it off or change the time in the app's settings at any time.</li>
       <li><b>Run at startup</b> (<code>RECEIVE_BOOT_COMPLETED</code>): used only to re-schedule that reminder after your phone restarts.</li>
     </ul>
     <p>The reminder is scheduled on the device. No server sends it.</p>
     <ul>
-      <li><b>Internet and network state</b>: used only to load ads and to talk to Google Play for the Remove ads purchase. Puzzles work offline.</li>
+      <li><b>Internet and network state</b>: used to load ads, to send analytics and crash reports, and to talk to Google Play for the Remove ads purchase. Puzzles work offline.</li>
       <li><b>Advertising ID</b>: used by AdMob, see below.</li>
       <li><b>Google Play billing</b>: used for the Remove ads purchase.</li>
     </ul>
@@ -58,6 +58,12 @@ a { color: var(--b); }
     <h2>Ads (Android app)</h2>
     <p>The Android app shows an occasional full-screen ad between puzzles, served by Google AdMob. To show, limit and measure ads and to prevent fraud, Google's ads SDK collects and shares with Google information such as your device's advertising ID and other device identifiers, approximate location derived from your IP address, ad interactions, and diagnostic data. Google uses this under its own policies; see <a href="https://policies.google.com/technologies/partner-sites">how Google uses information from apps that use its services</a> and <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
     <p>Where the law requires it (for example in the EEA, the UK and Switzerland, and some US states), the app asks for your consent or choices before ads use personal data. You can change them at any time with <b>Privacy choices</b> in the app's settings when it is shown. You can also reset or delete your advertising ID, or opt out of personalized ads, in your Android device settings.</p>
+  </section>
+
+  <section>
+    <h2>Analytics and crash reports (Android app)</h2>
+    <p>The Android app uses <b>Firebase Analytics</b> to count how the game is played: events such as starting a puzzle, solving one and finishing the tutorial, plus Firebase's standard usage data (sessions, app version, device model, operating system and country derived from your IP address), tied to a random app-instance ID rather than to you. It uses <b>Firebase Crashlytics</b> to receive crash reports and in-game error messages, with device model, operating system version and a random installation ID, so bugs can be fixed.</p>
+    <p>Where the law requires consent (for example in the EEA, the UK and Switzerland), both stay off until you agree in the consent form, and your <b>Privacy choices</b> in settings apply to them too. Elsewhere they run by default. Google processes this data on ZipZapZop's behalf under the <a href="https://firebase.google.com/support/privacy">Firebase privacy and security terms</a>. This data is not used for ads and is not sold.</p>
   </section>
 
   <section>
