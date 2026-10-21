@@ -145,6 +145,18 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win.gate .actions { flex-wrap: wrap; justify-content: center; }
 .win.gate h2 { font-size: 1.5rem; }
 .energy { color: var(--ink); font-weight: 600; }
+/* Ladder worlds: each recolours the line, the title and a soft glow behind the page. */
+:root[data-world="meadow"] { --spark-a: #3fb950; --spark-b: #0f9d8a; --trail: rgba(63, 185, 80, 0.15); }
+:root[data-world="ocean"] { --spark-a: #12b5cb; --spark-b: #3466ff; --trail: rgba(18, 181, 203, 0.15); }
+:root[data-world="desert"] { --spark-a: #f2a516; --spark-b: #e2582b; --trail: rgba(242, 165, 22, 0.16); }
+:root[data-world="aurora"] { --spark-a: #a855f7; --spark-b: #ec4899; --trail: rgba(168, 85, 247, 0.15); }
+:root[data-world="volcano"] { --spark-a: #ff5a1f; --spark-b: #c81e1e; --trail: rgba(255, 90, 31, 0.15); }
+:root[data-world] body { background-image: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--spark-a) 14%, transparent), transparent 70%); background-attachment: fixed; }
+:root[data-contrast="high"][data-world] body { background-image: none; }
+.sizes button.world { min-width: 48px; font-size: 1.05rem; }
+.sizes button.world:disabled { opacity: 0.45; }
+.win.world-done { border: 2px solid var(--spark-a); box-shadow: 0 12px 40px color-mix(in srgb, var(--spark-a) 35%, transparent); }
+.win.world-done h2 { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .version { margin: 4px 0 0; text-align: center; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; user-select: text; -webkit-user-select: text; }
 .version:empty { display: none; }
 .energy[hidden] { display: none; }
@@ -237,7 +249,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   <div class="board-wrap" id="boardWrap">
     <div class="board" id="board" tabindex="0" aria-label="Puzzle grid. Drag to draw, or use arrow keys from the head of the line." data-i18n-aria="board_label"></div>
     <svg class="overlay" id="overlay" aria-hidden="true"></svg>
-    <svg class="overlay fx" id="fx" aria-hidden="true"><defs><linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient></defs></svg>
+    <svg class="overlay fx" id="fx" aria-hidden="true"><defs><linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--spark-a)"/><stop offset="1" style="stop-color: var(--spark-b)"/></linearGradient></defs></svg>
   </div>
 
   <div class="controls">
@@ -315,7 +327,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     window.addEventListener('unhandledrejection', (e) => { try { telemetry.pageError('Unhandled rejection: ' + (e.reason && e.reason.message || e.reason)); } catch (_) {} });
   }
   function puzzleInfo() {
-    return { mode, puzzle: mode === 'daily' ? dailyId : mode === 'ladder' ? 'level_' + level : 'lesson_' + (lesson + 1), size: puz.n };
+    const pos = mode === 'ladder' && ladderPos();
+    return { mode, puzzle: mode === 'daily' ? dailyId : pos ? `w${pos.w + 1}_l${pos.l}` : 'lesson_' + (lesson + 1), size: puz.n };
   }
   // Three daily challenges, the same for everyone on a given date.
   const DAILY = [
@@ -323,19 +336,16 @@ button:disabled { opacity: 0.45; cursor: default; }
     { id: 'medium', n: 6, opts: { clues: 0.9 } },
     { id: 'hard', n: 7, opts: { clues: 0.5, walls: 2 } },
   ];
-  // Ladder: endless numbered levels. The grid grows in bands, and within a band
-  // each level starts with fewer numbers and more walls. Level N is the same for everyone.
-  const LADDER_BANDS = [{ n: 4, levels: 3 }, { n: 5, levels: 7 }, { n: 6, levels: 10 }, { n: 7, levels: 15 }, { n: 8, levels: Infinity }];
-  function ladderSpec(level) {
-    let start = 1;
-    for (const b of LADDER_BANDS) {
-      if (level < start + b.levels) {
-        const t = b.levels === Infinity ? 1 : b.levels === 1 ? 0 : (level - start) / (b.levels - 1);
-        const t8 = b.levels === Infinity ? Math.min(1, (level - start) / 20) : t;
-        return { n: b.n, opts: { clues: 1.3 - 0.8 * t8, walls: Math.round(2 * t8) } };
-      }
-      start += b.levels;
-    }
+  // Ladder: five themed worlds of WORLD_LEVELS levels, one grid size each. Within a world each level
+  // starts with fewer numbers and more walls. Finishing a world unlocks the next. Levels are the same for everyone.
+  const WORLDS = [
+    { id: 'meadow', icon: '🌿', n: 4 }, { id: 'ocean', icon: '🌊', n: 5 }, { id: 'desert', icon: '🏜️', n: 6 },
+    { id: 'aurora', icon: '🌌', n: 7 }, { id: 'volcano', icon: '🌋', n: 8 },
+  ];
+  const WORLD_LEVELS = 20, LADDER_TOTAL = WORLDS.length * WORLD_LEVELS;
+  function worldSpec(w, l) {
+    const t = (l - 1) / (WORLD_LEVELS - 1);
+    return { n: WORLDS[w].n, opts: { clues: 1.3 - 0.8 * t, walls: Math.round(2 * t) } };
   }
   const $ = (id) => document.getElementById(id);
   const board = $('board'), overlay = $('overlay'), wrap = $('boardWrap');
@@ -372,11 +382,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: "You're ready", win_nice: 'Nice', lesson_done: 'Lesson {n} of {total} done',
       play_today: "Play today's puzzle", next_lesson: 'Next lesson',
       solved: 'Solved', solved_in: '{what} in {time}', level: 'Level {level}', play_x: 'Play {label}', play_ladder: 'Play ladder', share: 'Share',
-      share_daily: 'Daily {date} · {label}', share_ladder: 'Ladder · Level {level}', share_line: 'Solved in {time} with {hints}',
+      share_daily: 'Daily {date} · {label}', share_ladder: 'Ladder · {world} {level}/{total}', share_line: 'Solved in {time} with {hints}',
       hint_left: 'Hint · {n}', hint_ad: 'Hint ▶', hint_watch: 'Watch ad?', hints_out: 'Free hints are used up for today. Tap again to watch a short ad for one more.', ad_unavailable: 'No ad is ready right now. Try again in a moment.',
       energy_out: 'Out of energy', energy_text: 'Each Ladder level uses 1 ⚡. Next ⚡ in {time}.', energy_watch: 'Watch ad · +{n} ⚡', energy_daily: 'Play Daily', energy_label: 'Energy: {n} of {max}', energy_next: 'Next ⚡ in {time}',
       version: 'Version {v}', version_web: 'Web version · {v}',
       back_exit: 'Press back again to exit',
+      world_meadow: 'Meadow', world_ocean: 'Ocean', world_desert: 'Desert', world_aurora: 'Aurora', world_volcano: 'Volcano', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} complete!', enter_world: 'Enter {world}', replay_worlds: 'Replay worlds', worlds_group: 'Ladder worlds', locked: 'locked',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
       missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
       msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
@@ -413,11 +424,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: 'Hazırsınız', win_nice: 'Harika', lesson_done: 'Ders {n} / {total} tamamlandı',
       play_today: 'Bugünün bulmacasını oyna', next_lesson: 'Sonraki ders',
       solved: 'Çözüldü', solved_in: '{what}: {time}', level: 'Seviye {level}', play_x: 'Sıradaki: {label}', play_ladder: 'Merdivene geç', share: 'Paylaş',
-      share_daily: 'Günlük {date} · {label}', share_ladder: 'Merdiven · Seviye {level}', share_line: '{time} sürede çözüldü, {hints}',
+      share_daily: 'Günlük {date} · {label}', share_ladder: 'Merdiven · {world} {level}/{total}', share_line: '{time} sürede çözüldü, {hints}',
       hint_left: 'İpucu · {n}', hint_ad: 'İpucu ▶', hint_watch: 'Reklam izle?', hints_out: 'Bugünün ücretsiz ipuçları bitti. Bir ipucu daha için kısa bir reklam izlemek üzere tekrar dokun.', ad_unavailable: 'Şu anda hazır reklam yok. Biraz sonra tekrar dene.',
       energy_out: 'Enerjin bitti', energy_text: 'Her Merdiven seviyesi 1 ⚡ harcar. Sonraki ⚡ {time} sonra.', energy_watch: 'Reklam izle · +{n} ⚡', energy_daily: 'Günlük oyna', energy_label: 'Enerji: {n}/{max}', energy_next: 'Sonraki ⚡ {time} sonra',
       version: 'Sürüm {v}', version_web: 'Web sürümü · {v}',
       back_exit: 'Çıkmak için tekrar geri basın',
+      world_meadow: 'Çayır', world_ocean: 'Okyanus', world_desert: 'Çöl', world_aurora: 'Kutup Işığı', world_volcano: 'Volkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} tamamlandı!', enter_world: '{world} dünyasına geç', replay_worlds: 'Dünyaları tekrar oyna', worlds_group: 'Merdiven dünyaları', locked: 'kilitli',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
       missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
       msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
@@ -454,11 +466,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: '¡Ya sabes jugar!', win_nice: '¡Bien!', lesson_done: 'Lección {n} de {total} completada',
       play_today: 'Jugar el puzle de hoy', next_lesson: 'Siguiente lección',
       solved: 'Resuelto', solved_in: '{what} en {time}', level: 'Nivel {level}', play_x: 'Jugar {label}', play_ladder: 'Jugar escalera', share: 'Compartir',
-      share_daily: 'Diario {date} · {label}', share_ladder: 'Escalera · Nivel {level}', share_line: 'Resuelto en {time} con {hints}',
+      share_daily: 'Diario {date} · {label}', share_ladder: 'Escalera · {world} {level}/{total}', share_line: 'Resuelto en {time} con {hints}',
       hint_left: 'Pista · {n}', hint_ad: 'Pista ▶', hint_watch: '¿Ver anuncio?', hints_out: 'Ya usaste las pistas gratis de hoy. Toca otra vez para ver un anuncio corto y conseguir otra.', ad_unavailable: 'No hay ningún anuncio listo ahora. Inténtalo en un momento.',
       energy_out: 'Sin energía', energy_text: 'Cada nivel de Escalera usa 1 ⚡. Próximo ⚡ en {time}.', energy_watch: 'Ver anuncio · +{n} ⚡', energy_daily: 'Jugar el diario', energy_label: 'Energía: {n} de {max}', energy_next: 'Próximo ⚡ en {time}',
       version: 'Versión {v}', version_web: 'Versión web · {v}',
       back_exit: 'Pulsa atrás otra vez para salir',
+      world_meadow: 'Pradera', world_ocean: 'Océano', world_desert: 'Desierto', world_aurora: 'Aurora', world_volcano: 'Volcán', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '¡{world} completado!', enter_world: 'Entrar en {world}', replay_worlds: 'Repetir mundos', worlds_group: 'Mundos de la escalera', locked: 'bloqueado',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
       missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
       msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
@@ -495,11 +508,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: 'Du bist bereit', win_nice: 'Super', lesson_done: 'Lektion {n} von {total} geschafft',
       play_today: 'Heutiges Rätsel spielen', next_lesson: 'Nächste Lektion',
       solved: 'Gelöst', solved_in: '{what} in {time}', level: 'Stufe {level}', play_x: '{label} spielen', play_ladder: 'Leiter spielen', share: 'Teilen',
-      share_daily: 'Täglich {date} · {label}', share_ladder: 'Leiter · Stufe {level}', share_line: 'Gelöst in {time}, {hints}',
+      share_daily: 'Täglich {date} · {label}', share_ladder: 'Leiter · {world} {level}/{total}', share_line: 'Gelöst in {time}, {hints}',
       hint_left: 'Tipp · {n}', hint_ad: 'Tipp ▶', hint_watch: 'Werbung ansehen?', hints_out: 'Die Gratis-Tipps für heute sind aufgebraucht. Tippe nochmal, um für einen weiteren kurz Werbung anzusehen.', ad_unavailable: 'Gerade ist keine Werbung bereit. Versuche es gleich noch einmal.',
       energy_out: 'Keine Energie', energy_text: 'Jede Leiter-Stufe kostet 1 ⚡. Nächster ⚡ in {time}.', energy_watch: 'Werbung ansehen · +{n} ⚡', energy_daily: 'Tagesrätsel spielen', energy_label: 'Energie: {n} von {max}', energy_next: 'Nächster ⚡ in {time}',
       version: 'Version {v}', version_web: 'Web-Version · {v}',
       back_exit: 'Zum Beenden erneut Zurück drücken',
+      world_meadow: 'Wiese', world_ocean: 'Ozean', world_desert: 'Wüste', world_aurora: 'Polarlicht', world_volcano: 'Vulkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} geschafft!', enter_world: 'Weiter zu {world}', replay_worlds: 'Welten wiederholen', worlds_group: 'Leiter-Welten', locked: 'gesperrt',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
       missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
       msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
@@ -536,11 +550,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: 'Vous êtes prêt', win_nice: 'Bravo', lesson_done: 'Leçon {n} sur {total} terminée',
       play_today: 'Jouer le puzzle du jour', next_lesson: 'Leçon suivante',
       solved: 'Résolu', solved_in: '{what} en {time}', level: 'Niveau {level}', play_x: 'Jouer {label}', play_ladder: 'Jouer à l\'échelle', share: 'Partager',
-      share_daily: 'Du jour {date} · {label}', share_ladder: 'Échelle · Niveau {level}', share_line: 'Résolu en {time} avec {hints}',
+      share_daily: 'Du jour {date} · {label}', share_ladder: 'Échelle · {world} {level}/{total}', share_line: 'Résolu en {time} avec {hints}',
       hint_left: 'Indice · {n}', hint_ad: 'Indice ▶', hint_watch: 'Voir une pub ?', hints_out: 'Les indices gratuits du jour sont épuisés. Touchez encore pour regarder une courte pub et en obtenir un autre.', ad_unavailable: 'Aucune pub n\'est prête pour le moment. Réessayez dans un instant.',
       energy_out: 'Plus d\'énergie', energy_text: 'Chaque niveau de l\'Échelle coûte 1 ⚡. Prochain ⚡ dans {time}.', energy_watch: 'Voir une pub · +{n} ⚡', energy_daily: 'Jouer au défi du jour', energy_label: 'Énergie : {n} sur {max}', energy_next: 'Prochain ⚡ dans {time}',
       version: 'Version {v}', version_web: 'Version web · {v}',
       back_exit: 'Appuyez à nouveau sur retour pour quitter',
+      world_meadow: 'Prairie', world_ocean: 'Océan', world_desert: 'Désert', world_aurora: 'Aurore', world_volcano: 'Volcan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} terminé !', enter_world: 'Entrer dans {world}', replay_worlds: 'Rejouer les mondes', worlds_group: 'Mondes de l\'Échelle', locked: 'verrouillé',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
       missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
       msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
@@ -577,11 +592,12 @@ button:disabled { opacity: 0.45; cursor: default; }
       win_ready: 'Você está pronto', win_nice: 'Muito bem', lesson_done: 'Lição {n} de {total} concluída',
       play_today: 'Jogar o desafio de hoje', next_lesson: 'Próxima lição',
       solved: 'Resolvido', solved_in: '{what} em {time}', level: 'Nível {level}', play_x: 'Jogar {label}', play_ladder: 'Jogar escada', share: 'Compartilhar',
-      share_daily: 'Diário {date} · {label}', share_ladder: 'Escada · Nível {level}', share_line: 'Resolvido em {time} com {hints}',
+      share_daily: 'Diário {date} · {label}', share_ladder: 'Escada · {world} {level}/{total}', share_line: 'Resolvido em {time} com {hints}',
       hint_left: 'Dica · {n}', hint_ad: 'Dica ▶', hint_watch: 'Ver anúncio?', hints_out: 'As dicas grátis de hoje acabaram. Toque de novo para ver um anúncio curto e ganhar mais uma.', ad_unavailable: 'Nenhum anúncio disponível agora. Tente de novo em instantes.',
       energy_out: 'Sem energia', energy_text: 'Cada nível da Escada usa 1 ⚡. Próximo ⚡ em {time}.', energy_watch: 'Ver anúncio · +{n} ⚡', energy_daily: 'Jogar o diário', energy_label: 'Energia: {n} de {max}', energy_next: 'Próximo ⚡ em {time}',
       version: 'Versão {v}', version_web: 'Versão web · {v}',
       back_exit: 'Toque em voltar de novo para sair',
+      world_meadow: 'Campina', world_ocean: 'Oceano', world_desert: 'Deserto', world_aurora: 'Aurora', world_volcano: 'Vulcão', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} concluído!', enter_world: 'Entrar em {world}', replay_worlds: 'Jogar mundos de novo', worlds_group: 'Mundos da escada', locked: 'bloqueado',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
       missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
       msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
@@ -628,7 +644,28 @@ button:disabled { opacity: 0.45; cursor: default; }
   // New players start in the tutorial; returning players keep their last mode.
   let mode = store.get('mode', store.get('tutorialDone', false) ? 'daily' : 'learn');
   let dailyId = store.get('dailyDiff', 'easy');
+  // Ladder progress: `level` is the furthest level reached across all worlds (1..LADDER_TOTAL, or one more once
+  // everything is solved). `world` is the world being played; finished worlds replay from zap:replay:<world>.
+  if (store.get('ladderV', 1) < 2) {
+    // Saves from the endless ladder (bands of 3, 7, 10 and 15 levels at 4x4 to 7x7, then 8x8) move to the
+    // world with the same grid size, keeping the position within it.
+    const old = store.get('ladderLevel', 1), starts = [1, 4, 11, 21, 36];
+    let band = 0; while (band < 4 && old >= starts[band + 1]) band++;
+    store.set('ladderLevel', band * WORLD_LEVELS + Math.min(old - starts[band] + 1, WORLD_LEVELS));
+    store.set('ladderV', 2);
+  }
   let level = store.get('ladderLevel', 1);
+  const furthestWorld = () => Math.min(WORLDS.length - 1, Math.floor((level - 1) / WORLD_LEVELS));
+  let world = Math.min(store.get('world', furthestWorld()), furthestWorld());
+  // { w, l, current }: the world and level (1..WORLD_LEVELS) on screen; current is false for a replay.
+  function ladderPos() {
+    if (world === furthestWorld() && level <= LADDER_TOTAL) return { w: world, l: (level - 1) % WORLD_LEVELS + 1, current: true };
+    return { w: world, l: store.get('replay:' + world, 1), current: false };
+  }
+  const worldName = (w) => t('world_' + WORLDS[w].id);
+  if (store.get('ladderPaid', null) != null && typeof store.get('ladderPaid') === 'number') {
+    const p = ladderPos(); store.set('ladderPaid', p.w + ':' + p.l); // don't charge again for the level on screen
+  }
   if (mode === 'practice') mode = 'ladder'; // older saves
   const daily = () => DAILY.find((d) => d.id === dailyId) || DAILY[0];
   const dailyKey = (id) => 'daily:' + today() + ':' + (id || dailyId);
@@ -661,6 +698,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   function buildSizes() {
     const box = $('sizes'); box.innerHTML = '';
+    if (mode === 'ladder') { buildWorlds(box); return; }
     for (const d of DAILY) {
       const b = document.createElement('button');
       const done = store.get(dailyKey(d.id), null) != null;
@@ -671,13 +709,32 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   }
 
+  // World picker: finished worlds (✓) and the current one; later worlds stay locked.
+  function buildWorlds(box) {
+    box.setAttribute('aria-label', t('worlds_group'));
+    WORLDS.forEach((wd, w) => {
+      const b = document.createElement('button');
+      const locked = w > furthestWorld(), done = (w + 1) * WORLD_LEVELS < level;
+      b.className = 'world';
+      b.innerHTML = `<span aria-hidden="true">${locked ? '🔒' : wd.icon}</span>` + (done ? `<span class="tick" aria-hidden="true">✓</span>` : '');
+      b.setAttribute('aria-label', worldName(w) + (done ? ', ' + t('solved_mark') : locked ? ', ' + t('locked') : ''));
+      b.title = worldName(w);
+      b.disabled = locked;
+      b.setAttribute('aria-pressed', String(w === world));
+      b.onclick = () => { world = w; store.set('world', w); load(); };
+      box.appendChild(b);
+    });
+  }
+
   function load() {
     buildSizes();
+    $('sizes').setAttribute('aria-label', t(mode === 'ladder' ? 'worlds_group' : 'difficulty_group'));
+    if (mode === 'ladder') rootEl.dataset.world = WORLDS[world].id; else delete rootEl.dataset.world;
     $('mode-daily').setAttribute('aria-pressed', String(mode === 'daily'));
     $('mode-ladder').setAttribute('aria-pressed', String(mode === 'ladder'));
     $('mode-learn').setAttribute('aria-pressed', String(mode === 'learn'));
     const learn = mode === 'learn';
-    $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
+    $('lesson').hidden = !learn; $('sizes').hidden = learn;
     wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn;
     if (learn) {
@@ -689,14 +746,14 @@ button:disabled { opacity: 0.45; cursor: default; }
       const d = daily();
       puz = E.generate(d.n, E.hashString('zap/' + today() + '/' + d.id), d.opts);
     } else {
-      const spec = ladderSpec(level);
-      puz = E.generate(spec.n, E.hashString('zap/ladder/' + level), spec.opts);
+      const pos = ladderPos(), spec = worldSpec(pos.w, pos.l);
+      puz = E.generate(spec.n, E.hashString('zap/world/' + (pos.w + 1) + '/' + pos.l), spec.opts);
     }
     path = []; won = false; elapsed = 0; startTime = null;
     celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
     hintsUsed = mode === 'daily' ? store.get('dailyhints:' + today() + ':' + dailyId, 0) : 0;
     clearInterval(timerId); timerId = null;
-    $('label').textContent = learn ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
+    $('label').textContent = learn ? t('how_to_play') : mode === 'daily' ? today() : ladderLabel();
     const saved = mode === 'daily' && store.get(dailyKey(), null);
     closeGate();
     buildBoard();
@@ -717,8 +774,15 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   }
 
+  // Line colours follow --spark-a/--spark-b, which Ladder worlds change. Read once per world.
+  let sparkKey = null, sparkRgb;
   function lerpColor(t) {
-    const a = [255, 138, 31], b = [232, 51, 109];
+    if (sparkKey !== (rootEl.dataset.world || '')) {
+      sparkKey = rootEl.dataset.world || '';
+      const cs = getComputedStyle(rootEl);
+      sparkRgb = ['--spark-a', '--spark-b'].map((v) => { const h = cs.getPropertyValue(v).trim().slice(1); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); });
+    }
+    const [a, b] = sparkRgb;
     return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
   }
 
@@ -726,7 +790,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     const n = puz.n, on = new Set(path);
     cells.forEach((c, i) => c.classList.toggle('on', on.has(i)));
     const ctr = (i) => [(i % n) + 0.5, Math.floor(i / n) + 0.5];
-    let s = `<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient></defs>`;
+    let s = `<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--spark-a)"/><stop offset="1" style="stop-color: var(--spark-b)"/></linearGradient></defs>`;
     overlay.setAttribute('viewBox', `0 0 ${n} ${n}`);
     // path segments, coloured along their length
     for (let k = 1; k < path.length; k++) {
@@ -792,6 +856,11 @@ button:disabled { opacity: 0.45; cursor: default; }
     return r;
   }
 
+  function ladderLabel() {
+    const p = ladderPos();
+    return t('world_level', { world: worldName(p.w), level: p.l, total: WORLD_LEVELS, size: puz.n });
+  }
+
   function showWin() {
     const div = document.createElement('div');
     div.className = 'win';
@@ -805,17 +874,25 @@ button:disabled { opacity: 0.45; cursor: default; }
       wrap.appendChild(div);
       return;
     }
-    const next = nextDaily();
-    const what = mode === 'daily' ? t(daily().id) : t('level', { level });
-    const nextLabel = mode === 'ladder' ? t('level', { level: level + 1 }) : next ? t('play_x', { label: t(next.id) }) : t('play_ladder');
-    div.innerHTML = `<div><h2>${t('solved')}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
+    const next = nextDaily(), pos = mode === 'ladder' && ladderPos();
+    const worldDone = pos && pos.current && pos.l === WORLD_LEVELS;
+    const what = mode === 'daily' ? t(daily().id) : t('world_level_short', { world: worldName(pos.w), level: pos.l, total: WORLD_LEVELS });
+    let nextLabel = pos ? t('level', { level: pos.l % WORLD_LEVELS + 1 }) : next ? t('play_x', { label: t(next.id) }) : t('play_ladder');
+    let title = t('solved');
+    if (worldDone) {
+      const last = pos.w === WORLDS.length - 1;
+      title = t('world_done', { world: worldName(pos.w) });
+      nextLabel = last ? t('replay_worlds') : t('enter_world', { world: worldName(pos.w + 1) });
+      div.classList.add('world-done');
+    }
+    div.innerHTML = `<div><h2>${title}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
     div.querySelector('.next').onclick = nextPuzzle;
     div.querySelector('.share').onclick = share;
     wrap.appendChild(div);
   }
 
   function shareText() {
-    const which = mode === 'daily' ? t('share_daily', { date: today(), label: t(daily().id) }) : t('share_ladder', { level });
+    const which = mode === 'daily' ? t('share_daily', { date: today(), label: t(daily().id) }) : t('share_ladder', { world: worldName(ladderPos().w), level: ladderPos().l, total: WORLD_LEVELS });
     const hints = !hintsUsed ? t('hints_none') : hintsUsed === 1 ? t('hints_one') : t('hints_many', { n: hintsUsed });
     return `ZipZapZop ${which}\n⚡ ${t('share_line', { time: fmt(elapsed), hints })}`;
   }
@@ -857,7 +934,17 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   function nextPuzzle() {
     if (mode === 'learn') { finishTutorial(); return; }
-    if (mode === 'ladder') { level++; store.set('ladderLevel', level); }
+    if (mode === 'ladder') {
+      const p = ladderPos();
+      if (!p.current) store.set('replay:' + p.w, p.l % WORLD_LEVELS + 1);
+      else if (won) {
+        level++; store.set('ladderLevel', level);
+        if (p.l === WORLD_LEVELS) {
+          world = p.w === WORLDS.length - 1 ? 0 : p.w + 1; // after the last world, replays start from the first
+          store.set('world', world);
+        }
+      }
+    }
     else {
       const d = nextDaily();
       if (d) { dailyId = d.id; store.set('dailyDiff', dailyId); }
@@ -1121,9 +1208,10 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
   // Pays for the current Ladder level the first time it is opened. False when out of energy.
   function payLadderLevel() {
-    if (mode !== 'ladder' || !energyMetered() || store.get('ladderPaid', 0) >= level) return true;
+    const p = ladderPos(), key = p.w + ':' + p.l;
+    if (mode !== 'ladder' || !energyMetered() || store.get('ladderPaid', null) === key) return true;
     if (energyNow().n < 1) return false;
-    addEnergy(-1); store.set('ladderPaid', level);
+    addEnergy(-1); store.set('ladderPaid', key);
     return true;
   }
   function closeGate() {
@@ -1149,7 +1237,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     };
     update();
     if (div.isConnected) { gateTimer = setInterval(update, 1000); div.querySelector('.next').focus(); }
-    track('energy_empty', { level });
+    track('energy_empty', puzzleInfo());
   }
 
   // Rewarded ads, for an extra hint or for energy. The app answers through zzzRewardedAd.
@@ -1306,7 +1394,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('lesson-step').textContent = t('lesson_step', { n: lesson + 1, total: LESSONS.length });
       $('lesson-text').innerHTML = t(LESSONS[lesson].text);
     }
-    $('label').textContent = mode === 'learn' ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
+    $('label').textContent = mode === 'learn' ? t('how_to_play') : mode === 'daily' ? today() : ladderLabel();
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
     hintLabel(); showEnergy();
     const card = wrap.querySelector('.win');
