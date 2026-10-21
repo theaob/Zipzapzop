@@ -141,6 +141,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win { flex-wrap: wrap; }
 .win .actions { display: flex; gap: 8px; }
 .win button.share { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.win.gate { inset: 0; background: var(--bg); flex-direction: column; justify-content: center; text-align: center; }
+.win.gate .actions { flex-wrap: wrap; justify-content: center; }
+.win.gate h2 { font-size: 1.5rem; }
+.energy { color: var(--ink); font-weight: 600; }
+.energy[hidden] { display: none; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
   background: var(--ink); color: var(--bg); font: 600 0.85rem var(--body); padding: 8px 14px; border-radius: 999px;
@@ -224,7 +229,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   <div class="bar">
     <div class="sizes" role="group" aria-label="Daily difficulty" data-i18n-aria="difficulty_group" id="sizes"></div>
-    <div class="meta"><span id="label"></span><span><b id="timer">0:00</b></span></div>
+    <div class="meta"><span id="label"></span><span class="energy" id="energy" hidden></span><span><b id="timer">0:00</b></span></div>
   </div>
 
   <div class="board-wrap" id="boardWrap">
@@ -352,7 +357,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'High contrast', contrast_desc: 'Darker grid lines and text, thicker walls, no checkerboard.',
       reminder: 'Daily reminder', reminder_desc: "A notification when today's challenges are ready. Skipped on days you've already solved all three.",
       remind_at: 'Remind me at', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
-      remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase turns off ads for good and unlocks unlimited hints.',
+      remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase turns off ads for good and unlocks unlimited hints and energy.',
       ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
       easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved',
@@ -365,7 +370,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: "Play today's puzzle", next_lesson: 'Next lesson',
       solved: 'Solved', solved_in: '{what} in {time}', level: 'Level {level}', play_x: 'Play {label}', play_ladder: 'Play ladder', share: 'Share',
       share_daily: 'Daily {date} · {label}', share_ladder: 'Ladder · Level {level}', share_line: 'Solved in {time} with {hints}',
-      hint_left: 'Hint · {n}', hint_ad: 'Hint ▶', hint_watch: 'Watch ad?', hints_out: 'Free hints are used up for today. Tap again to watch a short ad for one more.', hint_ad_unavailable: 'No ad is ready right now. Try again in a moment.',
+      hint_left: 'Hint · {n}', hint_ad: 'Hint ▶', hint_watch: 'Watch ad?', hints_out: 'Free hints are used up for today. Tap again to watch a short ad for one more.', ad_unavailable: 'No ad is ready right now. Try again in a moment.',
+      energy_out: 'Out of energy', energy_text: 'Each Ladder level uses 1 ⚡. Next ⚡ in {time}.', energy_watch: 'Watch ad · +{n} ⚡', energy_daily: 'Play Daily', energy_label: 'Energy: {n} of {max}', energy_next: 'Next ⚡ in {time}',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
       missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
       msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
@@ -390,7 +396,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Yüksek kontrast', contrast_desc: 'Daha koyu ızgara çizgileri ve yazılar, kalın duvarlar, dama deseni yok.',
       reminder: 'Günlük hatırlatıcı', reminder_desc: 'Bugünün bulmacaları hazır olduğunda bir bildirim. Üçünü de çözdüğünüz günlerde gönderilmez.',
       remind_at: 'Hatırlatma saati', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
-      remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma reklamları kalıcı olarak kapatır ve sınırsız ipucu açar.',
+      remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma reklamları kalıcı olarak kapatır, sınırsız ipucu ve enerji açar.',
       ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
       easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü',
@@ -403,7 +409,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: 'Bugünün bulmacasını oyna', next_lesson: 'Sonraki ders',
       solved: 'Çözüldü', solved_in: '{what}: {time}', level: 'Seviye {level}', play_x: 'Sıradaki: {label}', play_ladder: 'Merdivene geç', share: 'Paylaş',
       share_daily: 'Günlük {date} · {label}', share_ladder: 'Merdiven · Seviye {level}', share_line: '{time} sürede çözüldü, {hints}',
-      hint_left: 'İpucu · {n}', hint_ad: 'İpucu ▶', hint_watch: 'Reklam izle?', hints_out: 'Bugünün ücretsiz ipuçları bitti. Bir ipucu daha için kısa bir reklam izlemek üzere tekrar dokun.', hint_ad_unavailable: 'Şu anda hazır reklam yok. Biraz sonra tekrar dene.',
+      hint_left: 'İpucu · {n}', hint_ad: 'İpucu ▶', hint_watch: 'Reklam izle?', hints_out: 'Bugünün ücretsiz ipuçları bitti. Bir ipucu daha için kısa bir reklam izlemek üzere tekrar dokun.', ad_unavailable: 'Şu anda hazır reklam yok. Biraz sonra tekrar dene.',
+      energy_out: 'Enerjin bitti', energy_text: 'Her Merdiven seviyesi 1 ⚡ harcar. Sonraki ⚡ {time} sonra.', energy_watch: 'Reklam izle · +{n} ⚡', energy_daily: 'Günlük oyna', energy_label: 'Enerji: {n}/{max}', energy_next: 'Sonraki ⚡ {time} sonra',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
       missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
       msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
@@ -428,7 +435,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Alto contraste', contrast_desc: 'Líneas y texto más oscuros, muros más gruesos, sin tablero de ajedrez.',
       reminder: 'Recordatorio diario', reminder_desc: 'Una notificación cuando los retos de hoy estén listos. Se omite los días en que ya resolviste los tres.',
       remind_at: 'Recordarme a las', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
-      remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra quita los anuncios para siempre y desbloquea pistas ilimitadas.',
+      remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra quita los anuncios para siempre y desbloquea pistas y energía ilimitadas.',
       ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
       easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto',
@@ -441,7 +448,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: 'Jugar el puzle de hoy', next_lesson: 'Siguiente lección',
       solved: 'Resuelto', solved_in: '{what} en {time}', level: 'Nivel {level}', play_x: 'Jugar {label}', play_ladder: 'Jugar escalera', share: 'Compartir',
       share_daily: 'Diario {date} · {label}', share_ladder: 'Escalera · Nivel {level}', share_line: 'Resuelto en {time} con {hints}',
-      hint_left: 'Pista · {n}', hint_ad: 'Pista ▶', hint_watch: '¿Ver anuncio?', hints_out: 'Ya usaste las pistas gratis de hoy. Toca otra vez para ver un anuncio corto y conseguir otra.', hint_ad_unavailable: 'No hay ningún anuncio listo ahora. Inténtalo en un momento.',
+      hint_left: 'Pista · {n}', hint_ad: 'Pista ▶', hint_watch: '¿Ver anuncio?', hints_out: 'Ya usaste las pistas gratis de hoy. Toca otra vez para ver un anuncio corto y conseguir otra.', ad_unavailable: 'No hay ningún anuncio listo ahora. Inténtalo en un momento.',
+      energy_out: 'Sin energía', energy_text: 'Cada nivel de Escalera usa 1 ⚡. Próximo ⚡ en {time}.', energy_watch: 'Ver anuncio · +{n} ⚡', energy_daily: 'Jugar el diario', energy_label: 'Energía: {n} de {max}', energy_next: 'Próximo ⚡ en {time}',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
       missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
       msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
@@ -466,7 +474,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Hoher Kontrast', contrast_desc: 'Dunklere Linien und Texte, dickere Wände, kein Schachbrettmuster.',
       reminder: 'Tägliche Erinnerung', reminder_desc: 'Eine Benachrichtigung, wenn die heutigen Rätsel bereit sind. Entfällt an Tagen, an denen du alle drei gelöst hast.',
       remind_at: 'Erinnern um', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
-      remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf entfernt die Werbung für immer und schaltet unbegrenzte Tipps frei.',
+      remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf entfernt die Werbung für immer und schaltet unbegrenzte Tipps und Energie frei.',
       ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
       easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst',
@@ -479,7 +487,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: 'Heutiges Rätsel spielen', next_lesson: 'Nächste Lektion',
       solved: 'Gelöst', solved_in: '{what} in {time}', level: 'Stufe {level}', play_x: '{label} spielen', play_ladder: 'Leiter spielen', share: 'Teilen',
       share_daily: 'Täglich {date} · {label}', share_ladder: 'Leiter · Stufe {level}', share_line: 'Gelöst in {time}, {hints}',
-      hint_left: 'Tipp · {n}', hint_ad: 'Tipp ▶', hint_watch: 'Werbung ansehen?', hints_out: 'Die Gratis-Tipps für heute sind aufgebraucht. Tippe nochmal, um für einen weiteren kurz Werbung anzusehen.', hint_ad_unavailable: 'Gerade ist keine Werbung bereit. Versuche es gleich noch einmal.',
+      hint_left: 'Tipp · {n}', hint_ad: 'Tipp ▶', hint_watch: 'Werbung ansehen?', hints_out: 'Die Gratis-Tipps für heute sind aufgebraucht. Tippe nochmal, um für einen weiteren kurz Werbung anzusehen.', ad_unavailable: 'Gerade ist keine Werbung bereit. Versuche es gleich noch einmal.',
+      energy_out: 'Keine Energie', energy_text: 'Jede Leiter-Stufe kostet 1 ⚡. Nächster ⚡ in {time}.', energy_watch: 'Werbung ansehen · +{n} ⚡', energy_daily: 'Tagesrätsel spielen', energy_label: 'Energie: {n} von {max}', energy_next: 'Nächster ⚡ in {time}',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
       missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
       msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
@@ -504,7 +513,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Contraste élevé', contrast_desc: 'Lignes et texte plus foncés, murs plus épais, sans damier.',
       reminder: 'Rappel quotidien', reminder_desc: 'Une notification quand les défis du jour sont prêts. Ignoré les jours où vous avez déjà résolu les trois.',
       remind_at: 'Me rappeler à', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
-      remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat supprime définitivement les pubs et débloque les indices illimités.',
+      remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat supprime définitivement les pubs et débloque indices et énergie illimités.',
       ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
       easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu',
@@ -517,7 +526,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: 'Jouer le puzzle du jour', next_lesson: 'Leçon suivante',
       solved: 'Résolu', solved_in: '{what} en {time}', level: 'Niveau {level}', play_x: 'Jouer {label}', play_ladder: 'Jouer à l\'échelle', share: 'Partager',
       share_daily: 'Du jour {date} · {label}', share_ladder: 'Échelle · Niveau {level}', share_line: 'Résolu en {time} avec {hints}',
-      hint_left: 'Indice · {n}', hint_ad: 'Indice ▶', hint_watch: 'Voir une pub ?', hints_out: 'Les indices gratuits du jour sont épuisés. Touchez encore pour regarder une courte pub et en obtenir un autre.', hint_ad_unavailable: 'Aucune pub n\'est prête pour le moment. Réessayez dans un instant.',
+      hint_left: 'Indice · {n}', hint_ad: 'Indice ▶', hint_watch: 'Voir une pub ?', hints_out: 'Les indices gratuits du jour sont épuisés. Touchez encore pour regarder une courte pub et en obtenir un autre.', ad_unavailable: 'Aucune pub n\'est prête pour le moment. Réessayez dans un instant.',
+      energy_out: 'Plus d\'énergie', energy_text: 'Chaque niveau de l\'Échelle coûte 1 ⚡. Prochain ⚡ dans {time}.', energy_watch: 'Voir une pub · +{n} ⚡', energy_daily: 'Jouer au défi du jour', energy_label: 'Énergie : {n} sur {max}', energy_next: 'Prochain ⚡ dans {time}',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
       missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
       msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
@@ -542,7 +552,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Alto contraste', contrast_desc: 'Linhas e textos mais escuros, paredes mais grossas, sem xadrez.',
       reminder: 'Lembrete diário', reminder_desc: 'Uma notificação quando os desafios de hoje estiverem prontos. Não é enviada nos dias em que você já resolveu os três.',
       remind_at: 'Lembrar às', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
-      remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra remove os anúncios para sempre e libera dicas ilimitadas.',
+      remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra remove os anúncios para sempre e libera dicas e energia ilimitadas.',
       ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
       easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido',
@@ -555,7 +565,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       play_today: 'Jogar o desafio de hoje', next_lesson: 'Próxima lição',
       solved: 'Resolvido', solved_in: '{what} em {time}', level: 'Nível {level}', play_x: 'Jogar {label}', play_ladder: 'Jogar escada', share: 'Compartilhar',
       share_daily: 'Diário {date} · {label}', share_ladder: 'Escada · Nível {level}', share_line: 'Resolvido em {time} com {hints}',
-      hint_left: 'Dica · {n}', hint_ad: 'Dica ▶', hint_watch: 'Ver anúncio?', hints_out: 'As dicas grátis de hoje acabaram. Toque de novo para ver um anúncio curto e ganhar mais uma.', hint_ad_unavailable: 'Nenhum anúncio disponível agora. Tente de novo em instantes.',
+      hint_left: 'Dica · {n}', hint_ad: 'Dica ▶', hint_watch: 'Ver anúncio?', hints_out: 'As dicas grátis de hoje acabaram. Toque de novo para ver um anúncio curto e ganhar mais uma.', ad_unavailable: 'Nenhum anúncio disponível agora. Tente de novo em instantes.',
+      energy_out: 'Sem energia', energy_text: 'Cada nível da Escada usa 1 ⚡. Próximo ⚡ em {time}.', energy_watch: 'Ver anúncio · +{n} ⚡', energy_daily: 'Jogar o diário', energy_label: 'Energia: {n} de {max}', energy_next: 'Próximo ⚡ em {time}',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
       missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
       msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
@@ -672,9 +683,12 @@ button:disabled { opacity: 0.45; cursor: default; }
     clearInterval(timerId); timerId = null;
     $('label').textContent = learn ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
     const saved = mode === 'daily' && store.get(dailyKey(), null);
+    closeGate();
     buildBoard();
     if (saved) { path = puz.solution.slice(); won = true; elapsed = saved; }
     render();
+    if (!payLadderLevel()) showGate();
+    showEnergy();
   }
 
   function buildBoard() {
@@ -1053,7 +1067,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
   function disarmHintAd() { clearTimeout(hintAdArmed); hintAdArmed = null; }
   function hintTap() {
-    if (won || hintAdPending) return;
+    if (won || hintAdPending || wrap.querySelector('.gate')) return;
     if (!hintsMetered()) { hint(); return; }
     if (freeHintsLeft()) { store.set('hintday', { d: today(), n: hintsToday() + 1 }); hint(); return; }
     // Out of free hints: the first tap explains, the second opts in to the ad.
@@ -1063,15 +1077,84 @@ button:disabled { opacity: 0.45; cursor: default; }
       return;
     }
     disarmHintAd(); hintAdPending = true; hintLabel();
-    track('hint_ad_start', puzzleInfo());
-    window.ZipZapZopAndroid.watchHintAd();
+    watchAd('hint');
   }
-  // The app reports how the rewarded ad ended: 'reward' (watched), 'closed' (left early) or 'unavailable'.
-  window.zzzHintAd = (result) => {
-    hintAdPending = false;
-    if (result === 'reward') hint();
-    else if (result === 'unavailable') toast(t('hint_ad_unavailable'));
-    hintLabel();
+
+  // Ladder energy, also only with ads in the Android app: each new Ladder level costs 1, it refills by
+  // 1 every ENERGY_REFILL_MS up to ENERGY_MAX, and a finished rewarded ad adds ENERGY_AD.
+  const ENERGY_MAX = 5, ENERGY_REFILL_MS = 30 * 60 * 1000, ENERGY_AD = 3;
+  let gateTimer = null;
+  const energyMetered = () => !!lastAdsState && lastAdsState.available && !lastAdsState.adsRemoved;
+  // Current energy as { n, t }: t is when the next refill started counting.
+  function energyNow() {
+    const now = Date.now();
+    let e = store.get('energy', null);
+    if (!e || typeof e.n !== 'number' || !(e.t <= now)) e = { n: e && typeof e.n === 'number' ? e.n : ENERGY_MAX, t: now };
+    const gained = Math.floor((now - e.t) / ENERGY_REFILL_MS);
+    if (e.n >= ENERGY_MAX) e = { n: e.n, t: now };
+    else if (gained > 0) { const n = Math.min(ENERGY_MAX, e.n + gained); e = { n, t: n >= ENERGY_MAX ? now : e.t + gained * ENERGY_REFILL_MS }; }
+    store.set('energy', e);
+    return e;
+  }
+  const nextRefillIn = (e) => Math.max(0, ENERGY_REFILL_MS - (Date.now() - e.t));
+  function addEnergy(k) { const e = energyNow(); store.set('energy', { n: Math.max(0, Math.min(ENERGY_MAX, e.n + k)), t: e.t }); }
+  function showEnergy() {
+    const el = $('energy');
+    el.hidden = mode !== 'ladder' || !energyMetered();
+    if (el.hidden) return;
+    const e = energyNow();
+    el.textContent = '⚡ ' + e.n + '/' + ENERGY_MAX;
+    el.setAttribute('aria-label', t('energy_label', { n: e.n, max: ENERGY_MAX }));
+    el.title = e.n < ENERGY_MAX ? t('energy_next', { time: fmt(nextRefillIn(e)) }) : '';
+  }
+  // Pays for the current Ladder level the first time it is opened. False when out of energy.
+  function payLadderLevel() {
+    if (mode !== 'ladder' || !energyMetered() || store.get('ladderPaid', 0) >= level) return true;
+    if (energyNow().n < 1) return false;
+    addEnergy(-1); store.set('ladderPaid', level);
+    return true;
+  }
+  function closeGate() {
+    clearInterval(gateTimer); gateTimer = null;
+    const g = wrap.querySelector('.gate'); if (g) g.remove();
+    $('board').inert = false;
+  }
+  function showGate() {
+    closeGate();
+    $('board').inert = true;
+    for (const id of ['undo', 'hint', 'clear']) $(id).disabled = true;
+    const div = document.createElement('div');
+    div.className = 'win gate';
+    div.innerHTML = `<div><h2>${t('energy_out')}</h2><p class="when"></p></div><div class="actions"><button class="share daily">${t('energy_daily')}</button><button class="next">${t('energy_watch', { n: ENERGY_AD })}</button></div>`;
+    div.querySelector('.next').onclick = () => watchAd('energy');
+    div.querySelector('.daily').onclick = () => { closeGate(); mode = 'daily'; store.set('mode', mode); load(); };
+    wrap.appendChild(div);
+    const update = () => {
+      const e = energyNow();
+      if (e.n > 0) { load(); return; } // refilled while waiting
+      div.querySelector('.when').textContent = t('energy_text', { time: fmt(nextRefillIn(e)) });
+      showEnergy();
+    };
+    update();
+    if (div.isConnected) { gateTimer = setInterval(update, 1000); div.querySelector('.next').focus(); }
+    track('energy_empty', { level });
+  }
+
+  // Rewarded ads, for an extra hint or for energy. The app answers through zzzRewardedAd.
+  let adPending = false;
+  function watchAd(purpose) {
+    if (adPending) return;
+    adPending = true;
+    if (purpose === 'hint') hintAdPending = true;
+    track('rewarded_ad_start', Object.assign(puzzleInfo(), { purpose }));
+    window.ZipZapZopAndroid.watchRewardedAd(purpose);
+  }
+  // result: 'reward' (watched to the end), 'closed' (left early) or 'unavailable'.
+  window.zzzRewardedAd = (purpose, result) => {
+    adPending = false; hintAdPending = false;
+    if (result === 'unavailable') toast(t('ad_unavailable'));
+    if (purpose === 'hint') { if (result === 'reward') hint(); hintLabel(); }
+    else if (purpose === 'energy' && result === 'reward') { addEnergy(ENERGY_AD); if (wrap.querySelector('.gate')) load(); else showEnergy(); }
   };
 
   $('undo').onclick = undo;
@@ -1153,7 +1236,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   if (bridge && bridge.adsState) {
     const showAds = (st) => {
       if (st) lastAdsState = Object.assign({}, st, { message: null });
-      if (puz) hintLabel();
+      if (puz) { hintLabel(); showEnergy(); if (wrap.querySelector('.gate') && payLadderLevel()) load(); }
       if (!st || !st.available) { $('ads-opt').hidden = true; return; }
       $('ads-opt').hidden = false;
       const buy = $('ads-buy');
@@ -1199,9 +1282,9 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
     $('label').textContent = mode === 'learn' ? t('how_to_play') : mode === 'daily' ? today() : t('level_size', { level, size: puz.n });
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
-    hintLabel();
+    hintLabel(); showEnergy();
     const card = wrap.querySelector('.win');
-    if (card) { card.remove(); showWin(); }
+    if (card) { card.remove(); if (card.classList.contains('gate')) showGate(); else showWin(); }
     applyA11y();
   }
   $('opt-lang').onchange = (e) => { store.set('lang', e.target.value); applyLang(); relabel(); };

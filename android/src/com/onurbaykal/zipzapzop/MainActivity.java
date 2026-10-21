@@ -54,10 +54,10 @@ public class MainActivity extends Activity {
         money = new Monetization(this, new Runnable() {
             @Override
             public void run() { pushAdsState(); }
-        }, new HintAdListener() {
+        }, new RewardedAdListener() {
             @Override
-            public void hintAd(String result) {
-                web.evaluateJavascript("window.zzzHintAd && window.zzzHintAd('" + result + "')", null);
+            public void rewardedAd(String purpose, String result) {
+                web.evaluateJavascript("window.zzzRewardedAd && window.zzzRewardedAd('" + purpose + "', '" + result + "')", null);
             }
         });
         adsState = money.stateJson();
@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
     }
 
     // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
-    // ads (rewarded ones for extra hints) plus the remove-ads purchase, and analytics.
+    // ads (rewarded ones for extra hints and energy) plus the remove-ads purchase, and analytics.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -126,8 +126,10 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void watchHintAd() {
-            onUi(new Runnable() { @Override public void run() { money.watchHintAd(); } });
+        public void watchRewardedAd(final String purpose) {
+            // Only known purposes, since it is echoed back into JavaScript.
+            if (!"hint".equals(purpose) && !"energy".equals(purpose)) return;
+            onUi(new Runnable() { @Override public void run() { money.watchRewardedAd(purpose); } });
         }
 
         @JavascriptInterface
