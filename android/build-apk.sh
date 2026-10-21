@@ -14,7 +14,7 @@ python3 make_page.py
 
 # 2. Manifest: add what Gradle normally fills in (package, SDK levels, version, a placeholder AdMob ID).
 sed -e 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.onurbaykal.zipzapzop" android:versionCode="1" android:versionName="1.0">\n    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />|' \
-  -e 's|\${admobAppId}|unused-in-local-build|' AndroidManifest.xml > build/AndroidManifest.xml
+  -e 's|\${admobAppId}|unused-in-local-build|' -e '/enableOnBackInvokedCallback/d' AndroidManifest.xml > build/AndroidManifest.xml
 
 # 3. Resources -> R.java, then compile and dex. src-noads stands in for the ads and billing code,
 #    whose libraries only Gradle can download, so this build has no ads and no purchase.
