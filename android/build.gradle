@@ -14,12 +14,15 @@ if (file('google-services.json').exists()) {
 }
 
 // Google's sample AdMob IDs, which only ever show test ads. Release builds take the real ones from
-// -PadmobAppId=... -PadmobInterstitialId=... (or ADMOB_APP_ID / ADMOB_INTERSTITIAL_ID in CI).
+// -PadmobAppId=... -PadmobInterstitialId=... -PadmobRewardedId=... (or ADMOB_APP_ID / ADMOB_INTERSTITIAL_ID /
+// ADMOB_REWARDED_ID in CI).
 def testAppId = 'ca-app-pub-3940256099942544~3347511713'
 def testInterstitialId = 'ca-app-pub-3940256099942544/1033173712'
+def testRewardedId = 'ca-app-pub-3940256099942544/5224354917'
 def prop = { String name, String env -> findProperty(name) ?: System.getenv(env) ?: null }
 def releaseAppId = prop('admobAppId', 'ADMOB_APP_ID') ?: testAppId
 def releaseInterstitialId = prop('admobInterstitialId', 'ADMOB_INTERSTITIAL_ID') ?: testInterstitialId
+def releaseRewardedId = prop('admobRewardedId', 'ADMOB_REWARDED_ID') ?: testRewardedId
 def keystore = System.getenv('ZZZ_KEYSTORE_FILE')
 
 android {
@@ -59,11 +62,13 @@ android {
         debug {
             manifestPlaceholders = [admobAppId: testAppId]
             buildConfigField 'String', 'ADMOB_INTERSTITIAL', "\"${testInterstitialId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED', "\"${testRewardedId}\""
         }
         release {
             minifyEnabled false
             manifestPlaceholders = [admobAppId: releaseAppId]
             buildConfigField 'String', 'ADMOB_INTERSTITIAL', "\"${releaseInterstitialId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED', "\"${releaseRewardedId}\""
             if (keystore) signingConfig signingConfigs.release
         }
     }
