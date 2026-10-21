@@ -9,7 +9,6 @@ final class Monetization {
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {}
 
     void start() {}
-    void puzzleFinished(String mode) {}
     void watchRewardedAd(String purpose) {}
     void buyRemoveAds() {}
     void restore() {}

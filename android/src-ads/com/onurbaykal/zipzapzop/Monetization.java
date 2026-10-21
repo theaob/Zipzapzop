@@ -2,7 +2,6 @@ package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.os.SystemClock;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
@@ -19,8 +18,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.ump.ConsentInformation;
@@ -34,13 +31,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob interstitials between solved puzzles, rewarded ads for extra hints and Ladder energy, Google's consent flow (UMP),
-// and the one-time "remove_ads" Play purchase. Every callback that touches state runs on the main thread.
+// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), Google's
+// consent flow (UMP), and the one-time "remove_ads" Play purchase. Every callback that touches state runs on the main thread.
 final class Monetization {
     static final String PRODUCT = "remove_ads";
-    // At most one ad every SOLVES_PER_AD solves and MIN_GAP_MS, never before the first daily is done.
-    private static final int SOLVES_PER_AD = 3;
-    private static final long MIN_GAP_MS = 3 * 60 * 1000;
 
     private final Activity activity;
     private final Runnable onChange;
@@ -50,12 +44,8 @@ final class Monetization {
     private final AtomicBoolean adsStarted = new AtomicBoolean(false);
     private BillingClient billing;
     private ProductDetails product;
-    private InterstitialAd interstitial;
-    private boolean loading;
     private RewardedAd rewarded;
     private boolean loadingRewarded;
-    private int solvesSinceAd;
-    private long lastAdAt = -MIN_GAP_MS;
     private String message;
 
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
@@ -86,20 +76,7 @@ final class Monetization {
 
     private void startAds() {
         if (adsRemoved() || !consent.canRequestAds() || !adsStarted.compareAndSet(false, true)) return;
-        MobileAds.initialize(activity, status -> { loadInterstitial(); loadRewarded(); });
-    }
-
-    private void loadInterstitial() {
-        if (loading || interstitial != null || adsRemoved() || !consent.canRequestAds()) return;
-        loading = true;
-        InterstitialAd.load(activity, BuildConfig.ADMOB_INTERSTITIAL, new AdRequest.Builder().build(),
-            new InterstitialAdLoadCallback() {
-                @Override
-                public void onAdLoaded(InterstitialAd ad) { loading = false; interstitial = ad; }
-
-                @Override
-                public void onAdFailedToLoad(LoadAdError error) { loading = false; } // retried after the next solve
-            });
+        MobileAds.initialize(activity, status -> loadRewarded());
     }
 
     private void loadRewarded() {
@@ -135,30 +112,7 @@ final class Monetization {
                 loadRewarded();
             }
         });
-        lastAdAt = SystemClock.elapsedRealtime(); // no interstitial straight after a rewarded ad
         ad.show(activity, reward -> { earned[0] = true; onRewarded.rewardedAd(purpose, "reward"); });
-    }
-
-    // Called by the page when the player taps Next on a solved Daily or Ladder puzzle.
-    void puzzleFinished(String mode) {
-        if ("daily".equals(mode)) prefs.edit().putBoolean("firstDailyDone", true).apply();
-        if (adsRemoved() || "learn".equals(mode) || !prefs.getBoolean("firstDailyDone", false)) return;
-        solvesSinceAd++;
-        long now = SystemClock.elapsedRealtime();
-        if (interstitial == null) { loadInterstitial(); return; }
-        if (solvesSinceAd < SOLVES_PER_AD || now - lastAdAt < MIN_GAP_MS) return;
-        InterstitialAd ad = interstitial;
-        interstitial = null;
-        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
-            @Override
-            public void onAdDismissedFullScreenContent() { loadInterstitial(); }
-
-            @Override
-            public void onAdFailedToShowFullScreenContent(AdError error) { loadInterstitial(); }
-        });
-        solvesSinceAd = 0;
-        lastAdAt = now;
-        ad.show(activity);
     }
 
     void showPrivacyOptions() {
@@ -284,8 +238,8 @@ final class Monetization {
 
     private void setAdsRemoved(boolean removed) {
         prefs.edit().putBoolean("adsRemoved", removed).apply();
-        if (removed) { interstitial = null; rewarded = null; }
-        else if (adsStarted.get()) { loadInterstitial(); loadRewarded(); }
+        if (removed) rewarded = null;
+        else if (adsStarted.get()) loadRewarded();
         else startAds();
         onChange.run();
     }

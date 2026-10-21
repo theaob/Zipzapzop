@@ -121,11 +121,6 @@ public class MainActivity extends Activity {
         public String adsState() { return adsState; }
 
         @JavascriptInterface
-        public void puzzleFinished(final String mode) {
-            onUi(new Runnable() { @Override public void run() { money.puzzleFinished(mode); } });
-        }
-
-        @JavascriptInterface
         public void watchRewardedAd(final String purpose) {
             // Only known purposes, since it is echoed back into JavaScript.
             if (!"hint".equals(purpose) && !"energy".equals(purpose)) return;
