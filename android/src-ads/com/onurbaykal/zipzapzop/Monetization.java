@@ -28,7 +28,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), Google's
@@ -44,8 +48,9 @@ final class Monetization {
     private final AtomicBoolean adsStarted = new AtomicBoolean(false);
     private BillingClient billing;
     private ProductDetails product;
-    private RewardedAd rewarded;
-    private boolean loadingRewarded;
+    // One rewarded ad unit per purpose, so AdMob reports hint and energy ads separately.
+    private final Map<String, RewardedAd> rewarded = new HashMap<>();
+    private final Set<String> loadingRewarded = new HashSet<>();
     private String message;
 
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
@@ -76,40 +81,45 @@ final class Monetization {
 
     private void startAds() {
         if (adsRemoved() || !consent.canRequestAds() || !adsStarted.compareAndSet(false, true)) return;
-        MobileAds.initialize(activity, status -> loadRewarded());
+        MobileAds.initialize(activity, status -> loadAllRewarded());
     }
 
-    private void loadRewarded() {
-        if (loadingRewarded || rewarded != null || adsRemoved() || !consent.canRequestAds()) return;
-        loadingRewarded = true;
-        RewardedAd.load(activity, BuildConfig.ADMOB_REWARDED, new AdRequest.Builder().build(),
+    private static String unitFor(String purpose) {
+        return "energy".equals(purpose) ? BuildConfig.ADMOB_REWARDED_ENERGY : BuildConfig.ADMOB_REWARDED_HINT;
+    }
+
+    private void loadAllRewarded() { loadRewarded("hint"); loadRewarded("energy"); }
+
+    private void loadRewarded(final String purpose) {
+        if (loadingRewarded.contains(purpose) || rewarded.containsKey(purpose) || adsRemoved() || !consent.canRequestAds()) return;
+        loadingRewarded.add(purpose);
+        RewardedAd.load(activity, unitFor(purpose), new AdRequest.Builder().build(),
             new RewardedAdLoadCallback() {
                 @Override
-                public void onAdLoaded(RewardedAd ad) { loadingRewarded = false; rewarded = ad; }
+                public void onAdLoaded(RewardedAd ad) { loadingRewarded.remove(purpose); rewarded.put(purpose, ad); }
 
                 @Override
-                public void onAdFailedToLoad(LoadAdError error) { loadingRewarded = false; } // retried on the next request
+                public void onAdFailedToLoad(LoadAdError error) { loadingRewarded.remove(purpose); } // retried on the next request
             });
     }
 
     // The player chose to watch an ad for a reward (`purpose`: "hint" or "energy"). Reports "reward",
     // "closed" (left before the reward) or "unavailable" (no ad loaded yet, offline, or no consent to request ads).
     void watchRewardedAd(final String purpose) {
-        if (rewarded == null) { onRewarded.rewardedAd(purpose, "unavailable"); startAds(); loadRewarded(); return; }
-        RewardedAd ad = rewarded;
-        rewarded = null;
+        RewardedAd ad = rewarded.remove(purpose);
+        if (ad == null) { onRewarded.rewardedAd(purpose, "unavailable"); startAds(); loadRewarded(purpose); return; }
         final boolean[] earned = { false };
         ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             @Override
             public void onAdDismissedFullScreenContent() {
                 if (!earned[0]) onRewarded.rewardedAd(purpose, "closed");
-                loadRewarded();
+                loadRewarded(purpose);
             }
 
             @Override
             public void onAdFailedToShowFullScreenContent(AdError error) {
                 onRewarded.rewardedAd(purpose, "unavailable");
-                loadRewarded();
+                loadRewarded(purpose);
             }
         });
         ad.show(activity, reward -> { earned[0] = true; onRewarded.rewardedAd(purpose, "reward"); });
@@ -238,8 +248,8 @@ final class Monetization {
 
     private void setAdsRemoved(boolean removed) {
         prefs.edit().putBoolean("adsRemoved", removed).apply();
-        if (removed) rewarded = null;
-        else if (adsStarted.get()) loadRewarded();
+        if (removed) rewarded.clear();
+        else if (adsStarted.get()) loadAllRewarded();
         else startAds();
         onChange.run();
     }

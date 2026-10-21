@@ -1149,6 +1149,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   // result: 'reward' (watched to the end), 'closed' (left early) or 'unavailable'.
   window.zzzRewardedAd = (purpose, result) => {
     adPending = false; hintAdPending = false;
+    track('rewarded_ad_result', Object.assign(puzzleInfo(), { purpose, result }));
     if (result === 'unavailable') toast(t('ad_unavailable'));
     if (purpose === 'hint') { if (result === 'reward') hint(); hintLabel(); }
     else if (purpose === 'energy' && result === 'reward') { addEnergy(ENERGY_AD); if (wrap.querySelector('.gate')) load(); else showEnergy(); }

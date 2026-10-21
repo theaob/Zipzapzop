@@ -14,12 +14,14 @@ if (file('google-services.json').exists()) {
 }
 
 // Google's sample AdMob IDs, which only ever show test ads. Release builds take the real ones from
-// -PadmobAppId=... -PadmobRewardedId=... (or ADMOB_APP_ID / ADMOB_REWARDED_ID in CI).
+// -PadmobAppId=... -PadmobRewardedId=... -PadmobRewardedEnergyId=... (or ADMOB_APP_ID / ADMOB_REWARDED_ID /
+// ADMOB_REWARDED_ENERGY_ID in CI). ADMOB_REWARDED_ID is the hint ad unit.
 def testAppId = 'ca-app-pub-3940256099942544~3347511713'
 def testRewardedId = 'ca-app-pub-3940256099942544/5224354917'
 def prop = { String name, String env -> findProperty(name) ?: System.getenv(env) ?: null }
 def releaseAppId = prop('admobAppId', 'ADMOB_APP_ID') ?: testAppId
 def releaseRewardedId = prop('admobRewardedId', 'ADMOB_REWARDED_ID') ?: testRewardedId
+def releaseRewardedEnergyId = prop('admobRewardedEnergyId', 'ADMOB_REWARDED_ENERGY_ID') ?: testRewardedId
 def keystore = System.getenv('ZZZ_KEYSTORE_FILE')
 
 android {
@@ -58,12 +60,14 @@ android {
     buildTypes {
         debug {
             manifestPlaceholders = [admobAppId: testAppId]
-            buildConfigField 'String', 'ADMOB_REWARDED', "\"${testRewardedId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_HINT', "\"${testRewardedId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_ENERGY', "\"${testRewardedId}\""
         }
         release {
             minifyEnabled false
             manifestPlaceholders = [admobAppId: releaseAppId]
-            buildConfigField 'String', 'ADMOB_REWARDED', "\"${releaseRewardedId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_HINT', "\"${releaseRewardedId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_ENERGY', "\"${releaseRewardedEnergyId}\""
             if (keystore) signingConfig signingConfigs.release
         }
     }
