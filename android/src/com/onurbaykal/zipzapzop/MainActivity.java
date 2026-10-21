@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
     private Monetization money;
     private Telemetry telemetry;
     private volatile String adsState; // read by the page from the JavaScript thread
+    private BackHandler back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +66,24 @@ public class MainActivity extends Activity {
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
         money.start();
+        back = new BackHandler(this, new Runnable() {
+            @Override
+            public void run() { handleBack(); }
+        });
     }
+
+    // Back goes to the page first: it closes Settings, or asks for a second press before exiting.
+    private void handleBack() {
+        web.evaluateJavascript("window.zzzBack ? zzzBack() : 'exit'", new android.webkit.ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String result) {
+                if ("\"exit\"".equals(result)) finish();
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() { handleBack(); } // Android 12 and older; newer versions use BackHandler
 
     // Sends the ads/purchase state to the page's settings sheet. Main thread only.
     private void pushAdsState() {
@@ -76,6 +94,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        back.destroy();
         money.destroy();
         super.onDestroy();
     }
