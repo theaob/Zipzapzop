@@ -145,6 +145,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win.gate .actions { flex-wrap: wrap; justify-content: center; }
 .win.gate h2 { font-size: 1.5rem; }
 .energy { color: var(--ink); font-weight: 600; }
+.version { margin: 4px 0 0; text-align: center; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; user-select: text; -webkit-user-select: text; }
+.version:empty { display: none; }
 .energy[hidden] { display: none; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
@@ -293,6 +295,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       <span class="txt"><b data-i18n="large">Larger text and numbers</b><small data-i18n="large_desc">Bigger labels, buttons and checkpoint numbers.</small></span>
       <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
     </label>
+    <p class="version" id="version"></p>
   </div>
 </div>
 
@@ -372,6 +375,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Daily {date} · {label}', share_ladder: 'Ladder · Level {level}', share_line: 'Solved in {time} with {hints}',
       hint_left: 'Hint · {n}', hint_ad: 'Hint ▶', hint_watch: 'Watch ad?', hints_out: 'Free hints are used up for today. Tap again to watch a short ad for one more.', ad_unavailable: 'No ad is ready right now. Try again in a moment.',
       energy_out: 'Out of energy', energy_text: 'Each Ladder level uses 1 ⚡. Next ⚡ in {time}.', energy_watch: 'Watch ad · +{n} ⚡', energy_daily: 'Play Daily', energy_label: 'Energy: {n} of {max}', energy_next: 'Next ⚡ in {time}',
+      version: 'Version {v}', version_web: 'Web version · {v}',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
       missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
       msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
@@ -411,6 +415,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Günlük {date} · {label}', share_ladder: 'Merdiven · Seviye {level}', share_line: '{time} sürede çözüldü, {hints}',
       hint_left: 'İpucu · {n}', hint_ad: 'İpucu ▶', hint_watch: 'Reklam izle?', hints_out: 'Bugünün ücretsiz ipuçları bitti. Bir ipucu daha için kısa bir reklam izlemek üzere tekrar dokun.', ad_unavailable: 'Şu anda hazır reklam yok. Biraz sonra tekrar dene.',
       energy_out: 'Enerjin bitti', energy_text: 'Her Merdiven seviyesi 1 ⚡ harcar. Sonraki ⚡ {time} sonra.', energy_watch: 'Reklam izle · +{n} ⚡', energy_daily: 'Günlük oyna', energy_label: 'Enerji: {n}/{max}', energy_next: 'Sonraki ⚡ {time} sonra',
+      version: 'Sürüm {v}', version_web: 'Web sürümü · {v}',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
       missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
       msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
@@ -450,6 +455,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Diario {date} · {label}', share_ladder: 'Escalera · Nivel {level}', share_line: 'Resuelto en {time} con {hints}',
       hint_left: 'Pista · {n}', hint_ad: 'Pista ▶', hint_watch: '¿Ver anuncio?', hints_out: 'Ya usaste las pistas gratis de hoy. Toca otra vez para ver un anuncio corto y conseguir otra.', ad_unavailable: 'No hay ningún anuncio listo ahora. Inténtalo en un momento.',
       energy_out: 'Sin energía', energy_text: 'Cada nivel de Escalera usa 1 ⚡. Próximo ⚡ en {time}.', energy_watch: 'Ver anuncio · +{n} ⚡', energy_daily: 'Jugar el diario', energy_label: 'Energía: {n} de {max}', energy_next: 'Próximo ⚡ en {time}',
+      version: 'Versión {v}', version_web: 'Versión web · {v}',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
       missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
       msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
@@ -489,6 +495,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Täglich {date} · {label}', share_ladder: 'Leiter · Stufe {level}', share_line: 'Gelöst in {time}, {hints}',
       hint_left: 'Tipp · {n}', hint_ad: 'Tipp ▶', hint_watch: 'Werbung ansehen?', hints_out: 'Die Gratis-Tipps für heute sind aufgebraucht. Tippe nochmal, um für einen weiteren kurz Werbung anzusehen.', ad_unavailable: 'Gerade ist keine Werbung bereit. Versuche es gleich noch einmal.',
       energy_out: 'Keine Energie', energy_text: 'Jede Leiter-Stufe kostet 1 ⚡. Nächster ⚡ in {time}.', energy_watch: 'Werbung ansehen · +{n} ⚡', energy_daily: 'Tagesrätsel spielen', energy_label: 'Energie: {n} von {max}', energy_next: 'Nächster ⚡ in {time}',
+      version: 'Version {v}', version_web: 'Web-Version · {v}',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
       missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
       msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
@@ -528,6 +535,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Du jour {date} · {label}', share_ladder: 'Échelle · Niveau {level}', share_line: 'Résolu en {time} avec {hints}',
       hint_left: 'Indice · {n}', hint_ad: 'Indice ▶', hint_watch: 'Voir une pub ?', hints_out: 'Les indices gratuits du jour sont épuisés. Touchez encore pour regarder une courte pub et en obtenir un autre.', ad_unavailable: 'Aucune pub n\'est prête pour le moment. Réessayez dans un instant.',
       energy_out: 'Plus d\'énergie', energy_text: 'Chaque niveau de l\'Échelle coûte 1 ⚡. Prochain ⚡ dans {time}.', energy_watch: 'Voir une pub · +{n} ⚡', energy_daily: 'Jouer au défi du jour', energy_label: 'Énergie : {n} sur {max}', energy_next: 'Prochain ⚡ dans {time}',
+      version: 'Version {v}', version_web: 'Version web · {v}',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
       missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
       msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
@@ -567,6 +575,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       share_daily: 'Diário {date} · {label}', share_ladder: 'Escada · Nível {level}', share_line: 'Resolvido em {time} com {hints}',
       hint_left: 'Dica · {n}', hint_ad: 'Dica ▶', hint_watch: 'Ver anúncio?', hints_out: 'As dicas grátis de hoje acabaram. Toque de novo para ver um anúncio curto e ganhar mais uma.', ad_unavailable: 'Nenhum anúncio disponível agora. Tente de novo em instantes.',
       energy_out: 'Sem energia', energy_text: 'Cada nível da Escada usa 1 ⚡. Próximo ⚡ em {time}.', energy_watch: 'Ver anúncio · +{n} ⚡', energy_daily: 'Jogar o diário', energy_label: 'Energia: {n} de {max}', energy_next: 'Próximo ⚡ em {time}',
+      version: 'Versão {v}', version_web: 'Versão web · {v}',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
       missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
       msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
@@ -1285,8 +1294,18 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (card) { card.remove(); if (card.classList.contains('gate')) showGate(); else showWin(); }
     applyA11y();
   }
-  $('opt-lang').onchange = (e) => { store.set('lang', e.target.value); applyLang(); relabel(); };
+  // Version line at the bottom of Settings: the app's version and build number on Android,
+  // otherwise the date and commit that build.sh stamps into WEB_BUILD.
+  const WEB_BUILD = '__WEB_BUILD__';
+  function showVersion() {
+    let v = '';
+    try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
+    if (!v && !WEB_BUILD.startsWith('__')) v = t('version_web', { v: WEB_BUILD });
+    $('version').textContent = v;
+  }
+  $('opt-lang').onchange = (e) => { store.set('lang', e.target.value); applyLang(); relabel(); showVersion(); };
   applyLang();
+  showVersion();
   if (motionQuery && motionQuery.addEventListener) motionQuery.addEventListener('change', applyA11y);
   applyA11y();
 

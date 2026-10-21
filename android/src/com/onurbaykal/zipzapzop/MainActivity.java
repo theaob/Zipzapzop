@@ -120,6 +120,18 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String adsState() { return adsState; }
 
+        // "1.0 (24)": version name and build number, for the Settings sheet.
+        @JavascriptInterface
+        @SuppressWarnings("deprecation") // versionCode: the local SDK predates getLongVersionCode()
+        public String appVersion() {
+            try {
+                android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+                return info.versionName + " (" + info.versionCode + ")";
+            } catch (PackageManager.NameNotFoundException e) {
+                return "";
+            }
+        }
+
         @JavascriptInterface
         public void watchRewardedAd(final String purpose) {
             // Only known purposes, since it is echoed back into JavaScript.
