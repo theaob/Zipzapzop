@@ -5,6 +5,7 @@ name: Android build
 #   RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD  sign the AAB for upload
 #   ADMOB_APP_ID, ADMOB_REWARDED_ID (hints), ADMOB_REWARDED_ENERGY_ID  real ad IDs for the release build (Google's test IDs otherwise)
 #   GOOGLE_SERVICES_JSON  contents of Firebase's google-services.json; turns on Analytics and Crashlytics
+#   PLAY_GAMES_RESOURCES  Play Console's Play Games "Get resources" XML; turns on Play Games sign-in, achievements, leaderboards
 on:
   push:
     branches: [main]
@@ -48,6 +49,16 @@ jobs:
             printf '%s' "$GOOGLE_SERVICES_JSON" > google-services.json
           else
             echo "::notice::No GOOGLE_SERVICES_JSON secret, so this build has no Analytics or Crashlytics."
+          fi
+
+      - name: Write games-ids.xml
+        env:
+          PLAY_GAMES_RESOURCES: ${{ secrets.PLAY_GAMES_RESOURCES }}
+        run: |
+          if [ -n "$PLAY_GAMES_RESOURCES" ]; then
+            printf '%s' "$PLAY_GAMES_RESOURCES" > res/values/games-ids.xml
+          else
+            echo "::notice::No PLAY_GAMES_RESOURCES secret, so this build has no Play Games."
           fi
 
       - name: Build

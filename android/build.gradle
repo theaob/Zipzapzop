@@ -24,6 +24,15 @@ def releaseRewardedId = prop('admobRewardedId', 'ADMOB_REWARDED_ID') ?: testRewa
 def releaseRewardedEnergyId = prop('admobRewardedEnergyId', 'ADMOB_REWARDED_ENERGY_ID') ?: testRewardedId
 def keystore = System.getenv('ZZZ_KEYSTORE_FILE')
 
+// Play Games is wired up only when res/values/games-ids.xml is present: CI writes it from the PLAY_GAMES_RESOURCES
+// secret, Play Console's "Get resources" export. Its app_id becomes the manifest's Play Games project ID.
+def gamesIds = file('res/values/games-ids.xml')
+def gamesAppId = ''
+if (gamesIds.exists()) {
+    def m = gamesIds.text =~ /name="app_id"[^>]*>\s*(\d+)\s*</
+    if (m.find()) gamesAppId = m.group(1)
+}
+
 android {
     namespace 'com.onurbaykal.zipzapzop'
     compileSdk 36
@@ -34,6 +43,7 @@ android {
         targetSdk 36
         versionCode((prop('versionCode', 'VERSION_CODE') ?: '1') as int)
         versionName '1.0'
+        resValue 'string', 'zzz_games_app_id', gamesAppId
     }
 
     // Keeps the flat layout build-apk.sh uses; src-ads/ holds the ads and billing code.
@@ -86,6 +96,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:24.4.0'
     implementation 'com.google.android.ump:user-messaging-platform:3.2.0'
     implementation 'com.android.billingclient:billing:8.0.0'
+    implementation 'com.google.android.gms:play-services-games-v2:20.1.2'
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'

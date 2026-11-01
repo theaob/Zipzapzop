@@ -19,6 +19,8 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />
+        <!-- Play Games project ID: empty, and Play Games off, unless CI wrote games-ids.xml (see build.gradle). -->
+        <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/zzz_games_app_id" />
         <!-- Analytics and crash reports start switched off; Telemetry turns them on once consent allows. -->
         <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
         <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />

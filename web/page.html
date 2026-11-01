@@ -214,7 +214,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .ads-txt small { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
 .ads-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ads-row button { height: 38px; padding: 0 14px; border-radius: 10px; font: 600 0.9rem var(--body); cursor: pointer; }
-#ads-buy { border: 0; background: var(--ink); color: var(--bg); }
+#ads-buy, #games-signin { border: 0; background: var(--ink); color: var(--bg); }
 #ads-buy:disabled { opacity: 0.5; cursor: default; }
 .ads-row .link { border: 1px solid var(--line); background: transparent; color: var(--ink); }
 .ads-row button[hidden] { display: none; }
@@ -303,6 +303,14 @@ button:disabled { opacity: 0.45; cursor: default; }
         <button id="ads-privacy" class="link" hidden data-i18n="privacy">Privacy choices</button>
       </div>
     </div>
+    <div class="opt" id="games-opt" hidden>
+      <div class="ads-txt"><b data-i18n="play_games">Google Play Games</b><small id="games-desc"></small></div>
+      <div class="ads-row">
+        <button id="games-signin" data-i18n="games_signin">Sign in</button>
+        <button id="games-ach" class="link" data-i18n="achievements">Achievements</button>
+        <button id="games-lb" class="link" data-i18n="leaderboards">Leaderboards</button>
+      </div>
+    </div>
     <label class="switch" for="opt-large">
       <span class="txt"><b data-i18n="large">Larger text and numbers</b><small data-i18n="large_desc">Bigger labels, buttons and checkpoint numbers.</small></span>
       <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
@@ -388,6 +396,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Version {v}', version_web: 'Web version · {v}',
       back_exit: 'Press back again to exit',
       world_meadow: 'Meadow', world_ocean: 'Ocean', world_desert: 'Desert', world_aurora: 'Aurora', world_volcano: 'Volcano', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} complete!', enter_world: 'Enter {world}', replay_worlds: 'Replay worlds', worlds_group: 'Ladder worlds', locked: 'locked',
+      play_games: 'Google Play Games', games_on: 'Achievements and leaderboard times are saved to your Play Games profile.',
+      games_off: 'Sign in to earn achievements and compare your times on leaderboards.', games_signin: 'Sign in', achievements: 'Achievements', leaderboards: 'Leaderboards',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
       missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
       msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
@@ -430,6 +440,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Sürüm {v}', version_web: 'Web sürümü · {v}',
       back_exit: 'Çıkmak için tekrar geri basın',
       world_meadow: 'Çayır', world_ocean: 'Okyanus', world_desert: 'Çöl', world_aurora: 'Kutup Işığı', world_volcano: 'Volkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} tamamlandı!', enter_world: '{world} dünyasına geç', replay_worlds: 'Dünyaları tekrar oyna', worlds_group: 'Merdiven dünyaları', locked: 'kilitli',
+      play_games: 'Google Play Oyunlar', games_on: 'Başarımların ve sıralama sürelerin Play Oyunlar profiline kaydedilir.',
+      games_off: 'Başarım kazanmak ve sürelerini sıralamalarda karşılaştırmak için oturum aç.', games_signin: 'Oturum aç', achievements: 'Başarımlar', leaderboards: 'Sıralamalar',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
       missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
       msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
@@ -472,6 +484,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Versión {v}', version_web: 'Versión web · {v}',
       back_exit: 'Pulsa atrás otra vez para salir',
       world_meadow: 'Pradera', world_ocean: 'Océano', world_desert: 'Desierto', world_aurora: 'Aurora', world_volcano: 'Volcán', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '¡{world} completado!', enter_world: 'Entrar en {world}', replay_worlds: 'Repetir mundos', worlds_group: 'Mundos de la escalera', locked: 'bloqueado',
+      play_games: 'Google Play Juegos', games_on: 'Tus logros y tiempos de las clasificaciones se guardan en tu perfil de Play Juegos.',
+      games_off: 'Inicia sesión para conseguir logros y comparar tus tiempos en las clasificaciones.', games_signin: 'Iniciar sesión', achievements: 'Logros', leaderboards: 'Clasificaciones',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
       missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
       msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
@@ -514,6 +528,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Version {v}', version_web: 'Web-Version · {v}',
       back_exit: 'Zum Beenden erneut Zurück drücken',
       world_meadow: 'Wiese', world_ocean: 'Ozean', world_desert: 'Wüste', world_aurora: 'Polarlicht', world_volcano: 'Vulkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} geschafft!', enter_world: 'Weiter zu {world}', replay_worlds: 'Welten wiederholen', worlds_group: 'Leiter-Welten', locked: 'gesperrt',
+      play_games: 'Google Play Spiele', games_on: 'Erfolge und Bestenlisten-Zeiten werden in deinem Play Spiele-Profil gespeichert.',
+      games_off: 'Melde dich an, um Erfolge zu sammeln und deine Zeiten in Bestenlisten zu vergleichen.', games_signin: 'Anmelden', achievements: 'Erfolge', leaderboards: 'Bestenlisten',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
       missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
       msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
@@ -556,6 +572,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Version {v}', version_web: 'Version web · {v}',
       back_exit: 'Appuyez à nouveau sur retour pour quitter',
       world_meadow: 'Prairie', world_ocean: 'Océan', world_desert: 'Désert', world_aurora: 'Aurore', world_volcano: 'Volcan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} terminé !', enter_world: 'Entrer dans {world}', replay_worlds: 'Rejouer les mondes', worlds_group: 'Mondes de l\'Échelle', locked: 'verrouillé',
+      play_games: 'Google Play Jeux', games_on: 'Vos succès et vos temps de classement sont enregistrés dans votre profil Play Jeux.',
+      games_off: 'Connectez-vous pour obtenir des succès et comparer vos temps dans les classements.', games_signin: 'Se connecter', achievements: 'Succès', leaderboards: 'Classements',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
       missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
       msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
@@ -598,6 +616,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       version: 'Versão {v}', version_web: 'Versão web · {v}',
       back_exit: 'Toque em voltar de novo para sair',
       world_meadow: 'Campina', world_ocean: 'Oceano', world_desert: 'Deserto', world_aurora: 'Aurora', world_volcano: 'Vulcão', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} concluído!', enter_world: 'Entrar em {world}', replay_worlds: 'Jogar mundos de novo', worlds_group: 'Mundos da escada', locked: 'bloqueado',
+      play_games: 'Google Play Games', games_on: 'Suas conquistas e tempos dos placares ficam salvos no seu perfil do Play Games.',
+      games_off: 'Entre para ganhar conquistas e comparar seus tempos nos placares.', games_signin: 'Entrar', achievements: 'Conquistas', leaderboards: 'Placares',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
       missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
       msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
@@ -1031,6 +1051,7 @@ button:disabled { opacity: 0.45; cursor: default; }
         const bridge = window.ZipZapZopAndroid;
         if (!nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
       }
+      if (mode !== 'learn') gamesSync(mode === 'ladder' && ladderPos().current ? level : 0);
     }
   }
 
@@ -1345,7 +1366,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('reminder-note').hidden = false;
     };
   }
-  let lastAdsState = null;
+  let lastAdsState = null, lastGamesState = null;
   // Ads and the "Remove ads" purchase: only in the Android app; the browser version has no ads.
   if (bridge && bridge.adsState) {
     const showAds = (st) => {
@@ -1374,6 +1395,56 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('ads-restore').onclick = () => bridge.restorePurchase();
     $('ads-privacy').onclick = () => bridge.privacyOptions();
   }
+  // Google Play Games: only in the Android app, and only once Play Games is set up in Play Console.
+  // Achievements and scores are worked out from saved progress and sent after each solve and again on
+  // sign-in, so progress made before signing in still counts; Play Games ignores repeats and keeps best scores.
+  let gamesOn = false;
+  function dailyDays() { // { 'YYYY-MM-DD': Set of the dailies solved that day }
+    const days = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const m = /^zap:daily:(\d{4}-\d\d-\d\d):(\w+)$/.exec(localStorage.key(i) || '');
+        if (m) (days[m[1]] = days[m[1]] || new Set()).add(m[2]);
+      }
+    } catch (_) {}
+    return days;
+  }
+  // ladderDone: Ladder levels solved, when a solve isn't counted in `level` yet (that happens on Next).
+  function gamesSync(ladderDone) {
+    if (!gamesOn) return;
+    const done = Math.min(LADDER_TOTAL, Math.max(level - 1, ladderDone || 0));
+    const days = dailyDays(), dates = Object.keys(days).sort();
+    const unlock = (key) => bridge.gamesUnlock(key);
+    if (done > 0 || dates.length) unlock('first_steps');
+    WORLDS.forEach((w, i) => { if (done >= (i + 1) * WORLD_LEVELS) unlock(w.id + '_complete'); });
+    if (dates.some((d) => DAILY.every((x) => days[d].has(x.id)))) unlock('daily_trio');
+    let run = 0, best = 0, prev = null;
+    for (const d of dates) {
+      const n = Date.parse(d + 'T00:00:00Z') / 864e5;
+      run = prev !== null && n === prev + 1 ? run + 1 : 1; prev = n; best = Math.max(best, run);
+    }
+    if (best >= 7) unlock('week_streak');
+    if (dates.some((d) => days[d].has('hard') && store.get('dailyhints:' + d + ':hard', null) === 0)) unlock('unassisted');
+    if (done > 0) bridge.gamesScore('ladder', done);
+    DAILY.forEach((d) => { const ms = store.get(dailyKey(d.id), null); if (ms != null) bridge.gamesScore('daily_' + d.id, ms); });
+  }
+  if (bridge && bridge.gamesState) {
+    const showGames = (st) => {
+      lastGamesState = st;
+      $('games-opt').hidden = !st.available;
+      if (!st.available) return;
+      $('games-desc').textContent = t(st.signedIn ? 'games_on' : 'games_off');
+      $('games-signin').hidden = !!st.signedIn;
+      $('games-ach').hidden = $('games-lb').hidden = !st.signedIn;
+      const was = gamesOn; gamesOn = !!st.signedIn;
+      if (gamesOn && !was) gamesSync(0);
+    };
+    window.zzzGamesState = showGames;
+    try { showGames(JSON.parse(bridge.gamesState())); } catch (_) {}
+    $('games-signin').onclick = () => bridge.gamesSignIn();
+    $('games-ach').onclick = () => bridge.gamesShowAchievements();
+    $('games-lb').onclick = () => bridge.gamesShowLeaderboards();
+  }
   // Language: follows the device unless the player picks one. Static text carries data-i18n keys;
   // text built in code is redrawn by relabel() without restarting the puzzle.
   function applyLang() {
@@ -1396,6 +1467,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
     $('label').textContent = mode === 'learn' ? t('how_to_play') : mode === 'daily' ? today() : ladderLabel();
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
+    if (window.zzzGamesState && lastGamesState) window.zzzGamesState(lastGamesState);
     hintLabel(); showEnergy();
     const card = wrap.querySelector('.win');
     if (card) { card.remove(); if (card.classList.contains('gate')) showGate(); else showWin(); }

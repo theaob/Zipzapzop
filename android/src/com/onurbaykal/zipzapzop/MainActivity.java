@@ -22,6 +22,8 @@ public class MainActivity extends Activity {
     private Monetization money;
     private Telemetry telemetry;
     private volatile String adsState; // read by the page from the JavaScript thread
+    private GameServices games;
+    private volatile String gamesState;
     private BackHandler back;
 
     @Override
@@ -66,6 +68,12 @@ public class MainActivity extends Activity {
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
         money.start();
+        games = new GameServices(this, new Runnable() {
+            @Override
+            public void run() { pushGamesState(); }
+        });
+        gamesState = games.stateJson();
+        games.start();
         back = new BackHandler(this, new Runnable() {
             @Override
             public void run() { handleBack(); }
@@ -90,6 +98,12 @@ public class MainActivity extends Activity {
         telemetry.refreshConsent(); // consent changes arrive the same way
         adsState = money.stateJson();
         web.evaluateJavascript("window.zzzAdsState && window.zzzAdsState(" + adsState + ")", null);
+    }
+
+    // Sends the Play Games sign-in state to the page, which then resends achievements and scores. Main thread only.
+    private void pushGamesState() {
+        gamesState = games.stateJson();
+        web.evaluateJavascript("window.zzzGamesState && window.zzzGamesState(" + gamesState + ")", null);
     }
 
     @Override
@@ -126,7 +140,7 @@ public class MainActivity extends Activity {
     }
 
     // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
-    // ads (rewarded ones for extra hints and energy) plus the remove-ads purchase, and analytics.
+    // ads (rewarded ones for extra hints and energy) plus the remove-ads purchase, analytics, and Play Games.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -182,6 +196,35 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void pageError(final String message) {
             onUi(new Runnable() { @Override public void run() { telemetry.pageError(message); } });
+        }
+
+        // Google Play Games: sign-in state, achievements, leaderboard scores and Play Games' own screens.
+        @JavascriptInterface
+        public String gamesState() { return gamesState; }
+
+        @JavascriptInterface
+        public void gamesSignIn() {
+            onUi(new Runnable() { @Override public void run() { games.signIn(); } });
+        }
+
+        @JavascriptInterface
+        public void gamesUnlock(final String key) {
+            onUi(new Runnable() { @Override public void run() { games.unlock(key); } });
+        }
+
+        @JavascriptInterface
+        public void gamesScore(final String key, final double score) {
+            onUi(new Runnable() { @Override public void run() { games.submitScore(key, (long) score); } });
+        }
+
+        @JavascriptInterface
+        public void gamesShowAchievements() {
+            onUi(new Runnable() { @Override public void run() { games.showAchievements(); } });
+        }
+
+        @JavascriptInterface
+        public void gamesShowLeaderboards() {
+            onUi(new Runnable() { @Override public void run() { games.showLeaderboards(); } });
         }
 
         @JavascriptInterface
