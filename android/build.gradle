@@ -89,7 +89,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'
-    // Play Services (ads, UMP) still pull in androidx.fragment 1.1.0, which Play Console flags as outdated.
+    // Play Services (via AdMob, Billing, Firebase) still pulls in androidx.fragment 1.1.0, which Play Console flags as outdated.
     implementation 'androidx.fragment:fragment:1.8.6'
 }
 
