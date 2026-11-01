@@ -7,3 +7,4 @@ android/assets/index.html
 android/.gradle/
 android/local.properties
 android/google-services.json
+android/res/values/games-ids.xml
