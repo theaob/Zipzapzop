@@ -59,7 +59,9 @@ jobs:
           ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
           ADMOB_REWARDED_ENERGY_ID: ${{ secrets.ADMOB_REWARDED_ENERGY_ID }}
           VERSION_CODE: ${{ github.run_number }}
-        run: ./gradlew --no-daemon assembleDebug bundleRelease
+        run: |
+          ./gradlew --no-daemon dependencyInsight --dependency androidx.fragment:fragment --configuration releaseRuntimeClasspath
+          ./gradlew --no-daemon assembleDebug bundleRelease
 
       - uses: actions/upload-artifact@v4
         with:
