@@ -13,5 +13,6 @@ A path-drawing puzzle: draw one line through every cell, pass the numbers in ord
 | `web/build.sh` | Inlines the engine into `web/index.html`, the single-file playable page. Run it after editing either source. |
 | `android/` | WebView wrapper that bundles the same game for offline play. |
 | `docs/privacy.html` | Privacy policy, served by GitHub Pages from `docs/` on `main`. |
+| `docs/terms.html` | Terms of service, served the same way. Both are linked at the bottom of Settings. |
 
 Each day has three daily challenges (Easy 5×5, Medium 6×6, Hard 7×7), the same for everyone on that date. Ladder has five themed worlds of 20 levels each (Meadow 4×4, Ocean 5×5, Desert 6×6, Aurora 7×7, Volcano 8×8); within a world each level starts with fewer numbers and more walls, and finishing a world unlocks the next. Finished worlds can be replayed. Learn replays the four tutorial rounds.
