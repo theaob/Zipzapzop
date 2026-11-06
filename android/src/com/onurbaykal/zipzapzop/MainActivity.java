@@ -1,13 +1,16 @@
 package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsets;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -37,7 +40,16 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true); // best times and daily results live in localStorage
         s.setAllowFileAccess(true);
         s.setTextZoom(100);
-        web.setWebViewClient(new WebViewClient());
+        web.setWebViewClient(new WebViewClient() {
+            // Web links (privacy policy, terms) open in the browser instead of replacing the game.
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri url = request.getUrl();
+                if (!"http".equals(url.getScheme()) && !"https".equals(url.getScheme())) return false;
+                try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException e) { }
+                return true;
+            }
+        });
         web.addJavascriptInterface(new Bridge(), "ZipZapZopAndroid");
         // From targetSdk 35 the app draws behind the system bars; pad the game clear of them.
         FrameLayout root = new FrameLayout(this);

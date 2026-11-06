@@ -159,6 +159,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win.world-done h2 { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .version { margin: 4px 0 0; text-align: center; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; user-select: text; -webkit-user-select: text; }
 .version:empty { display: none; }
+.legal { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: 0.85rem; }
+.legal a { color: inherit; }
 .energy[hidden] { display: none; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
@@ -315,6 +317,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       <span class="txt"><b data-i18n="large">Larger text and numbers</b><small data-i18n="large_desc">Bigger labels, buttons and checkpoint numbers.</small></span>
       <input type="checkbox" id="opt-large"><span class="track" aria-hidden="true"></span>
     </label>
+    <p class="legal"><a href="https://theaob.github.io/Zipzapzop/privacy.html" target="_blank" rel="noopener" data-i18n="privacy_policy">Privacy policy</a> · <a href="https://theaob.github.io/Zipzapzop/terms.html" target="_blank" rel="noopener" data-i18n="terms">Terms of service</a></p>
     <p class="version" id="version"></p>
   </div>
 </div>
@@ -379,7 +382,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Daily reminder', reminder_desc: "A notification when today's challenges are ready. Skipped on days you've already solved all three.",
       remind_at: 'Remind me at', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
       remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase unlocks unlimited hints and energy, with no ads to watch.',
-      ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices',
+      ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices', privacy_policy: 'Privacy policy', terms: 'Terms of service',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
       easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved',
       lesson1: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.',
@@ -423,7 +426,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Günlük hatırlatıcı', reminder_desc: 'Bugünün bulmacaları hazır olduğunda bir bildirim. Üçünü de çözdüğünüz günlerde gönderilmez.',
       remind_at: 'Hatırlatma saati', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
       remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, reklam izlemeden sınırsız ipucu ve enerji açar.',
-      ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri',
+      ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri', privacy_policy: 'Gizlilik politikası', terms: 'Kullanım koşulları',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
       easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü',
       lesson1: '<b>1</b>\'den <b>2</b>\'ye sürükleyin, ama yol boyunca <b>her kareden</b> geçin. Noktalar doldurulmamış kareleri gösterir.',
@@ -467,7 +470,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Recordatorio diario', reminder_desc: 'Una notificación cuando los retos de hoy estén listos. Se omite los días en que ya resolviste los tres.',
       remind_at: 'Recordarme a las', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
       remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra desbloquea pistas y energía ilimitadas, sin ver anuncios.',
-      ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad',
+      ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad', privacy_policy: 'Política de privacidad', terms: 'Términos del servicio',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
       easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto',
       lesson1: 'Arrastra del <b>1</b> al <b>2</b>, pero pasa por <b>todas las casillas</b>. Los puntos marcan las casillas que faltan.',
@@ -511,7 +514,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Tägliche Erinnerung', reminder_desc: 'Eine Benachrichtigung, wenn die heutigen Rätsel bereit sind. Entfällt an Tagen, an denen du alle drei gelöst hast.',
       remind_at: 'Erinnern um', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
       remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
-      ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen',
+      ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen', privacy_policy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
       easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst',
       lesson1: 'Ziehe von <b>1</b> nach <b>2</b>, aber durch <b>jedes Feld</b>. Die Punkte zeigen Felder, die noch fehlen.',
@@ -555,7 +558,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Rappel quotidien', reminder_desc: 'Une notification quand les défis du jour sont prêts. Ignoré les jours où vous avez déjà résolu les trois.',
       remind_at: 'Me rappeler à', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
       remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat débloque indices et énergie illimités, sans regarder de pubs.',
-      ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité',
+      ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité', privacy_policy: 'Politique de confidentialité', terms: 'Conditions d\'utilisation',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
       easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu',
       lesson1: 'Allez du <b>1</b> au <b>2</b>, en passant par <b>toutes les cases</b>. Les points marquent les cases restantes.',
@@ -599,7 +602,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       reminder: 'Lembrete diário', reminder_desc: 'Uma notificação quando os desafios de hoje estiverem prontos. Não é enviada nos dias em que você já resolveu os três.',
       remind_at: 'Lembrar às', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
       remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra libera dicas e energia ilimitadas, sem assistir anúncios.',
-      ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade',
+      ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade', privacy_policy: 'Política de privacidade', terms: 'Termos de serviço',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
       easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido',
       lesson1: 'Arraste do <b>1</b> ao <b>2</b>, passando por <b>todas as casas</b>. Os pontos marcam as casas que faltam.',
