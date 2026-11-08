@@ -495,16 +495,14 @@ button:disabled { opacity: 0.45; cursor: default; }
     return { n: WORLDS[w].n, opts: { clues: 1.3 - 0.8 * t, walls: Math.round(2 * t) } };
   }
   // Endless: random puzzles with no cap. A run counts puzzles solved in a row; skipping one ends it.
-  // The grid grows with the run (5x5, then 6x6 from 5, 7x7 from 12, 8x8 from 22) and each size gets
-  // fewer numbers and more walls as the run goes on. From 8x8 on the difficulty varies at random.
-  const ENDLESS_TIERS = [{ n: 5, from: 0 }, { n: 6, from: 5 }, { n: 7, from: 12 }, { n: 8, from: 22 }];
-  function endlessSpec(run, seed) {
-    let k = ENDLESS_TIERS.length - 1;
-    while (run < ENDLESS_TIERS[k].from) k--;
-    const tier = ENDLESS_TIERS[k], last = k === ENDLESS_TIERS.length - 1;
-    const t = last ? E.mulberry32(seed ^ 0x9e3779b9)() : (run - tier.from) / (ENDLESS_TIERS[k + 1].from - tier.from - 1 || 1);
-    return { n: tier.n, opts: { clues: 1.2 - 0.6 * t, walls: Math.round(2 * t) } };
-  }
+  // Each puzzle's difficulty is picked at random from its seed, so a run mixes all four.
+  const ENDLESS = [
+    { id: 'easy', n: 5, opts: { clues: 1.3 } },
+    { id: 'medium', n: 6, opts: { clues: 0.9 } },
+    { id: 'hard', n: 7, opts: { clues: 0.5, walls: 2 } },
+    { id: 'expert', n: 8, opts: { clues: 0.5, walls: 2 } },
+  ];
+  const endlessSpec = (seed) => ENDLESS[Math.floor(E.mulberry32(seed ^ 0x9e3779b9)() * ENDLESS.length)];
   const newSeed = () => (Math.random() * 4294967296) >>> 0;
   const $ = (id) => document.getElementById(id);
   const board = $('board'), overlay = $('overlay'), wrap = $('boardWrap');
@@ -518,7 +516,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   const LANGS = { en: 'English', tr: 'Türkçe', es: 'Español', de: 'Deutsch', fr: 'Français', pt: 'Português' };
   const STRINGS = {
     en: {
-      endless: "Endless", endless_label: "Run {run} · Best {best} · {size}×{size}", skip: "Skip", skip_confirm: "Tap again to end run", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
+      expert: "Expert", endless: "Endless", endless_label: "Run {run} · Best {best} · {diff}", skip: "Skip", skip_confirm: "Tap again to end run", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
       tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
       settings: 'Settings', done: 'Done', difficulty_group: 'Daily difficulty',
       board_label: 'Puzzle grid. Drag to draw, or use arrow keys from the head of the line.',
@@ -564,7 +562,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       msg_play_unreachable: "Couldn't reach Google Play. Try again later.",
     },
     tr: {
-      endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {size}×{size}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
+      expert: "Uzman", endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {diff}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
       tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
       settings: 'Ayarlar', done: 'Tamam', difficulty_group: 'Günlük zorluk',
       board_label: 'Bulmaca ızgarası. Çizmek için sürükleyin veya çizginin ucundan ok tuşlarını kullanın.',
@@ -610,7 +608,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       msg_play_unreachable: 'Google Play\'e ulaşılamadı. Daha sonra tekrar deneyin.',
     },
     es: {
-      endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {size}×{size}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
+      expert: "Experto", endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {diff}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
       tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
       settings: 'Ajustes', done: 'Listo', difficulty_group: 'Dificultad diaria',
       board_label: 'Tablero del puzle. Arrastra para dibujar o usa las flechas desde el extremo de la línea.',
@@ -656,7 +654,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       msg_play_unreachable: 'No se pudo conectar con Google Play. Inténtalo más tarde.',
     },
     de: {
-      endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {size}×{size}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
+      expert: "Experte", endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {diff}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
       tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
       settings: 'Einstellungen', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
       board_label: 'Rätselgitter. Zum Zeichnen ziehen oder vom Ende der Linie aus die Pfeiltasten nutzen.',
@@ -702,7 +700,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       msg_play_unreachable: 'Google Play ist nicht erreichbar. Versuche es später erneut.',
     },
     fr: {
-      endless: "Infini", endless_label: "Série {run} · Record {best} · {size}×{size}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
+      expert: "Expert", endless: "Infini", endless_label: "Série {run} · Record {best} · {diff}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
       tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
       settings: 'Réglages', done: 'OK', difficulty_group: 'Difficulté du jour',
       board_label: 'Grille du puzzle. Faites glisser pour tracer, ou utilisez les flèches depuis le bout de la ligne.',
@@ -748,7 +746,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       msg_play_unreachable: 'Impossible de joindre Google Play. Réessayez plus tard.',
     },
     pt: {
-      endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {size}×{size}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
+      expert: "Especialista", endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {diff}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
       tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
       settings: 'Configurações', done: 'OK', difficulty_group: 'Dificuldade diária',
       board_label: 'Grade do quebra-cabeça. Arraste para desenhar ou use as setas a partir da ponta da linha.',
@@ -930,7 +928,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     } else if (mode === 'endless') {
       // Big grids now and then can't be tightened to one solution; roll a new seed until one is.
       for (let tries = 0; ; tries++) {
-        const spec = endlessSpec(endless.run, endless.seed);
+        const spec = endlessSpec(endless.seed);
         puz = E.generate(spec.n, endless.seed, spec.opts);
         if (puz.unique || tries >= 5) break;
         endless.seed = newSeed(); saveEndless();
@@ -1157,10 +1155,12 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   });
 
+  // Difficulty and size of the Endless puzzle on screen, e.g. "Hard 7×7".
+  const endlessDiff = () => { const d = ENDLESS.find((x) => x.n === puz.n) || ENDLESS[0]; return `${t(d.id)} ${puz.n}×${puz.n}`; };
   function modeLabel() {
     if (mode === 'learn') return t('how_to_play');
     if (mode === 'daily') return today();
-    if (mode === 'endless') return t('endless_label', { run: endless.run, best: endless.best, size: puz.n });
+    if (mode === 'endless') return t('endless_label', { run: endless.run, best: endless.best, diff: endlessDiff() });
     return ladderLabel();
   }
   function ladderLabel() {
@@ -1184,7 +1184,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (mode === 'endless') {
       const isNew = bestInfo && bestInfo.isNew;
       const sub = isNew ? t('run_best_new') : t('run_best', { n: endless.best });
-      div.innerHTML = `<div><h2>${t('run_n', { n: endless.run })}</h2><p>${t('solved_in', { what: `${puz.n}×${puz.n}`, time: fmt(elapsed) })} · ${sub}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${t('next_puzzle')}</button></div>`;
+      div.innerHTML = `<div><h2>${t('run_n', { n: endless.run })}</h2><p>${t('solved_in', { what: endlessDiff(), time: fmt(elapsed) })} · ${sub}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${t('next_puzzle')}</button></div>`;
       div.querySelector('.next').onclick = nextPuzzle;
       div.querySelector('.share').onclick = share;
       wrap.appendChild(div);
