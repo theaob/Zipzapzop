@@ -221,6 +221,22 @@ button:disabled { opacity: 0.45; cursor: default; }
 .ads-row .link { border: 1px solid var(--line); background: transparent; color: var(--ink); }
 .ads-row button[hidden] { display: none; }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
+/* Short landscape screens (car displays in Android Auto, tablets, laptops): the board fills the height on the right,
+   with the title, mode, info and controls in a column beside it. */
+@media (orientation: landscape) and (max-height: 860px) and (min-width: 640px) {
+  body { padding-block: 12px; }
+  .wrap {
+    --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 760px);
+    max-width: none; height: 100%; display: grid; justify-content: center; align-content: stretch;
+    grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto 1fr auto;
+    column-gap: 24px; row-gap: 12px;
+  }
+  .wrap > header { grid-column: 1; grid-row: 1; }
+  .wrap > .lesson { grid-column: 1; grid-row: 2; }
+  .wrap > .bar { grid-column: 1; grid-row: 3; align-self: start; }
+  .wrap > .controls { grid-column: 1; grid-row: 5; }
+  .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
+}
 </style>
 
 <div class="wrap">
@@ -781,6 +797,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     closeGate();
     buildBoard();
     if (saved) { path = puz.solution.slice(); won = true; elapsed = saved; }
+    else restoreLine();
     render();
     if (!payLadderLevel()) showGate();
     showEnergy();
@@ -865,7 +882,30 @@ button:disabled { opacity: 0.45; cursor: default; }
       celebrate = false;
       celebrateTimer = setTimeout(() => { showWin(); }, run + 650);
     } else if (won) showWin();
+    saveLine();
   }
+
+  // The unfinished line survives a restart (or the app moving between the phone and a car screen).
+  // One slot: starting another puzzle replaces it, and solving clears it.
+  function lineKey() {
+    if (mode === 'learn') return 'learn:' + lesson;
+    if (mode === 'daily') return dailyKey();
+    const p = ladderPos(); return 'ladder:' + p.w + ':' + p.l;
+  }
+  function saveLine() {
+    if (!puz) return;
+    if (won || !path.length) { if (store.get('line', null)) store.set('line', null); return; }
+    store.set('line', { k: lineKey(), p: path, e: startTime ? Date.now() - startTime : elapsed });
+  }
+  function restoreLine() {
+    const ln = store.get('line', null);
+    if (!ln || ln.k !== lineKey() || !Array.isArray(ln.p) || !ln.p.length) return;
+    const n2 = puz.n * puz.n;
+    if (ln.p.some((c) => !Number.isInteger(c) || c < 0 || c >= n2) || puz.nums[ln.p[0]] !== 1) return;
+    path = ln.p.slice(); elapsed = Math.max(0, +ln.e || 0);
+    startTimer();
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveLine(); });
 
   // Index of the last number on the line. When a drag ends, the line is trimmed back to it.
   function lockIndex() {
