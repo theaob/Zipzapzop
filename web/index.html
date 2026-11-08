@@ -146,16 +146,13 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win.gate h2 { font-size: 1.5rem; }
 .energy { color: var(--ink); font-weight: 600; }
 /* Ladder worlds: each recolours the line, the title and a soft glow behind the page. */
-:root[data-world="meadow"] { --spark-a: #3fb950; --spark-b: #0f9d8a; --trail: rgba(63, 185, 80, 0.15); }
-:root[data-world="ocean"] { --spark-a: #12b5cb; --spark-b: #3466ff; --trail: rgba(18, 181, 203, 0.15); }
-:root[data-world="desert"] { --spark-a: #f2a516; --spark-b: #e2582b; --trail: rgba(242, 165, 22, 0.16); }
-:root[data-world="aurora"] { --spark-a: #a855f7; --spark-b: #ec4899; --trail: rgba(168, 85, 247, 0.15); }
-:root[data-world="volcano"] { --spark-a: #ff5a1f; --spark-b: #c81e1e; --trail: rgba(255, 90, 31, 0.15); }
+:root[data-world="meadow"], .zone[data-world="meadow"] { --spark-a: #3fb950; --spark-b: #0f9d8a; --trail: rgba(63, 185, 80, 0.15); }
+:root[data-world="ocean"], .zone[data-world="ocean"] { --spark-a: #12b5cb; --spark-b: #3466ff; --trail: rgba(18, 181, 203, 0.15); }
+:root[data-world="desert"], .zone[data-world="desert"] { --spark-a: #f2a516; --spark-b: #e2582b; --trail: rgba(242, 165, 22, 0.16); }
+:root[data-world="aurora"], .zone[data-world="aurora"] { --spark-a: #a855f7; --spark-b: #ec4899; --trail: rgba(168, 85, 247, 0.15); }
+:root[data-world="volcano"], .zone[data-world="volcano"] { --spark-a: #ff5a1f; --spark-b: #c81e1e; --trail: rgba(255, 90, 31, 0.15); }
 :root[data-world] body { background-image: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--spark-a) 14%, transparent), transparent 70%); background-attachment: fixed; }
 :root[data-contrast="high"][data-world] body { background-image: none; }
-.sizes button.world { min-width: 48px; font-size: 1.05rem; position: relative; padding: 0 10px; }
-.sizes button.world .tick { position: absolute; top: -6px; right: -6px; margin: 0; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: #fff; font-size: 0.66rem; box-shadow: 0 0 0 2px var(--bg); }
-.sizes button.world:disabled { opacity: 0.45; }
 .win.world-done { border: 2px solid var(--spark-a); box-shadow: 0 12px 40px color-mix(in srgb, var(--spark-a) 35%, transparent); }
 .win.world-done h2 { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .version { margin: 4px 0 0; text-align: center; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; user-select: text; -webkit-user-select: text; }
@@ -167,6 +164,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .ladder { display: flex; flex-direction: column; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 10px 14px; }
 .ladder[hidden], .meta span[hidden] { display: none; }
 .ladder-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bar[hidden] { display: none; }
+.ladder-meta { margin-left: auto; }
 .ladder-name { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 1.15rem; }
 .ladder-name b { font-family: var(--display); font-weight: 800; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .ladder-tag { font: 600 0.7rem var(--body); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
@@ -179,18 +178,47 @@ button:disabled { opacity: 0.45; cursor: default; }
 .steps i.here { box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--ink); }
 .ladder-sub { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .ladder-sub b { color: var(--ink); font-weight: 600; }
-.level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.level-grid button {
-  min-height: 56px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 6px 2px;
-  font: 800 1.1rem var(--display); cursor: pointer; font-variant-numeric: tabular-nums;
+/* The ladder map: a full-screen climb from level 1 at the bottom to the last level at the top, one zone per world
+   in that world's colours. Rails up the sides, a rung per level with its number. */
+.map { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; flex-direction: column; animation: rise 220ms ease-out; }
+.map[hidden] { display: none; }
+.map-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
 }
-.level-grid small { font: 500 0.72rem var(--body); color: var(--muted); min-height: 1.1em; }
-.level-grid .done { border-color: color-mix(in srgb, var(--spark-a) 55%, var(--line)); background: color-mix(in srgb, var(--panel) 84%, var(--spark-a)); }
-.level-grid .cur { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.level-grid .cur small { color: inherit; opacity: 0.8; }
-.level-grid .here { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
-.level-grid button:disabled { opacity: 0.4; }
+.map-head h2 { font-family: var(--display); font-weight: 800; font-size: 1.35rem; margin: 0; }
+.map-head p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.map-head button { height: 38px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; }
+.map-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.zone {
+  max-width: 440px; margin: 0 auto 16px; padding: 14px 0 18px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--spark-a) 35%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--spark-b) 14%, var(--panel)), color-mix(in srgb, var(--spark-a) 10%, var(--panel)));
+}
+:root[data-contrast="high"] .zone { background: var(--panel); }
+.zone-head { display: flex; align-items: center; gap: 12px; padding: 0 16px 14px; }
+.zone-icon { font-size: 1.9rem; line-height: 1; }
+.zone-head b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.25rem; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.zone-head small { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.zone.locked .zone-icon, .zone.locked .rungs { opacity: 0.45; }
+.rungs { position: relative; display: flex; flex-direction: column-reverse; gap: 6px; margin: 0 60px; }
+.rungs::before, .rungs::after { content: ""; position: absolute; top: -8px; bottom: -8px; width: 7px; border-radius: 4px; background: linear-gradient(180deg, var(--spark-b), var(--spark-a)); }
+.rungs::before { left: 0; } .rungs::after { right: 0; }
+.rung { position: relative; z-index: 1; height: 46px; margin: 0 4px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); }
+.rung::before { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 8px; transform: translateY(-50%); border-radius: 4px; background: var(--line); }
+.rung.done::before { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); }
+.rung .num {
+  position: relative; min-width: 42px; height: 36px; padding: 0 10px; border-radius: 999px; display: grid; place-items: center;
+  font: 800 1.05rem var(--display); font-variant-numeric: tabular-nums; background: var(--panel); color: var(--ink); border: 2px solid var(--line);
+}
+.rung.done .num { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); color: #fff; border-color: transparent; }
+.rung.next .num { background: var(--ink); color: var(--bg); border-color: var(--ink); box-shadow: 0 0 0 5px color-mix(in srgb, var(--spark-a) 35%, transparent); }
+.rung.here .num { outline: 3px solid var(--ink); outline-offset: 3px; }
+.rung:disabled { cursor: default; }
+.rung:disabled .num { color: var(--muted); }
+.rung .side { position: absolute; left: calc(100% + 12px); white-space: nowrap; font: 600 0.75rem var(--body); color: var(--muted); font-variant-numeric: tabular-nums; }
+.rung .climber { position: absolute; right: calc(100% + 10px); font-size: 1.5rem; line-height: 1; }
+.rung:focus-visible { outline: none; }
+.rung:focus-visible .num { outline: 3px solid var(--focus); outline-offset: 3px; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
   background: var(--ink); color: var(--bg); font: 600 0.85rem var(--body); padding: 8px 14px; border-radius: 999px;
@@ -263,7 +291,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap > header { grid-column: 1; grid-row: 1; }
   .wrap > .lesson { grid-column: 1; grid-row: 2; }
   .wrap > .bar { grid-column: 1; grid-row: 3; align-self: start; }
-  .wrap > .ladder { grid-column: 1; grid-row: 4; align-self: start; }
+  .wrap > .ladder { grid-column: 1; grid-row: 3; align-self: start; }
   .wrap > .controls { grid-column: 1; grid-row: 5; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
 }
@@ -297,7 +325,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   <div class="ladder" id="ladder" hidden>
     <div class="ladder-top">
       <div class="ladder-name"><span id="ladder-icon" aria-hidden="true"></span><b id="ladder-world"></b><span class="ladder-tag" id="ladder-replay" data-i18n="replay" hidden>Replay</span></div>
-      <button class="pill" id="levels-open" aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span data-i18n="levels">Levels</span></button>
+      <span id="ladder-meta" class="ladder-meta"></span><button class="pill" id="levels-open" aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 2v20M17 2v20M7 6h10M7 12h10M7 18h10"/></svg><span data-i18n="levels">Levels</span></button>
     </div>
     <div class="steps" id="ladder-steps" aria-hidden="true"></div>
     <div class="ladder-sub"><span id="ladder-level"></span><span id="ladder-total"></span></div>
@@ -319,12 +347,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   <div class="sr-only" id="announce" aria-live="polite"></div>
 </div>
 
-<div class="sheet" id="levels" role="dialog" aria-modal="true" aria-labelledby="levels-title" hidden>
-  <div class="sheet-card">
-    <div class="sheet-head"><h2 id="levels-title"></h2><button id="levels-close" data-i18n="done">Done</button></div>
-    <p class="desc" id="levels-desc" data-i18n="levels_desc" style="margin: 0; color: var(--muted)">Tap a solved level to play it again.</p>
-    <div class="level-grid" id="level-grid"></div>
-  </div>
+<div class="map" id="levels" role="dialog" aria-modal="true" aria-labelledby="levels-title" hidden>
+  <div class="map-head"><div><h2 id="levels-title" data-i18n="ladder">Ladder</h2><p id="levels-sub"></p></div><button id="levels-close" data-i18n="done">Done</button></div>
+  <div class="map-scroll" id="map-scroll"></div>
 </div>
 
 <div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
@@ -637,7 +662,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Web version · {v}',
       back_exit: 'Press back again to exit',
       world_meadow: 'Meadow', world_ocean: 'Ocean', world_desert: 'Desert', world_aurora: 'Aurora', world_volcano: 'Volcano', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} complete!', enter_world: 'Enter {world}', replay_worlds: 'Replay worlds', worlds_group: 'Ladder worlds', locked: 'locked',
-      levels: 'Levels', levels_title: '{world} levels', levels_desc: 'Tap a solved level to play it again.', level_of: 'Level {level} of {total}', replay: 'Replay', overall: '{n}/{total} overall', best: 'Best {time}', new_best: 'New best!', current: 'next up',
+      levels: 'Levels', unlock_after: 'Finish {world} to unlock', level_of: 'Level {level} of {total}', replay: 'Replay', overall: '{n}/{total} overall', best: 'Best {time}', new_best: 'New best!', current: 'next up',
       play_games: 'Google Play Games', games_on: 'Achievements and leaderboard times are saved to your Play Games profile.',
       games_off: 'Sign in to earn achievements and compare your times on leaderboards.', games_signin: 'Sign in', achievements: 'Achievements', leaderboards: 'Leaderboards',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
@@ -682,7 +707,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Sürüm {v}', version_web: 'Web sürümü · {v}',
       back_exit: 'Çıkmak için tekrar geri basın',
       world_meadow: 'Çayır', world_ocean: 'Okyanus', world_desert: 'Çöl', world_aurora: 'Kutup Işığı', world_volcano: 'Volkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} tamamlandı!', enter_world: '{world} dünyasına geç', replay_worlds: 'Dünyaları tekrar oyna', worlds_group: 'Merdiven dünyaları', locked: 'kilitli',
-      levels: 'Seviyeler', levels_title: '{world} seviyeleri', levels_desc: 'Çözdüğün bir seviyeye dokunup tekrar oyna.', level_of: 'Seviye {level} / {total}', replay: 'Tekrar', overall: 'Toplam {n}/{total}', best: 'En iyi {time}', new_best: 'Yeni rekor!', current: 'sıradaki',
+      levels: 'Seviyeler', unlock_after: 'Açmak için {world} dünyasını bitir', level_of: 'Seviye {level} / {total}', replay: 'Tekrar', overall: 'Toplam {n}/{total}', best: 'En iyi {time}', new_best: 'Yeni rekor!', current: 'sıradaki',
       play_games: 'Google Play Oyunlar', games_on: 'Başarımların ve sıralama sürelerin Play Oyunlar profiline kaydedilir.',
       games_off: 'Başarım kazanmak ve sürelerini sıralamalarda karşılaştırmak için oturum aç.', games_signin: 'Oturum aç', achievements: 'Başarımlar', leaderboards: 'Sıralamalar',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
@@ -727,7 +752,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Versión {v}', version_web: 'Versión web · {v}',
       back_exit: 'Pulsa atrás otra vez para salir',
       world_meadow: 'Pradera', world_ocean: 'Océano', world_desert: 'Desierto', world_aurora: 'Aurora', world_volcano: 'Volcán', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '¡{world} completado!', enter_world: 'Entrar en {world}', replay_worlds: 'Repetir mundos', worlds_group: 'Mundos de la escalera', locked: 'bloqueado',
-      levels: 'Niveles', levels_title: 'Niveles de {world}', levels_desc: 'Toca un nivel resuelto para jugarlo otra vez.', level_of: 'Nivel {level} de {total}', replay: 'Repetición', overall: '{n}/{total} en total', best: 'Mejor {time}', new_best: '¡Nuevo récord!', current: 'siguiente',
+      levels: 'Niveles', unlock_after: 'Completa {world} para desbloquear', level_of: 'Nivel {level} de {total}', replay: 'Repetición', overall: '{n}/{total} en total', best: 'Mejor {time}', new_best: '¡Nuevo récord!', current: 'siguiente',
       play_games: 'Google Play Juegos', games_on: 'Tus logros y tiempos de las clasificaciones se guardan en tu perfil de Play Juegos.',
       games_off: 'Inicia sesión para conseguir logros y comparar tus tiempos en las clasificaciones.', games_signin: 'Iniciar sesión', achievements: 'Logros', leaderboards: 'Clasificaciones',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
@@ -772,7 +797,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Web-Version · {v}',
       back_exit: 'Zum Beenden erneut Zurück drücken',
       world_meadow: 'Wiese', world_ocean: 'Ozean', world_desert: 'Wüste', world_aurora: 'Polarlicht', world_volcano: 'Vulkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} geschafft!', enter_world: 'Weiter zu {world}', replay_worlds: 'Welten wiederholen', worlds_group: 'Leiter-Welten', locked: 'gesperrt',
-      levels: 'Stufen', levels_title: '{world}: Stufen', levels_desc: 'Tippe auf eine gelöste Stufe, um sie noch einmal zu spielen.', level_of: 'Stufe {level} von {total}', replay: 'Wiederholung', overall: '{n}/{total} gesamt', best: 'Bestzeit {time}', new_best: 'Neue Bestzeit!', current: 'als Nächstes',
+      levels: 'Stufen', unlock_after: 'Schließe {world} ab, um freizuschalten', level_of: 'Stufe {level} von {total}', replay: 'Wiederholung', overall: '{n}/{total} gesamt', best: 'Bestzeit {time}', new_best: 'Neue Bestzeit!', current: 'als Nächstes',
       play_games: 'Google Play Spiele', games_on: 'Erfolge und Bestenlisten-Zeiten werden in deinem Play Spiele-Profil gespeichert.',
       games_off: 'Melde dich an, um Erfolge zu sammeln und deine Zeiten in Bestenlisten zu vergleichen.', games_signin: 'Anmelden', achievements: 'Erfolge', leaderboards: 'Bestenlisten',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
@@ -817,7 +842,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Version web · {v}',
       back_exit: 'Appuyez à nouveau sur retour pour quitter',
       world_meadow: 'Prairie', world_ocean: 'Océan', world_desert: 'Désert', world_aurora: 'Aurore', world_volcano: 'Volcan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} terminé !', enter_world: 'Entrer dans {world}', replay_worlds: 'Rejouer les mondes', worlds_group: 'Mondes de l\'Échelle', locked: 'verrouillé',
-      levels: 'Niveaux', levels_title: 'Niveaux · {world}', levels_desc: 'Touchez un niveau résolu pour le rejouer.', level_of: 'Niveau {level} sur {total}', replay: 'Rejeu', overall: '{n}/{total} au total', best: 'Record {time}', new_best: 'Nouveau record !', current: 'à suivre',
+      levels: 'Niveaux', unlock_after: 'Terminez {world} pour débloquer', level_of: 'Niveau {level} sur {total}', replay: 'Rejeu', overall: '{n}/{total} au total', best: 'Record {time}', new_best: 'Nouveau record !', current: 'à suivre',
       play_games: 'Google Play Jeux', games_on: 'Vos succès et vos temps de classement sont enregistrés dans votre profil Play Jeux.',
       games_off: 'Connectez-vous pour obtenir des succès et comparer vos temps dans les classements.', games_signin: 'Se connecter', achievements: 'Succès', leaderboards: 'Classements',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
@@ -862,7 +887,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Versão {v}', version_web: 'Versão web · {v}',
       back_exit: 'Toque em voltar de novo para sair',
       world_meadow: 'Campina', world_ocean: 'Oceano', world_desert: 'Deserto', world_aurora: 'Aurora', world_volcano: 'Vulcão', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} concluído!', enter_world: 'Entrar em {world}', replay_worlds: 'Jogar mundos de novo', worlds_group: 'Mundos da escada', locked: 'bloqueado',
-      levels: 'Níveis', levels_title: 'Níveis de {world}', levels_desc: 'Toque em um nível resolvido para jogar de novo.', level_of: 'Nível {level} de {total}', replay: 'Repetindo', overall: '{n}/{total} no total', best: 'Recorde {time}', new_best: 'Novo recorde!', current: 'próximo',
+      levels: 'Níveis', unlock_after: 'Conclua {world} para desbloquear', level_of: 'Nível {level} de {total}', replay: 'Repetindo', overall: '{n}/{total} no total', best: 'Recorde {time}', new_best: 'Novo recorde!', current: 'próximo',
       play_games: 'Google Play Games', games_on: 'Suas conquistas e tempos dos placares ficam salvos no seu perfil do Play Games.',
       games_off: 'Entre para ganhar conquistas e comparar seus tempos nos placares.', games_signin: 'Entrar', achievements: 'Conquistas', leaderboards: 'Placares',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
@@ -975,7 +1000,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
 
   function buildSizes() {
     const box = $('sizes'); box.innerHTML = '';
-    if (mode === 'ladder') { buildWorlds(box); return; }
+    if (mode === 'ladder') return; // Ladder picks worlds and levels on the ladder map
     for (const d of DAILY) {
       const b = document.createElement('button');
       const done = store.get(dailyKey(d.id), null) != null;
@@ -986,23 +1011,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
   }
 
-  // World picker: finished worlds (✓) and the current one; later worlds stay locked.
-  function buildWorlds(box) {
-    box.setAttribute('aria-label', t('worlds_group'));
-    WORLDS.forEach((wd, w) => {
-      const b = document.createElement('button');
-      const locked = w > furthestWorld(), done = (w + 1) * WORLD_LEVELS < level;
-      b.className = 'world';
-      b.innerHTML = `<span aria-hidden="true">${locked ? '🔒' : wd.icon}</span>` + (done ? `<span class="tick" aria-hidden="true">✓</span>` : '');
-      b.setAttribute('aria-label', worldName(w) + (done ? ', ' + t('solved_mark') : locked ? ', ' + t('locked') : ''));
-      b.title = worldName(w) + ' · ' + wd.n + '×' + wd.n;
-      b.disabled = locked;
-      b.setAttribute('aria-pressed', String(w === world));
-      b.onclick = () => { world = w; pickLevel = null; store.set('world', w); load(); };
-      box.appendChild(b);
-    });
-  }
-
   function load() {
     buildSizes();
     $('sizes').setAttribute('aria-label', t(mode === 'ladder' ? 'worlds_group' : 'difficulty_group'));
@@ -1011,7 +1019,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('mode-ladder').setAttribute('aria-pressed', String(mode === 'ladder'));
     $('mode-learn').setAttribute('aria-pressed', String(mode === 'learn'));
     const learn = mode === 'learn';
-    $('lesson').hidden = !learn; $('sizes').hidden = learn;
+    $('lesson').hidden = !learn; $('sizes').hidden = learn || mode === 'ladder';
     wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn;
     if (learn) {
@@ -1163,6 +1171,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   function renderLadder() {
     const show = mode === 'ladder';
     $('ladder').hidden = !show; $('label').hidden = show;
+    // In Ladder the world card holds the timer and energy, so the row above it goes away.
+    const meta = document.querySelector('.meta');
+    (show ? $('ladder-meta') : document.querySelector('.bar')).appendChild(meta);
+    document.querySelector('.bar').hidden = show;
     if (!show) return;
     const p = ladderPos(), done = solvedIn(p.w), wd = WORLDS[p.w];
     $('ladder-icon').textContent = wd.icon;
@@ -1176,35 +1188,52 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('ladder-total').textContent = t('overall', { n: Math.min(level - 1, LADDER_TOTAL), total: LADDER_TOTAL });
   }
 
-  // Levels sheet: every level of the world on screen. Solved ones (with best times) and the next one open.
+  // Ladder map: every level of every world as rungs, level 1 at the bottom. Solved levels (with best times) and
+  // the next one open; the climber marks the next level. Picking a solved level replays it.
   const levelsSheet = $('levels');
+  function chooseLevel(w, l) {
+    world = w; store.set('world', w); pickLevel = null;
+    if (inFrontier()) pickLevel = l < frontierLevel() ? l : null;
+    else store.set('replay:' + w, l);
+    closeLevels(); load();
+  }
   function openLevels() {
-    const p = ladderPos(), done = solvedIn(p.w), grid = $('level-grid');
-    $('levels-title').textContent = t('levels_title', { world: worldName(p.w) });
-    grid.innerHTML = '';
-    for (let l = 1; l <= WORLD_LEVELS; l++) {
-      const b = document.createElement('button');
-      const solved = l <= done, next = l === done + 1 && inFrontier(), best = store.get('best:' + p.w + ':' + l, null);
-      b.className = (solved ? 'done' : next ? 'cur' : '') + (l === p.l ? ' here' : '');
-      b.disabled = !solved && !next;
-      const sub = solved ? (best != null ? fmt(best) : '✓') : next ? '▶' : '🔒';
-      b.innerHTML = `<span>${l}</span><small aria-hidden="true">${sub}</small>`;
-      b.setAttribute('aria-label', t('level', { level: l }) + ', ' + (solved ? t('solved_mark') + (best != null ? ', ' + t('best', { time: fmt(best) }) : '') : next ? t('current') : t('locked')));
-      if (l === p.l) b.setAttribute('aria-current', 'true');
-      b.onclick = () => {
-        if (inFrontier()) pickLevel = l < frontierLevel() ? l : null;
-        else store.set('replay:' + p.w, l);
-        closeLevels(); load();
-      };
-      grid.appendChild(b);
+    const p = ladderPos(), here = p.w * WORLD_LEVELS + p.l, scroll = $('map-scroll');
+    $('levels-sub').textContent = t('overall', { n: Math.min(level - 1, LADDER_TOTAL), total: LADDER_TOTAL });
+    scroll.innerHTML = '';
+    for (let w = WORLDS.length - 1; w >= 0; w--) {
+      const wd = WORLDS[w], locked = w > furthestWorld();
+      const zone = document.createElement('section');
+      zone.className = 'zone' + (locked ? ' locked' : '');
+      zone.dataset.world = wd.id;
+      zone.setAttribute('aria-label', worldName(w));
+      const info = locked ? t('unlock_after', { world: worldName(w - 1) }) : `${wd.n}×${wd.n} · ${solvedIn(w)}/${WORLD_LEVELS}`;
+      zone.innerHTML = `<div class="zone-head"><span class="zone-icon" aria-hidden="true">${locked ? '🔒' : wd.icon}</span><div><b>${worldName(w)}</b><small>${info}</small></div></div>`;
+      const rungs = document.createElement('div');
+      rungs.className = 'rungs';
+      for (let l = 1; l <= WORLD_LEVELS; l++) {
+        const g = w * WORLD_LEVELS + l, solved = g < level, next = g === level;
+        const best = store.get('best:' + w + ':' + l, null);
+        const b = document.createElement('button');
+        b.className = 'rung' + (solved ? ' done' : next ? ' next' : '') + (g === here ? ' here' : '');
+        b.disabled = !solved && !next;
+        const side = solved ? (best != null ? fmt(best) : '✓') : '';
+        b.innerHTML = (next ? '<span class="climber" aria-hidden="true">🧗</span>' : '') + `<span class="num">${l}</span>` + (side ? `<span class="side" aria-hidden="true">${side}</span>` : '');
+        b.setAttribute('aria-label', worldName(w) + ', ' + t('level', { level: l }) + ', ' + (solved ? t('solved_mark') + (best != null ? ', ' + t('best', { time: fmt(best) }) : '') : next ? t('current') : t('locked')));
+        if (g === here) b.setAttribute('aria-current', 'true');
+        b.onclick = () => chooseLevel(w, l);
+        rungs.appendChild(b);
+      }
+      zone.appendChild(rungs);
+      scroll.appendChild(zone);
     }
     levelsSheet.hidden = false;
-    (grid.querySelector('[aria-current]') || $('levels-close')).focus();
+    const cur = scroll.querySelector('[aria-current]') || scroll.querySelector('.next');
+    if (cur) { cur.scrollIntoView({ block: 'center' }); cur.focus({ preventScroll: true }); } else $('levels-close').focus();
   }
   function closeLevels() { levelsSheet.hidden = true; $('levels-open').focus(); }
   $('levels-open').onclick = openLevels;
   $('levels-close').onclick = closeLevels;
-  levelsSheet.addEventListener('click', (e) => { if (e.target === levelsSheet) closeLevels(); });
   levelsSheet.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { e.preventDefault(); closeLevels(); }
     if (e.key === 'Tab') {
@@ -1825,7 +1854,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-08 · ed20c9d';
+  const WEB_BUILD = '2026-11-08 · 8b95221';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
