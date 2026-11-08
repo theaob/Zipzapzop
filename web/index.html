@@ -190,22 +190,37 @@ button:disabled { opacity: 0.45; cursor: default; }
 .map-head p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .map-head button { height: 38px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; }
 .map-scroll {
-  --sea-a: #8fd3ef; --sea-b: #4fa9d9; --sand: #f4e2ae; --foam: rgba(255, 255, 255, 0.55); --fog: #cfd8de;
-  flex: 1; overflow-y: auto; overscroll-behavior: contain;
-  padding: 8px max(8px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
-  background:
-    radial-gradient(14px 5px at 20% 30%, var(--foam) 40%, transparent 60%) 0 0 / 180px 140px,
-    radial-gradient(18px 5px at 70% 75%, var(--foam) 40%, transparent 60%) 0 0 / 220px 170px,
-    linear-gradient(180deg, var(--sea-b), var(--sea-a));
-  background-attachment: local;
+  flex: 1; overflow-y: auto; overscroll-behavior: contain; background: #4fa9d9;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .map-scroll { --sea-a: #12405e; --sea-b: #0a2238; --sand: #c9b47c; --foam: rgba(255, 255, 255, 0.12); --fog: #3a4656; }
+/* Each world is its own terrain, with level spots that fit it: meadow clearings, ocean islands, desert oases,
+   ice floes under the aurora, rock islands in lava. --ga/--gb: ground; --tex: texture; --spot/--rim/--halo:
+   an unsolved spot, its edge and the ring around it; --route: the dotted trail; --ink: numbers on a spot. */
+.zone { --dim: 0.5; position: relative; padding: 0 max(8px, env(safe-area-inset-right, 0px)) 22px max(8px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column-reverse; isolation: isolate; }
+.zone::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tex), linear-gradient(180deg, var(--ga), var(--gb)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .zone::before { filter: brightness(var(--dim)) saturate(0.9); } }
+:root[data-theme="dark"] .zone::before { filter: brightness(var(--dim)) saturate(0.9); }
+:root[data-contrast="high"] .zone::before { background: var(--gb); }
+.zone[data-world="meadow"] {
+  --ga: #a8dc7e; --gb: #74c25a; --spot: #eef6d2; --rim: #3f8f3a; --halo: rgba(255, 255, 255, 0.3); --route: rgba(120, 78, 38, 0.55); --ink: #2c4a1e;
+  --tex: radial-gradient(3px 3px at 20% 30%, #fff8 50%, transparent 60%) 0 0 / 70px 60px, radial-gradient(3px 3px at 60% 70%, #ffe46a 50%, transparent 60%) 0 0 / 90px 80px, radial-gradient(8px 4px at 40% 50%, #4f9e3a66 50%, transparent 60%) 0 0 / 50px 44px;
 }
-:root[data-theme="dark"] .map-scroll { --sea-a: #12405e; --sea-b: #0a2238; --sand: #c9b47c; --foam: rgba(255, 255, 255, 0.12); --fog: #3a4656; }
-:root[data-contrast="high"] .map-scroll { background: var(--sea-a); }
-/* Each world's banner sits at its foot, where the route enters it. */
-.zone { position: relative; max-width: 440px; margin: 0 auto; padding-bottom: 22px; display: flex; flex-direction: column-reverse; }
+.zone[data-world="ocean"] {
+  --ga: #4fa9d9; --gb: #8fd3ef; --spot: #9fd07a; --rim: #f4e2ae; --halo: rgba(244, 226, 174, 0.35); --route: rgba(255, 255, 255, 0.6); --ink: #1f3a14;
+  --tex: radial-gradient(14px 5px at 20% 30%, #fff8 40%, transparent 60%) 0 0 / 180px 140px, radial-gradient(18px 5px at 70% 75%, #fff8 40%, transparent 60%) 0 0 / 220px 170px;
+}
+.zone[data-world="desert"] {
+  --ga: #e9bd6c; --gb: #f6dc9c; --spot: #4ec0d8; --rim: #4c9a3c; --halo: rgba(76, 154, 60, 0.3); --route: rgba(140, 90, 30, 0.5); --ink: #0d3440;
+  --tex: repeating-radial-gradient(ellipse 260px 70px at 30% 100%, transparent 0 46px, #b97a2a2e 46px 52px, transparent 52px 80px) 0 0 / 360px 160px;
+}
+.zone[data-world="aurora"] {
+  --dim: 0.8; --ga: #0d1a38; --gb: #1d3466; --spot: #eaf4ff; --rim: #9cc2ea; --halo: rgba(156, 194, 234, 0.3); --route: rgba(255, 255, 255, 0.55); --ink: #1d3466;
+  --tex: linear-gradient(160deg, transparent 20%, #42f5b033 32%, transparent 44%, #b05cff2e 58%, transparent 70%) 0 0 / 100% 900px, radial-gradient(1.5px 1.5px at 30% 40%, #fff 50%, transparent 60%) 0 0 / 60px 70px;
+}
+.zone[data-world="volcano"] {
+  --dim: 0.8; --ga: #2b1611; --gb: #43211a; --spot: #6a4c43; --rim: #2a1a16; --halo: rgba(255, 106, 42, 0.55); --route: rgba(255, 170, 90, 0.75); --ink: #fff1e6;
+  --tex: radial-gradient(40px 14px at 30% 50%, #ff6a2a40 30%, transparent 70%) 0 0 / 160px 120px, radial-gradient(30px 10px at 80% 20%, #ffb3402e 30%, transparent 70%) 0 0 / 200px 150px;
+}
 .zone-head {
   position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; margin: 0 auto;
   padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--panel); box-shadow: 0 4px 14px rgba(10, 30, 50, 0.25);
@@ -213,26 +228,34 @@ button:disabled { opacity: 0.45; cursor: default; }
 .zone-icon { font-size: 1.6rem; line-height: 1; }
 .zone-head b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.15rem; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .zone-head small { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-.sea { position: relative; }
+.sea { position: relative; width: 100%; max-width: 440px; margin: 0 auto; }
 .sea svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.sea polyline { fill: none; stroke: var(--foam); stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.sea polyline { fill: none; stroke: var(--route); stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.sea .deco { position: absolute; transform: translate(-50%, -50%); font-size: 1.3rem; line-height: 1; opacity: 0.8; pointer-events: none; }
 .zone.locked .sea { filter: grayscale(0.7); opacity: 0.55; }
-/* An island per level: land in the world's colours once solved, on a sandy beach with shallow water around it. */
+/* A spot per level: in the world's colours once solved, with the terrain's edge and a ring around it. */
 .isle {
   position: absolute; z-index: 1; width: 62px; height: 50px; transform: translate(-50%, -50%); padding: 0; border: 0; cursor: pointer;
-  border-radius: var(--shape); background: color-mix(in srgb, var(--spark-a) 22%, #e6dfc8); color: #2b2a22;
-  box-shadow: 0 0 0 5px var(--sand), 0 0 0 12px color-mix(in srgb, var(--sand) 35%, transparent), 0 6px 0 9px rgba(10, 40, 70, 0.18);
+  border-radius: var(--shape); background: var(--spot); color: var(--ink);
+  box-shadow: 0 0 0 5px var(--rim), 0 0 0 12px var(--halo), 0 6px 0 9px rgba(10, 20, 30, 0.16);
   font: 800 1.15rem var(--display); font-variant-numeric: tabular-nums; display: grid; place-items: center;
 }
-.isle.done { background: linear-gradient(135deg, var(--spark-a), var(--spark-b)); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
-.isle.next { background: var(--panel); color: var(--ink); }
-.isle:disabled { cursor: default; background: var(--fog); color: color-mix(in srgb, var(--ink) 45%, var(--fog)); }
-.isle.here::after { content: ""; position: absolute; inset: -20px; border-radius: 50%; border: 3px dashed #fff; }
-.isle .best { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px; border-radius: 999px; background: rgba(10, 30, 50, 0.45); color: #fff; font: 600 0.7rem var(--body); text-shadow: none; }
-.isle .boat { position: absolute; left: calc(100% + 14px); top: 50%; margin-top: -0.8rem; font-size: 1.6rem; line-height: 1; animation: bob 2.4s ease-in-out infinite; }
+/* Solved spots keep their terrain look (an oasis stays water) and get a badge in the world's colours. */
+.isle.done::before { content: "✓"; position: absolute; top: -12px; right: -12px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--spark-a), var(--spark-b)); color: #fff; font: 700 0.75rem var(--body); box-shadow: 0 0 0 2px #fff; }
+.isle.next { box-shadow: 0 0 0 5px var(--rim), 0 0 0 12px var(--halo), 0 0 0 15px #fff, 0 6px 0 15px rgba(10, 20, 30, 0.16); }
+.isle:disabled { cursor: default; opacity: 0.5; filter: saturate(0.4); }
+.isle.here::after { content: ""; position: absolute; inset: -22px; border-radius: 50%; border: 3px dashed #fff; }
+.isle.next.here::after { inset: -26px; }
+.isle .best { position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px; border-radius: 999px; background: rgba(10, 20, 30, 0.5); color: #fff; font: 600 0.7rem var(--body); text-shadow: none; }
+.isle .boat { position: absolute; left: calc(100% + 20px); top: 50%; margin-top: -0.8rem; font-size: 1.6rem; line-height: 1; animation: bob 2.4s ease-in-out infinite; }
 @keyframes bob { 50% { transform: translateY(-4px) rotate(-4deg); } }
-.isle.flip .boat { left: auto; right: calc(100% + 14px); }
-.isle:focus-visible { outline: 3px solid var(--focus); outline-offset: 14px; }
+.isle.flip .boat { left: auto; right: calc(100% + 20px); }
+.isle:focus-visible { outline: 3px solid var(--focus); outline-offset: 16px; }
+/* Past the last world: a cloud bank with "more levels coming soon". */
+.soon { padding: 40px 16px 32px; text-align: center; color: #fff; background: linear-gradient(180deg, #8a96ad, #5d6a82); }
+.soon div { font-size: 2.2rem; letter-spacing: 0.3em; }
+.soon b { display: block; margin-top: 8px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.soon small { display: block; margin-top: 4px; font-size: 0.85rem; opacity: 0.85; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
   background: var(--ink); color: var(--bg); font: 600 0.85rem var(--body); padding: 8px 14px; border-radius: 999px;
@@ -627,8 +650,12 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // Ladder: five themed worlds of WORLD_LEVELS levels, one grid size each. Within a world each level
   // starts with fewer numbers and more walls. Finishing a world unlocks the next. Levels are the same for everyone.
   const WORLDS = [
-    { id: 'meadow', icon: '🌿', n: 4 }, { id: 'ocean', icon: '🌊', n: 5 }, { id: 'desert', icon: '🏜️', n: 6 },
-    { id: 'aurora', icon: '🌌', n: 7 }, { id: 'volcano', icon: '🌋', n: 8 },
+    // mover: marks the next level on the map; deco: scattered over that world's terrain.
+    { id: 'meadow', icon: '🌿', n: 4, mover: '🐑', deco: ['🌼', '🌳', '🌷', '🍄'] },
+    { id: 'ocean', icon: '🌊', n: 5, mover: '⛵', deco: ['🐚', '🐠', '🐬', '🪸'] },
+    { id: 'desert', icon: '🏜️', n: 6, mover: '🐪', deco: ['🌵', '🦂', '🌵', '🪨'] },
+    { id: 'aurora', icon: '🌌', n: 7, mover: '🛷', deco: ['❄️', '🐧', '✨', '🏔️'] },
+    { id: 'volcano', icon: '🌋', n: 8, mover: '🐉', deco: ['🔥', '🪨', '💎', '🔥'] },
   ];
   const WORLD_LEVELS = 20, LADDER_TOTAL = WORLDS.length * WORLD_LEVELS;
   function worldSpec(w, l) {
@@ -676,7 +703,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Web version · {v}',
       back_exit: 'Press back again to exit',
       world_meadow: 'Meadow', world_ocean: 'Ocean', world_desert: 'Desert', world_aurora: 'Aurora', world_volcano: 'Volcano', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} complete!', enter_world: 'Enter {world}', replay_worlds: 'Replay worlds', worlds_group: 'Ladder worlds', locked: 'locked',
-      levels: 'Levels', unlock_after: 'Finish {world} to unlock', level_of: 'Level {level} of {total}', replay: 'Replay', overall: '{n}/{total} overall', best: 'Best {time}', new_best: 'New best!', current: 'next up',
+      levels: 'Levels', soon: 'More levels coming soon', soon_desc: 'New worlds are on their way.', unlock_after: 'Finish {world} to unlock', level_of: 'Level {level} of {total}', replay: 'Replay', overall: '{n}/{total} overall', best: 'Best {time}', new_best: 'New best!', current: 'next up',
       play_games: 'Google Play Games', games_on: 'Achievements and leaderboard times are saved to your Play Games profile.',
       games_off: 'Sign in to earn achievements and compare your times on leaderboards.', games_signin: 'Sign in', achievements: 'Achievements', leaderboards: 'Leaderboards',
       hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', copied: 'Result copied',
@@ -721,7 +748,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Sürüm {v}', version_web: 'Web sürümü · {v}',
       back_exit: 'Çıkmak için tekrar geri basın',
       world_meadow: 'Çayır', world_ocean: 'Okyanus', world_desert: 'Çöl', world_aurora: 'Kutup Işığı', world_volcano: 'Volkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} tamamlandı!', enter_world: '{world} dünyasına geç', replay_worlds: 'Dünyaları tekrar oyna', worlds_group: 'Merdiven dünyaları', locked: 'kilitli',
-      levels: 'Seviyeler', unlock_after: 'Açmak için {world} dünyasını bitir', level_of: 'Seviye {level} / {total}', replay: 'Tekrar', overall: 'Toplam {n}/{total}', best: 'En iyi {time}', new_best: 'Yeni rekor!', current: 'sıradaki',
+      levels: 'Seviyeler', soon: 'Yeni seviyeler çok yakında', soon_desc: 'Yeni dünyalar yolda.', unlock_after: 'Açmak için {world} dünyasını bitir', level_of: 'Seviye {level} / {total}', replay: 'Tekrar', overall: 'Toplam {n}/{total}', best: 'En iyi {time}', new_best: 'Yeni rekor!', current: 'sıradaki',
       play_games: 'Google Play Oyunlar', games_on: 'Başarımların ve sıralama sürelerin Play Oyunlar profiline kaydedilir.',
       games_off: 'Başarım kazanmak ve sürelerini sıralamalarda karşılaştırmak için oturum aç.', games_signin: 'Oturum aç', achievements: 'Başarımlar', leaderboards: 'Sıralamalar',
       hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', copied: 'Sonuç kopyalandı',
@@ -766,7 +793,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Versión {v}', version_web: 'Versión web · {v}',
       back_exit: 'Pulsa atrás otra vez para salir',
       world_meadow: 'Pradera', world_ocean: 'Océano', world_desert: 'Desierto', world_aurora: 'Aurora', world_volcano: 'Volcán', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '¡{world} completado!', enter_world: 'Entrar en {world}', replay_worlds: 'Repetir mundos', worlds_group: 'Mundos de la escalera', locked: 'bloqueado',
-      levels: 'Niveles', unlock_after: 'Completa {world} para desbloquear', level_of: 'Nivel {level} de {total}', replay: 'Repetición', overall: '{n}/{total} en total', best: 'Mejor {time}', new_best: '¡Nuevo récord!', current: 'siguiente',
+      levels: 'Niveles', soon: 'Pronto habrá más niveles', soon_desc: 'Nuevos mundos en camino.', unlock_after: 'Completa {world} para desbloquear', level_of: 'Nivel {level} de {total}', replay: 'Repetición', overall: '{n}/{total} en total', best: 'Mejor {time}', new_best: '¡Nuevo récord!', current: 'siguiente',
       play_games: 'Google Play Juegos', games_on: 'Tus logros y tiempos de las clasificaciones se guardan en tu perfil de Play Juegos.',
       games_off: 'Inicia sesión para conseguir logros y comparar tus tiempos en las clasificaciones.', games_signin: 'Iniciar sesión', achievements: 'Logros', leaderboards: 'Clasificaciones',
       hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', copied: 'Resultado copiado',
@@ -811,7 +838,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Web-Version · {v}',
       back_exit: 'Zum Beenden erneut Zurück drücken',
       world_meadow: 'Wiese', world_ocean: 'Ozean', world_desert: 'Wüste', world_aurora: 'Polarlicht', world_volcano: 'Vulkan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} geschafft!', enter_world: 'Weiter zu {world}', replay_worlds: 'Welten wiederholen', worlds_group: 'Leiter-Welten', locked: 'gesperrt',
-      levels: 'Stufen', unlock_after: 'Schließe {world} ab, um freizuschalten', level_of: 'Stufe {level} von {total}', replay: 'Wiederholung', overall: '{n}/{total} gesamt', best: 'Bestzeit {time}', new_best: 'Neue Bestzeit!', current: 'als Nächstes',
+      levels: 'Stufen', soon: 'Weitere Stufen folgen bald', soon_desc: 'Neue Welten sind unterwegs.', unlock_after: 'Schließe {world} ab, um freizuschalten', level_of: 'Stufe {level} von {total}', replay: 'Wiederholung', overall: '{n}/{total} gesamt', best: 'Bestzeit {time}', new_best: 'Neue Bestzeit!', current: 'als Nächstes',
       play_games: 'Google Play Spiele', games_on: 'Erfolge und Bestenlisten-Zeiten werden in deinem Play Spiele-Profil gespeichert.',
       games_off: 'Melde dich an, um Erfolge zu sammeln und deine Zeiten in Bestenlisten zu vergleichen.', games_signin: 'Anmelden', achievements: 'Erfolge', leaderboards: 'Bestenlisten',
       hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', copied: 'Ergebnis kopiert',
@@ -856,7 +883,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Version {v}', version_web: 'Version web · {v}',
       back_exit: 'Appuyez à nouveau sur retour pour quitter',
       world_meadow: 'Prairie', world_ocean: 'Océan', world_desert: 'Désert', world_aurora: 'Aurore', world_volcano: 'Volcan', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} terminé !', enter_world: 'Entrer dans {world}', replay_worlds: 'Rejouer les mondes', worlds_group: 'Mondes de l\'Échelle', locked: 'verrouillé',
-      levels: 'Niveaux', unlock_after: 'Terminez {world} pour débloquer', level_of: 'Niveau {level} sur {total}', replay: 'Rejeu', overall: '{n}/{total} au total', best: 'Record {time}', new_best: 'Nouveau record !', current: 'à suivre',
+      levels: 'Niveaux', soon: 'D\'autres niveaux arrivent bientôt', soon_desc: 'De nouveaux mondes sont en route.', unlock_after: 'Terminez {world} pour débloquer', level_of: 'Niveau {level} sur {total}', replay: 'Rejeu', overall: '{n}/{total} au total', best: 'Record {time}', new_best: 'Nouveau record !', current: 'à suivre',
       play_games: 'Google Play Jeux', games_on: 'Vos succès et vos temps de classement sont enregistrés dans votre profil Play Jeux.',
       games_off: 'Connectez-vous pour obtenir des succès et comparer vos temps dans les classements.', games_signin: 'Se connecter', achievements: 'Succès', leaderboards: 'Classements',
       hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', copied: 'Résultat copié',
@@ -901,7 +928,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       version: 'Versão {v}', version_web: 'Versão web · {v}',
       back_exit: 'Toque em voltar de novo para sair',
       world_meadow: 'Campina', world_ocean: 'Oceano', world_desert: 'Deserto', world_aurora: 'Aurora', world_volcano: 'Vulcão', world_level: '{world} · {level}/{total} · {size}×{size}', world_level_short: '{world} {level}/{total}', world_done: '{world} concluído!', enter_world: 'Entrar em {world}', replay_worlds: 'Jogar mundos de novo', worlds_group: 'Mundos da escada', locked: 'bloqueado',
-      levels: 'Níveis', unlock_after: 'Conclua {world} para desbloquear', level_of: 'Nível {level} de {total}', replay: 'Repetindo', overall: '{n}/{total} no total', best: 'Recorde {time}', new_best: 'Novo recorde!', current: 'próximo',
+      levels: 'Níveis', soon: 'Mais níveis em breve', soon_desc: 'Novos mundos a caminho.', unlock_after: 'Conclua {world} para desbloquear', level_of: 'Nível {level} de {total}', replay: 'Repetindo', overall: '{n}/{total} no total', best: 'Recorde {time}', new_best: 'Novo recorde!', current: 'próximo',
       play_games: 'Google Play Games', games_on: 'Suas conquistas e tempos dos placares ficam salvos no seu perfil do Play Games.',
       games_off: 'Entre para ganhar conquistas e comparar seus tempos nos placares.', games_signin: 'Entrar', achievements: 'Conquistas', leaderboards: 'Placares',
       hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', copied: 'Resultado copiado',
@@ -1215,7 +1242,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   function openLevels() {
     const p = ladderPos(), here = p.w * WORLD_LEVELS + p.l, scroll = $('map-scroll');
     $('levels-sub').textContent = t('overall', { n: Math.min(level - 1, LADDER_TOTAL), total: LADDER_TOTAL });
-    scroll.innerHTML = '';
+    scroll.innerHTML = `<div class="soon"><div aria-hidden="true">☁️☁️☁️</div><b>${t('soon')}</b><small>${t('soon_desc')}</small></div>`;
     for (let w = WORLDS.length - 1; w >= 0; w--) {
       const wd = WORLDS[w], locked = w > furthestWorld();
       const zone = document.createElement('section');
@@ -1235,11 +1262,13 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         const x = 50 + 30 * Math.sin(l * 1.05 + w * 1.7), y = H - BASE - (l - 1) * STEP;
         pts.push(x.toFixed(1) + ',' + y);
         const best = store.get('best:' + w + ':' + l, null);
+        const dx = 100 - x;
+        if (l % 2 === 0) isles += `<span class="deco" aria-hidden="true" style="left:${(dx < 50 ? dx - 8 : dx + 8).toFixed(1)}%;top:${y + 20}px">${wd.deco[(l / 2) % wd.deco.length]}</span>`;
         const cls = 'isle' + (solved ? ' done' : next ? ' next' : '') + (g === here ? ' here' : '') + (x > 50 ? ' flip' : '');
         const label = worldName(w) + ', ' + t('level', { level: l }) + ', ' + (solved ? t('solved_mark') + (best != null ? ', ' + t('best', { time: fmt(best) }) : '') : next ? t('current') : t('locked'));
         isles += `<button class="${cls}" data-l="${l}" style="left:${x.toFixed(1)}%;top:${y}px;--shape:${SHAPES[(l + w) % SHAPES.length]}"${!solved && !next ? ' disabled' : ''}${g === here ? ' aria-current="true"' : ''} aria-label="${label}">${l}`
           + (solved && best != null ? `<span class="best" aria-hidden="true">${fmt(best)}</span>` : '')
-          + (next ? '<span class="boat" aria-hidden="true">⛵</span>' : '') + '</button>';
+          + (next ? `<span class="boat" aria-hidden="true">${wd.mover}</span>` : '') + '</button>';
       }
       sea.innerHTML = `<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.join(' ')}"/></svg>` + isles;
       sea.querySelectorAll('.isle').forEach((b) => { b.onclick = () => chooseLevel(w, +b.dataset.l); });
@@ -1286,15 +1315,16 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     // After replaying a level of the unfinished world, Next goes back to the level still to solve.
     const nextL = pos && (!pos.current && inFrontier() ? frontierLevel() : pos.l % WORLD_LEVELS + 1);
     let nextLabel = pos ? t('level', { level: nextL }) : next ? t('play_x', { label: t(next.id) }) : t('play_ladder');
-    let title = t('solved');
+    let title = t('solved'), soon = '';
     if (worldDone) {
       const last = pos.w === WORLDS.length - 1;
       title = t('world_done', { world: worldName(pos.w) });
       nextLabel = last ? t('replay_worlds') : t('enter_world', { world: worldName(pos.w + 1) });
+      if (last) soon = `<p>${t('soon')}</p>`;
       div.classList.add('world-done');
     }
     const best = bestInfo ? ' · ' + (bestInfo.isNew ? t('new_best') : t('best', { time: fmt(bestInfo.best) })) : '';
-    div.innerHTML = `<div><h2>${title}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}${best}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
+    div.innerHTML = `<div><h2>${title}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}${best}</p>${soon}</div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
     div.querySelector('.next').onclick = nextPuzzle;
     div.querySelector('.share').onclick = share;
     wrap.appendChild(div);
@@ -1873,7 +1903,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-08 · 740c6b4';
+  const WEB_BUILD = '2026-11-08 · 4f1041d';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
