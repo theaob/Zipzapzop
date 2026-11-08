@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
     }
 
     // Exposed to the page as window.ZipZapZopAndroid: sharing (WebView has no Web Share API), the daily reminder,
-    // ads (rewarded ones for extra hints and energy) plus the remove-ads purchase, analytics, and Play Games.
+    // ads (rewarded ones for extra hints and energy) plus the remove-ads and Endless purchases, analytics, and Play Games.
     private class Bridge {
         @JavascriptInterface
         public void setReminder(final boolean on, final int hour, final int minute) {
@@ -201,6 +201,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void buyRemoveAds() {
             onUi(new Runnable() { @Override public void run() { money.buyRemoveAds(); } });
+        }
+
+        @JavascriptInterface
+        public void buyEndless() {
+            onUi(new Runnable() { @Override public void run() { money.buyEndless(); } });
         }
 
         @JavascriptInterface

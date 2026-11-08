@@ -11,6 +11,7 @@ final class Monetization {
     void start() {}
     void watchRewardedAd(String purpose) {}
     void buyRemoveAds() {}
+    void buyEndless() {}
     void restore() {}
     void showPrivacyOptions() {}
     void destroy() {}
