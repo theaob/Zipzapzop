@@ -4,11 +4,17 @@ import android.app.Activity;
 import android.content.Intent;
 
 import com.google.android.gms.games.AuthenticationResult;
+import com.google.android.gms.games.GameStatsClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
+import com.google.android.gms.games.playergameevent.PlayerGameEvent;
 import com.google.android.gms.tasks.Task;
 
-// Google Play Games Services v2: automatic sign-in, achievements and leaderboards. Their IDs come from
+import org.json.JSONObject;
+
+import java.util.Iterator;
+
+// Google Play Games Services v2: automatic sign-in, achievements, leaderboards and Game Stats. Their IDs come from
 // res/values/games-ids.xml, which CI writes from the PLAY_GAMES_RESOURCES secret (Play Console's "Get resources"
 // export). Without that file Play Games stays off; an achievement or leaderboard missing from it is skipped.
 final class GameServices {
@@ -56,6 +62,29 @@ final class GameServices {
     void submitScore(String key, long score) {
         String id = id("leaderboard_" + key);
         if (id != null) PlayGames.getLeaderboardsClient(activity).submitScore(id, score);
+    }
+
+    // Game Stats: one gameplay event (e.g. "puzzleSolved" or "progressUpdate") with its properties as a JSON object
+    // of strings, whole numbers and booleans. Play Games adds them up into the stats set in Play Console, matching
+    // events by name, so no resource IDs are needed. Events that don't match the console's schema are dropped there.
+    void recordEvent(String name, String propsJson) {
+        if (!signedIn || !name.matches("[A-Za-z0-9_]{1,50}")) return;
+        try {
+            JSONObject props = new JSONObject(propsJson);
+            PlayerGameEvent.Builder event = new PlayerGameEvent.Builder(name);
+            for (Iterator<String> it = props.keys(); it.hasNext(); ) {
+                String key = it.next();
+                Object v = props.get(key);
+                if (v instanceof Boolean) event.addProperty(key, (boolean) (Boolean) v);
+                else if (v instanceof Number) event.addProperty(key, ((Number) v).longValue());
+                else if (v instanceof String) event.addProperty(key, (String) v);
+            }
+            GameStatsClient stats = PlayGames.getGameStatsClient(activity);
+            stats.recordEvent(event.build());
+            stats.requestEventsUpload();
+        } catch (Exception ignored) {
+            // A malformed event from the page is skipped; it must never take the game down.
+        }
     }
 
     void showAchievements() {

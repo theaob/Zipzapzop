@@ -1554,6 +1554,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         bestInfo = prev == null ? null : { best: Math.min(prev, elapsed), isNew: elapsed < prev };
       }
       if (mode !== 'learn') gamesSync(mode === 'ladder' && ladderPos().current ? level : 0);
+      if (mode === 'daily' || mode === 'ladder') gamesSolved();
     }
   }
 
@@ -1958,15 +1959,35 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (done > 0 || dates.length) unlock('first_steps');
     WORLDS.forEach((w, i) => { if (done >= (i + 1) * WORLD_LEVELS) unlock(w.id + '_complete'); });
     if (dates.some((d) => DAILY.every((x) => days[d].has(x.id)))) unlock('daily_trio');
-    let run = 0, best = 0, prev = null;
-    for (const d of dates) {
-      const n = Date.parse(d + 'T00:00:00Z') / 864e5;
-      run = prev !== null && n === prev + 1 ? run + 1 : 1; prev = n; best = Math.max(best, run);
-    }
-    if (best >= 7) unlock('week_streak');
+    if (dailyStreaks(days).best >= 7) unlock('week_streak');
     if (dates.some((d) => days[d].has('hard') && store.get('dailyhints:' + d + ':hard', null) === 0)) unlock('unassisted');
     if (done > 0) bridge.gamesScore('ladder', done);
     DAILY.forEach((d) => { const ms = store.get(dailyKey(d.id), null); if (ms != null) bridge.gamesScore('daily_' + d.id, ms); });
+    // Game Stats progression: Ladder levels solved, sent once a session and whenever it goes up.
+    if (done !== statsProgress) { statsProgress = done; gamesEvent('progressUpdate', { currentProgress: done }); }
+  }
+  // Days in a row with a Daily solved: the longest run, and the run that ends today (0 if today isn't solved yet).
+  function dailyStreaks(days) {
+    let run = 0, best = 0, prev = null;
+    for (const d of Object.keys(days).sort()) {
+      const n = Date.parse(d + 'T00:00:00Z') / 864e5;
+      run = prev !== null && n === prev + 1 ? run + 1 : 1; prev = n; best = Math.max(best, run);
+    }
+    return { best, current: prev === Date.parse(today() + 'T00:00:00Z') / 864e5 ? run : 0 };
+  }
+  // Game Stats (Play Games profile): one event per Daily or Ladder solve, with the values for that solve only;
+  // Play Games adds them up. Endless (a purchase) and Learn (the tutorial) are left out, as Game Stats rules require.
+  let statsProgress = -1;
+  function gamesEvent(name, props) { if (gamesOn && bridge.gamesEvent) bridge.gamesEvent(name, JSON.stringify(props)); }
+  function gamesSolved() {
+    gamesEvent('puzzleSolved', {
+      mode,
+      puzzle: mode === 'daily' ? 'daily_' + dailyId : 'ladder',
+      cells: puz.n * puz.n,
+      seconds: Math.max(1, Math.round(elapsed / 1000)),
+      hints: hintsUsed,
+      dailyStreak: mode === 'daily' ? dailyStreaks(dailyDays()).current : 0,
+    });
   }
   if (bridge && bridge.gamesState) {
     const showGames = (st) => {
@@ -2016,7 +2037,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-08 · a52facc';
+  const WEB_BUILD = '2026-11-08 · 2d85e3a';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
