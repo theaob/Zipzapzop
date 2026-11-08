@@ -189,36 +189,50 @@ button:disabled { opacity: 0.45; cursor: default; }
 .map-head h2 { font-family: var(--display); font-weight: 800; font-size: 1.35rem; margin: 0; }
 .map-head p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .map-head button { height: 38px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.9rem var(--body); cursor: pointer; }
-.map-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
-.zone {
-  max-width: 440px; margin: 0 auto 16px; padding: 14px 0 18px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--spark-a) 35%, var(--line));
-  background: linear-gradient(180deg, color-mix(in srgb, var(--spark-b) 14%, var(--panel)), color-mix(in srgb, var(--spark-a) 10%, var(--panel)));
+.map-scroll {
+  --sea-a: #8fd3ef; --sea-b: #4fa9d9; --sand: #f4e2ae; --foam: rgba(255, 255, 255, 0.55); --fog: #cfd8de;
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: 8px max(8px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  background:
+    radial-gradient(14px 5px at 20% 30%, var(--foam) 40%, transparent 60%) 0 0 / 180px 140px,
+    radial-gradient(18px 5px at 70% 75%, var(--foam) 40%, transparent 60%) 0 0 / 220px 170px,
+    linear-gradient(180deg, var(--sea-b), var(--sea-a));
+  background-attachment: local;
 }
-:root[data-contrast="high"] .zone { background: var(--panel); }
-.zone-head { display: flex; align-items: center; gap: 12px; padding: 0 16px 14px; }
-.zone-icon { font-size: 1.9rem; line-height: 1; }
-.zone-head b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.25rem; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.zone-head small { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
-.zone.locked .zone-icon, .zone.locked .rungs { opacity: 0.45; }
-.rungs { position: relative; display: flex; flex-direction: column-reverse; gap: 6px; margin: 0 60px; }
-.rungs::before, .rungs::after { content: ""; position: absolute; top: -8px; bottom: -8px; width: 7px; border-radius: 4px; background: linear-gradient(180deg, var(--spark-b), var(--spark-a)); }
-.rungs::before { left: 0; } .rungs::after { right: 0; }
-.rung { position: relative; z-index: 1; height: 46px; margin: 0 4px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); }
-.rung::before { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 8px; transform: translateY(-50%); border-radius: 4px; background: var(--line); }
-.rung.done::before { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); }
-.rung .num {
-  position: relative; min-width: 42px; height: 36px; padding: 0 10px; border-radius: 999px; display: grid; place-items: center;
-  font: 800 1.05rem var(--display); font-variant-numeric: tabular-nums; background: var(--panel); color: var(--ink); border: 2px solid var(--line);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .map-scroll { --sea-a: #12405e; --sea-b: #0a2238; --sand: #c9b47c; --foam: rgba(255, 255, 255, 0.12); --fog: #3a4656; }
 }
-.rung.done .num { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); color: #fff; border-color: transparent; }
-.rung.next .num { background: var(--ink); color: var(--bg); border-color: var(--ink); box-shadow: 0 0 0 5px color-mix(in srgb, var(--spark-a) 35%, transparent); }
-.rung.here .num { outline: 3px solid var(--ink); outline-offset: 3px; }
-.rung:disabled { cursor: default; }
-.rung:disabled .num { color: var(--muted); }
-.rung .side { position: absolute; left: calc(100% + 12px); white-space: nowrap; font: 600 0.75rem var(--body); color: var(--muted); font-variant-numeric: tabular-nums; }
-.rung .climber { position: absolute; right: calc(100% + 10px); font-size: 1.5rem; line-height: 1; }
-.rung:focus-visible { outline: none; }
-.rung:focus-visible .num { outline: 3px solid var(--focus); outline-offset: 3px; }
+:root[data-theme="dark"] .map-scroll { --sea-a: #12405e; --sea-b: #0a2238; --sand: #c9b47c; --foam: rgba(255, 255, 255, 0.12); --fog: #3a4656; }
+:root[data-contrast="high"] .map-scroll { background: var(--sea-a); }
+/* Each world's banner sits at its foot, where the route enters it. */
+.zone { position: relative; max-width: 440px; margin: 0 auto; padding-bottom: 22px; display: flex; flex-direction: column-reverse; }
+.zone-head {
+  position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; width: max-content; max-width: 100%; margin: 0 auto;
+  padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--panel); box-shadow: 0 4px 14px rgba(10, 30, 50, 0.25);
+}
+.zone-icon { font-size: 1.6rem; line-height: 1; }
+.zone-head b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.15rem; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.zone-head small { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.sea { position: relative; }
+.sea svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sea polyline { fill: none; stroke: var(--foam); stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.zone.locked .sea { filter: grayscale(0.7); opacity: 0.55; }
+/* An island per level: land in the world's colours once solved, on a sandy beach with shallow water around it. */
+.isle {
+  position: absolute; z-index: 1; width: 62px; height: 50px; transform: translate(-50%, -50%); padding: 0; border: 0; cursor: pointer;
+  border-radius: var(--shape); background: color-mix(in srgb, var(--spark-a) 22%, #e6dfc8); color: #2b2a22;
+  box-shadow: 0 0 0 5px var(--sand), 0 0 0 12px color-mix(in srgb, var(--sand) 35%, transparent), 0 6px 0 9px rgba(10, 40, 70, 0.18);
+  font: 800 1.15rem var(--display); font-variant-numeric: tabular-nums; display: grid; place-items: center;
+}
+.isle.done { background: linear-gradient(135deg, var(--spark-a), var(--spark-b)); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); }
+.isle.next { background: var(--panel); color: var(--ink); }
+.isle:disabled { cursor: default; background: var(--fog); color: color-mix(in srgb, var(--ink) 45%, var(--fog)); }
+.isle.here::after { content: ""; position: absolute; inset: -20px; border-radius: 50%; border: 3px dashed #fff; }
+.isle .best { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px; border-radius: 999px; background: rgba(10, 30, 50, 0.45); color: #fff; font: 600 0.7rem var(--body); text-shadow: none; }
+.isle .boat { position: absolute; left: calc(100% + 14px); top: 50%; margin-top: -0.8rem; font-size: 1.6rem; line-height: 1; animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-4deg); } }
+.isle.flip .boat { left: auto; right: calc(100% + 14px); }
+.isle:focus-visible { outline: 3px solid var(--focus); outline-offset: 14px; }
 .toast {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px);
   background: var(--ink); color: var(--bg); font: 600 0.85rem var(--body); padding: 8px 14px; border-radius: 999px;
@@ -1022,6 +1036,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     else store.set('replay:' + w, l);
     closeLevels(); load();
   }
+  const SHAPES = ['48% 52% 44% 56% / 56% 42% 58% 44%', '58% 42% 52% 48% / 46% 56% 44% 54%', '44% 56% 60% 40% / 52% 48% 52% 48%', '52% 48% 42% 58% / 60% 44% 56% 40%'];
   function openLevels() {
     const p = ladderPos(), here = p.w * WORLD_LEVELS + p.l, scroll = $('map-scroll');
     $('levels-sub').textContent = t('overall', { n: Math.min(level - 1, LADDER_TOTAL), total: LADDER_TOTAL });
@@ -1034,22 +1049,26 @@ button:disabled { opacity: 0.45; cursor: default; }
       zone.setAttribute('aria-label', worldName(w));
       const info = locked ? t('unlock_after', { world: worldName(w - 1) }) : `${wd.n}×${wd.n} · ${solvedIn(w)}/${WORLD_LEVELS}`;
       zone.innerHTML = `<div class="zone-head"><span class="zone-icon" aria-hidden="true">${locked ? '🔒' : wd.icon}</span><div><b>${worldName(w)}</b><small>${info}</small></div></div>`;
-      const rungs = document.createElement('div');
-      rungs.className = 'rungs';
+      // Islands wind up the sea from level 1 at the bottom; a dotted route joins them.
+      const STEP = 84, BASE = 56, H = BASE * 2 + STEP * (WORLD_LEVELS - 1);
+      const sea = document.createElement('div');
+      sea.className = 'sea'; sea.style.height = H + 'px';
+      const pts = [];
+      let isles = '';
       for (let l = 1; l <= WORLD_LEVELS; l++) {
         const g = w * WORLD_LEVELS + l, solved = g < level, next = g === level;
+        const x = 50 + 30 * Math.sin(l * 1.05 + w * 1.7), y = H - BASE - (l - 1) * STEP;
+        pts.push(x.toFixed(1) + ',' + y);
         const best = store.get('best:' + w + ':' + l, null);
-        const b = document.createElement('button');
-        b.className = 'rung' + (solved ? ' done' : next ? ' next' : '') + (g === here ? ' here' : '');
-        b.disabled = !solved && !next;
-        const side = solved ? (best != null ? fmt(best) : '✓') : '';
-        b.innerHTML = (next ? '<span class="climber" aria-hidden="true">🧗</span>' : '') + `<span class="num">${l}</span>` + (side ? `<span class="side" aria-hidden="true">${side}</span>` : '');
-        b.setAttribute('aria-label', worldName(w) + ', ' + t('level', { level: l }) + ', ' + (solved ? t('solved_mark') + (best != null ? ', ' + t('best', { time: fmt(best) }) : '') : next ? t('current') : t('locked')));
-        if (g === here) b.setAttribute('aria-current', 'true');
-        b.onclick = () => chooseLevel(w, l);
-        rungs.appendChild(b);
+        const cls = 'isle' + (solved ? ' done' : next ? ' next' : '') + (g === here ? ' here' : '') + (x > 50 ? ' flip' : '');
+        const label = worldName(w) + ', ' + t('level', { level: l }) + ', ' + (solved ? t('solved_mark') + (best != null ? ', ' + t('best', { time: fmt(best) }) : '') : next ? t('current') : t('locked'));
+        isles += `<button class="${cls}" data-l="${l}" style="left:${x.toFixed(1)}%;top:${y}px;--shape:${SHAPES[(l + w) % SHAPES.length]}"${!solved && !next ? ' disabled' : ''}${g === here ? ' aria-current="true"' : ''} aria-label="${label}">${l}`
+          + (solved && best != null ? `<span class="best" aria-hidden="true">${fmt(best)}</span>` : '')
+          + (next ? '<span class="boat" aria-hidden="true">⛵</span>' : '') + '</button>';
       }
-      zone.appendChild(rungs);
+      sea.innerHTML = `<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.join(' ')}"/></svg>` + isles;
+      sea.querySelectorAll('.isle').forEach((b) => { b.onclick = () => chooseLevel(w, +b.dataset.l); });
+      zone.appendChild(sea);
       scroll.appendChild(zone);
     }
     levelsSheet.hidden = false;
