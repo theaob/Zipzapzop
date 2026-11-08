@@ -36,9 +36,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), Google's
-// consent flow (UMP), and the one-time "remove_ads" Play purchase. Every callback that touches state runs on the main thread.
+// consent flow (UMP), and two one-time Play purchases: "remove_ads" and "endless" (unlocks Endless mode).
+// Every callback that touches state runs on the main thread.
 final class Monetization {
     static final String PRODUCT = "remove_ads";
+    static final String ENDLESS = "endless";
 
     private final Activity activity;
     private final Runnable onChange;
@@ -47,7 +49,7 @@ final class Monetization {
     private final ConsentInformation consent;
     private final AtomicBoolean adsStarted = new AtomicBoolean(false);
     private BillingClient billing;
-    private ProductDetails product;
+    private final Map<String, ProductDetails> products = new HashMap<>();
     // One rewarded ad unit per purpose, so AdMob reports hint and energy ads separately.
     private final Map<String, RewardedAd> rewarded = new HashMap<>();
     private final Set<String> loadingRewarded = new HashSet<>();
@@ -62,6 +64,7 @@ final class Monetization {
     }
 
     private boolean adsRemoved() { return prefs.getBoolean("adsRemoved", false); }
+    private boolean endlessOwned() { return prefs.getBoolean("endlessOwned", false); }
 
     void start() {
         startBilling();
@@ -129,7 +132,7 @@ final class Monetization {
         UserMessagingPlatform.showPrivacyOptionsForm(activity, formError -> onChange.run());
     }
 
-    // ---- Play Billing: one non-consumable product ----
+    // ---- Play Billing: two non-consumable products ----
 
     private void startBilling() {
         billing = BillingClient.newBuilder(activity)
@@ -163,34 +166,39 @@ final class Monetization {
         });
     }
 
-    // Loads the product and its local price; `then` runs afterwards whether or not it was found.
+    // Loads both products and their local prices; `then` runs afterwards whether or not they were found.
     private void queryProduct(Runnable then) {
-        QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
-            .setProductList(Collections.singletonList(QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT).setProductType(BillingClient.ProductType.INAPP).build()))
-            .build();
+        List<QueryProductDetailsParams.Product> ids = new java.util.ArrayList<>();
+        for (String id : new String[] { PRODUCT, ENDLESS })
+            ids.add(QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(id).setProductType(BillingClient.ProductType.INAPP).build());
+        QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder().setProductList(ids).build();
         billing.queryProductDetailsAsync(params, (result, details) -> activity.runOnUiThread(() -> {
             List<ProductDetails> list = details.getProductDetailsList();
             if (result.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null && !list.isEmpty()) {
-                product = list.get(0);
+                for (ProductDetails d : list) products.put(d.getProductId(), d);
                 onChange.run();
             }
             if (then != null) then.run();
         }));
     }
 
-    void buyRemoveAds() {
+    void buyRemoveAds() { buy(PRODUCT); }
+
+    void buyEndless() { buy(ENDLESS); }
+
+    private void buy(final String id) {
         connect(() -> {
-            if (product != null) { launchPurchase(); return; }
+            if (products.containsKey(id)) { launchPurchase(products.get(id)); return; }
             // The product may not have loaded at launch (offline, or just created in Play Console): ask again.
             queryProduct(() -> {
-                if (product != null) launchPurchase();
+                if (products.containsKey(id)) launchPurchase(products.get(id));
                 else say("store_unavailable");
             });
         }, true);
     }
 
-    private void launchPurchase() {
+    private void launchPurchase(ProductDetails product) {
         BillingFlowParams params = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(Collections.singletonList(
                 BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product).build()))
@@ -212,10 +220,11 @@ final class Monetization {
                     if (report) say("play_unreachable");
                     return;
                 }
-                boolean owned = handle(purchases);
-                // Refunds and revoked purchases disappear from this list, so ads come back.
-                if (!owned && adsRemoved()) setAdsRemoved(false);
-                if (report) say(owned ? "restored" : "no_purchase");
+                Set<String> owned = handle(purchases);
+                // Refunds and revoked purchases disappear from this list, so ads come back and Endless locks again.
+                if (!owned.contains(PRODUCT) && adsRemoved()) setAdsRemoved(false);
+                if (!owned.contains(ENDLESS) && endlessOwned()) setEndlessOwned(false);
+                if (report) say(owned.contains(PRODUCT) ? "restored" : owned.contains(ENDLESS) ? "restored_endless" : "no_purchase");
             }));
     }
 
@@ -228,15 +237,17 @@ final class Monetization {
         });
     }
 
-    // Grants the product for completed purchases and acknowledges them (Play refunds unacknowledged ones after 3 days).
-    private boolean handle(List<Purchase> purchases) {
-        boolean owned = false;
+    // Grants the products of completed purchases and acknowledges them (Play refunds unacknowledged ones after 3 days).
+    // Returns the ids of the products owned.
+    private Set<String> handle(List<Purchase> purchases) {
+        Set<String> owned = new HashSet<>();
         for (Purchase p : purchases) {
-            if (!p.getProducts().contains(PRODUCT)) continue;
-            if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) { say("pending"); continue; }
+            boolean ads = p.getProducts().contains(PRODUCT), endless = p.getProducts().contains(ENDLESS);
+            if (!ads && !endless) continue;
+            if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) { say(ads ? "pending" : "pending_endless"); continue; }
             if (p.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
-            owned = true;
-            if (!adsRemoved()) setAdsRemoved(true);
+            if (ads) { owned.add(PRODUCT); if (!adsRemoved()) setAdsRemoved(true); }
+            if (endless) { owned.add(ENDLESS); if (!endlessOwned()) setEndlessOwned(true); }
             if (!p.isAcknowledged()) {
                 billing.acknowledgePurchase(
                     AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.getPurchaseToken()).build(),
@@ -254,6 +265,11 @@ final class Monetization {
         onChange.run();
     }
 
+    private void setEndlessOwned(boolean owned) {
+        prefs.edit().putBoolean("endlessOwned", owned).apply();
+        onChange.run();
+    }
+
     // Messages are keys; the page shows them in the player's language (msg_<key> in its STRINGS).
     private void say(String key) { message = key; onChange.run(); }
 
@@ -263,14 +279,21 @@ final class Monetization {
         try {
             o.put("available", true);
             o.put("adsRemoved", adsRemoved());
-            o.put("price", product != null && product.getOneTimePurchaseOfferDetails() != null
-                ? product.getOneTimePurchaseOfferDetails().getFormattedPrice() : JSONObject.NULL);
+            o.put("price", priceOf(PRODUCT));
+            o.put("endlessOwned", endlessOwned());
+            o.put("endlessPrice", priceOf(ENDLESS));
             o.put("privacyOptions", consent.getPrivacyOptionsRequirementStatus()
                 == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED);
             if (message != null) o.put("message", message);
         } catch (JSONException ignored) {}
         message = null;
         return o.toString();
+    }
+
+    private Object priceOf(String id) {
+        ProductDetails d = products.get(id);
+        return d != null && d.getOneTimePurchaseOfferDetails() != null
+            ? d.getOneTimePurchaseOfferDetails().getFormattedPrice() : JSONObject.NULL;
     }
 
     void destroy() { if (billing != null) billing.endConnection(); }
