@@ -56,9 +56,20 @@ header { display: flex; align-items: flex-end; justify-content: space-between; g
 h1 { font-family: var(--display); font-weight: 800; font-size: 2.4rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
 h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .tag { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
-.modes { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-.modes button { border: 0; background: transparent; color: var(--muted); font: 600 0.85rem var(--body); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
-.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+/* Modes live in a tab bar fixed to the bottom of the screen (beside the board on short landscape screens). */
+.wrap { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); border-top: 1px solid var(--line);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tabbar .modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; max-width: 520px; margin: 0 auto; }
+.tabbar button { border: 0; background: transparent; color: var(--muted); font: 600 0.75rem var(--body); display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-height: 52px; padding: 5px 2px 4px; border-radius: 14px; cursor: pointer; min-width: 0; }
+.tabbar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabbar svg { width: 24px; height: 24px; padding: 3px 16px; box-sizing: content-box; border-radius: 999px; flex: none; }
+.tabbar button[aria-pressed="true"] { color: var(--ink); }
+.tabbar button[aria-pressed="true"] svg { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); color: #fff; }
+.tabbar button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+:root[data-contrast="high"] .tabbar button[aria-pressed="true"] svg { background: var(--ink); color: var(--bg); }
+:root[data-contrast="high"] .tabbar button[aria-pressed="true"] span { text-decoration: underline; text-underline-offset: 3px; }
 .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .sizes { display: flex; gap: 6px; }
 .sizes[hidden], .lesson[hidden], .controls button[hidden] { display: none; }
@@ -348,12 +359,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 #ads-buy:disabled { opacity: 0.5; cursor: default; }
 .ads-row .link { border: 1px solid var(--line); background: transparent; color: var(--ink); }
 .ads-row button[hidden] { display: none; }
+.learn-row { flex-wrap: nowrap; justify-content: space-between; }
+.learn-row button { flex: none; }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
-/* Four modes and the settings button share one row on narrow phones. */
-.head-actions { max-width: 100%; }
-.modes { min-width: 0; }
-@media (max-width: 400px) { .modes { gap: 0; } .modes button { padding: 6px 9px; font-size: 0.8rem; } }
-@media (max-width: 340px) { .modes button { padding: 6px 6px; font-size: 0.76rem; letter-spacing: -0.01em; } .head-actions { gap: 6px; } }
+@media (max-width: 340px) { .tabbar svg { padding-inline: 10px; } .head-actions { gap: 6px; } }
 /* Short landscape screens (car displays in Android Auto, tablets, laptops): the board fills the height on the right,
    with the title, mode, info and controls in a column beside it. */
 @media (orientation: landscape) and (max-height: 860px) and (min-width: 640px) {
@@ -369,6 +378,8 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap > .bar { grid-column: 1; grid-row: 3; align-self: start; }
   .wrap > .ladder { grid-column: 1; grid-row: 3; align-self: start; }
   .wrap > .controls { grid-column: 1; grid-row: 5; }
+  .wrap { padding-bottom: 0; }
+  .wrap > .tabbar { position: static; grid-column: 1; grid-row: 4; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
 }
 </style>
@@ -377,20 +388,11 @@ button:disabled { opacity: 0.45; cursor: default; }
   <header>
     <div class="brand">
       <div class="title-row"><h1>Zip<span>Zap</span>Zop</h1>
-        <button class="streak-btn off" id="streak-open" aria-haspopup="dialog"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="flameA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color: var(--spark-b)"/><stop offset="1" style="stop-color: var(--spark-a)"/></linearGradient></defs><path fill="url(#flameA)" d="M12 2c.6 3.2 2.4 4.9 4 6.6 1.7 1.8 3 3.7 3 6.4A7 7 0 0 1 5 15c0-2.3 1-4.1 2.4-5.4.2 1.6.9 2.8 2 3.4C9 9 10.2 5.3 12 2z"/></svg><span id="streak-n">0</span><span class="ice" id="streak-ice" aria-hidden="true" hidden>❄</span></button>
+        <div class="head-actions">
+          <button class="streak-btn off" id="streak-open" aria-haspopup="dialog"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="flameA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color: var(--spark-b)"/><stop offset="1" style="stop-color: var(--spark-a)"/></linearGradient></defs><path fill="url(#flameA)" d="M12 2c.6 3.2 2.4 4.9 4 6.6 1.7 1.8 3 3.7 3 6.4A7 7 0 0 1 5 15c0-2.3 1-4.1 2.4-5.4.2 1.6.9 2.8 2 3.4C9 9 10.2 5.3 12 2z"/></svg><span id="streak-n">0</span><span class="ice" id="streak-ice" aria-hidden="true" hidden>❄</span></button>
+        </div>
       </div>
       <div class="tag" data-i18n="tag">One line. Every cell. Numbers in order.</div>
-    </div>
-    <div class="head-actions">
-      <div class="modes" role="group" aria-label="Mode" data-i18n-aria="mode_group">
-        <button id="mode-daily" aria-pressed="true" data-i18n="daily">Daily</button>
-        <button id="mode-ladder" aria-pressed="false" data-i18n="ladder">Ladder</button>
-        <button id="mode-endless" aria-pressed="false" data-i18n="endless">Endless</button>
-        <button id="mode-learn" aria-pressed="false" data-i18n="learn">Learn</button>
-      </div>
-      <button class="icon-btn" id="a11y-open" aria-label="Settings" aria-haspopup="dialog" title="Settings" data-i18n-aria="settings" data-i18n-title="settings">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
     </div>
   </header>
 
@@ -424,6 +426,14 @@ button:disabled { opacity: 0.45; cursor: default; }
   </div>
 
   <div class="sr-only" id="announce" aria-live="polite"></div>
+  <nav class="tabbar" aria-label="Mode" data-i18n-aria="mode_group">
+    <div class="modes">
+      <button id="mode-daily" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18M9 15l2 2 4-4"/></svg><span data-i18n="daily">Daily</span></button>
+      <button id="mode-ladder" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h5v-5h5v-5h5V5h3"/></svg><span data-i18n="ladder">Ladder</span></button>
+      <button id="mode-endless" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg><span data-i18n="endless">Endless</span></button>
+      <button id="a11y-open" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="settings_tab">Settings</span></button>
+    </div>
+  </nav>
 </div>
 
 <div class="map" id="levels" role="dialog" aria-modal="true" aria-labelledby="levels-title" hidden>
@@ -445,6 +455,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 <div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
   <div class="sheet-card">
     <div class="sheet-head"><h2 id="a11y-title" data-i18n="settings">Settings</h2><button id="a11y-close" data-i18n="done">Done</button></div>
+    <div class="ads-row learn-row"><span class="ads-txt"><b data-i18n="how_to_play">How to play</b><small data-i18n="learn_desc">Four short lessons on the rules.</small></span><button class="link" id="mode-learn" data-i18n="learn">Learn</button></div>
     <label class="time-row lang-row" for="opt-lang"><span data-i18n="language">Language</span><select id="opt-lang"></select></label>
     <fieldset class="opt">
       <legend data-i18n="motion">Motion</legend>
@@ -749,7 +760,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Endless random puzzles at every difficulty, with a record for your best run. One purchase, yours to keep.", unlock: "Unlock", unlock_price: "Unlock · {price}", msg_restored_endless: "Purchase restored. Endless is unlocked.", msg_pending_endless: "Your purchase is pending. Endless unlocks once it completes.",
       expert: "Expert", endless: "Endless", endless_label: "Run {run} · Best {best} · {diff}", skip: "Skip", skip_confirm: "Tap again to end run", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
       tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
-      settings: 'Settings', done: 'Done', difficulty_group: 'Daily difficulty',
+      settings: 'Settings', settings_tab: 'Settings', learn_desc: 'Four short lessons on the rules.', done: 'Done', difficulty_group: 'Daily difficulty',
       board_label: 'Puzzle grid. Drag to draw, or use arrow keys from the head of the line.',
       undo: 'Undo', hint: 'Hint', clear: 'Clear', tap_again: 'Tap again', new_puzzle: 'New puzzle',
       language: 'Language', language_device: 'Device language',
@@ -796,7 +807,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Her zorlukta sonsuz rastgele bulmaca ve en iyi serinin rekoru. Tek seferlik satın alma, sonsuza dek senin.", unlock: "Kilidi aç", unlock_price: "Kilidi aç · {price}", msg_restored_endless: "Satın alma geri yüklendi. Sonsuz mod açıldı.", msg_pending_endless: "Satın alman beklemede. Tamamlanınca Sonsuz mod açılacak.",
       expert: "Uzman", endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {diff}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
       tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
-      settings: 'Ayarlar', done: 'Tamam', difficulty_group: 'Günlük zorluk',
+      settings: 'Ayarlar', settings_tab: 'Ayarlar', learn_desc: 'Kurallar için dört kısa ders.', done: 'Tamam', difficulty_group: 'Günlük zorluk',
       board_label: 'Bulmaca ızgarası. Çizmek için sürükleyin veya çizginin ucundan ok tuşlarını kullanın.',
       undo: 'Geri al', hint: 'İpucu', clear: 'Temizle', tap_again: 'Tekrar dokun', new_puzzle: 'Yeni bulmaca',
       language: 'Dil', language_device: 'Cihaz dili',
@@ -843,7 +854,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Puzles aleatorios sin fin en todas las dificultades, con un récord de tu mejor racha. Una sola compra, para siempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. Infinito está desbloqueado.", msg_pending_endless: "Tu compra está pendiente. Infinito se desbloquea cuando se complete.",
       expert: "Experto", endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {diff}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
       tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
-      settings: 'Ajustes', done: 'Listo', difficulty_group: 'Dificultad diaria',
+      settings: 'Ajustes', settings_tab: 'Ajustes', learn_desc: 'Cuatro lecciones cortas sobre las reglas.', done: 'Listo', difficulty_group: 'Dificultad diaria',
       board_label: 'Tablero del puzle. Arrastra para dibujar o usa las flechas desde el extremo de la línea.',
       undo: 'Deshacer', hint: 'Pista', clear: 'Borrar', tap_again: 'Toca otra vez', new_puzzle: 'Nuevo puzle',
       language: 'Idioma', language_device: 'Idioma del dispositivo',
@@ -890,7 +901,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Endlos zufällige Rätsel in jeder Schwierigkeit, mit Rekord für deine beste Serie. Einmal kaufen, für immer behalten.", unlock: "Freischalten", unlock_price: "Freischalten · {price}", msg_restored_endless: "Kauf wiederhergestellt. Endlos ist freigeschaltet.", msg_pending_endless: "Dein Kauf steht noch aus. Endlos wird danach freigeschaltet.",
       expert: "Experte", endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {diff}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
       tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
-      settings: 'Einstellungen', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
+      settings: 'Einstellungen', settings_tab: 'Optionen', learn_desc: 'Vier kurze Lektionen zu den Regeln.', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
       board_label: 'Rätselgitter. Zum Zeichnen ziehen oder vom Ende der Linie aus die Pfeiltasten nutzen.',
       undo: 'Zurück', hint: 'Tipp', clear: 'Löschen', tap_again: 'Nochmal tippen', new_puzzle: 'Neues Rätsel',
       language: 'Sprache', language_device: 'Gerätesprache',
@@ -937,7 +948,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Des puzzles aléatoires sans fin à toutes les difficultés, avec un record pour votre meilleure série. Un seul achat, à vous pour toujours.", unlock: "Débloquer", unlock_price: "Débloquer · {price}", msg_restored_endless: "Achat restauré. Le mode Infini est débloqué.", msg_pending_endless: "Votre achat est en attente. Le mode Infini se débloque une fois terminé.",
       expert: "Expert", endless: "Infini", endless_label: "Série {run} · Record {best} · {diff}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
       tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
-      settings: 'Réglages', done: 'OK', difficulty_group: 'Difficulté du jour',
+      settings: 'Réglages', settings_tab: 'Réglages', learn_desc: 'Quatre courtes leçons sur les règles.', done: 'OK', difficulty_group: 'Difficulté du jour',
       board_label: 'Grille du puzzle. Faites glisser pour tracer, ou utilisez les flèches depuis le bout de la ligne.',
       undo: 'Annuler', hint: 'Indice', clear: 'Effacer', tap_again: 'Touchez encore', new_puzzle: 'Nouveau puzzle',
       language: 'Langue', language_device: 'Langue de l\'appareil',
@@ -984,7 +995,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       endless_desc: "Quebra-cabeças aleatórios sem fim em todas as dificuldades, com recorde da sua melhor sequência. Uma compra, para sempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. O modo Infinito está desbloqueado.", msg_pending_endless: "Sua compra está pendente. O Infinito será desbloqueado quando concluir.",
       expert: "Especialista", endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {diff}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
       tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
-      settings: 'Configurações', done: 'OK', difficulty_group: 'Dificuldade diária',
+      settings: 'Configurações', settings_tab: 'Ajustes', learn_desc: 'Quatro lições curtas sobre as regras.', done: 'OK', difficulty_group: 'Dificuldade diária',
       board_label: 'Grade do quebra-cabeça. Arraste para desenhar ou use as setas a partir da ponta da linha.',
       undo: 'Desfazer', hint: 'Dica', clear: 'Limpar', tap_again: 'Toque de novo', new_puzzle: 'Novo desafio',
       language: 'Idioma', language_device: 'Idioma do aparelho',
@@ -1199,7 +1210,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (mode === 'ladder') rootEl.dataset.world = WORLDS[world].id; else delete rootEl.dataset.world;
     $('mode-daily').setAttribute('aria-pressed', String(mode === 'daily'));
     $('mode-ladder').setAttribute('aria-pressed', String(mode === 'ladder'));
-    $('mode-learn').setAttribute('aria-pressed', String(mode === 'learn'));
     $('mode-endless').setAttribute('aria-pressed', String(mode === 'endless'));
     const learn = mode === 'learn';
     $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
@@ -2042,7 +2052,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     skipArmed = setTimeout(disarmSkip, 2500);
   };
   $('mode-daily').onclick = () => { mode = 'daily'; store.set('mode', mode); load(); };
-  $('mode-learn').onclick = () => { mode = 'learn'; lesson = 0; store.set('lesson', 0); store.set('mode', mode); load(); };
+  $('mode-learn').onclick = () => { $('a11y').hidden = true; mode = 'learn'; lesson = 0; store.set('lesson', 0); store.set('mode', mode); load(); };
   $('mode-ladder').onclick = () => { mode = 'ladder'; store.set('mode', mode); load(); };
   $('mode-endless').onclick = () => { mode = 'endless'; store.set('mode', mode); load(); };
 
@@ -2356,7 +2366,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-09 · f85e6df';
+  const WEB_BUILD = '2026-11-09 · 4ffc2e0';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
