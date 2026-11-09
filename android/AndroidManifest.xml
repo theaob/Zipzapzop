@@ -39,6 +39,30 @@
                 <category android:name="android.intent.category.CAR_LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Shared Daily links open the game on that puzzle (LinkActivity hands it over and closes).
+             The https link is an App Link: Android opens it straight in the app once it has checked
+             https://theaob.github.io/.well-known/assetlinks.json (see android/README.md); until then it opens
+             the link page in the browser, whose button uses the zipzapzop:// link below. -->
+        <activity
+            android:name=".LinkActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="theaob.github.io" android:pathPrefix="/Zipzapzop/daily" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="zipzapzop" android:host="daily" />
+            </intent-filter>
+        </activity>
         <!-- Serves the shared result picture to the app the player picks; see ShareProvider. -->
         <provider
             android:name=".ShareProvider"

@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private BackHandler back;
     private FrameLayout bannerHost;
     private volatile int bannerHeight; // dp, 0 when there is no banner; read by the page when it (re)loads
+    private volatile String pendingLink; // "date|difficulty" from a shared Daily link, until the page takes it
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,8 @@ public class MainActivity extends Activity {
                 }
             });
         }
+        // A link the game was started with (not again when Android recreates the game after a rotation or restart).
+        if (savedInstanceState == null) pendingLink = getIntent().getStringExtra(LinkActivity.EXTRA_LINK);
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
@@ -137,6 +140,17 @@ public class MainActivity extends Activity {
     private void pushGamesState() {
         gamesState = games.stateJson();
         web.evaluateJavascript("window.zzzGamesState && window.zzzGamesState(" + gamesState + ")", null);
+    }
+
+    // A shared link while the game is already running: LinkActivity brings this same game forward.
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String link = intent.getStringExtra(LinkActivity.EXTRA_LINK);
+        if (link == null) return;
+        pendingLink = link;
+        web.evaluateJavascript("window.zzzLink && window.zzzLink()", null); // if the page is still loading, it takes it at startup
     }
 
     @Override
@@ -213,6 +227,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public int bannerHeight() { return bannerHeight; }
+
+        // The shared Daily link the game was opened with, once ("2026-11-09|hard"), or "".
+        @JavascriptInterface
+        public synchronized String takeLink() {
+            String l = pendingLink;
+            pendingLink = null;
+            return l == null ? "" : l;
+        }
 
         // The page reports how much room it has for a banner under the board, in CSS pixels (= dp); 0 for none.
         @JavascriptInterface

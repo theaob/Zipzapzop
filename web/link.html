@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZipZapZop Daily</title>
+<meta name="description" content="A friend shared a ZipZapZop Daily puzzle. Open it in the app or play it in your browser.">
+<meta property="og:title" content="ZipZapZop Daily puzzle">
+<meta property="og:description" content="Draw one line through every cell. Can you beat it?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<!-- Landing page for shared Daily links: https://theaob.github.io/Zipzapzop/daily/?d=2026-11-09&p=hard.
+     web/build.sh writes it to docs/daily/index.html with the engine inlined. With the app installed and its
+     App Link verified, Android opens the app directly and this page never shows. -->
+<style>
+:root {
+  --bg: #eef1f6; --panel: #ffffff; --cell: #ffffff; --cell-alt: #f6f7fb; --line: #d7dce6;
+  --ink: #161b2e; --muted: #5d6680; --wall: #161b2e; --node: #161b2e; --node-ink: #ffffff;
+  --spark-a: #ff8a1f; --spark-b: #e8336d; --focus: #3466ff;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10131d; --panel: #181c29; --cell: #1c2130; --cell-alt: #191d2b; --line: #2d3346;
+    --ink: #eef1f8; --muted: #9aa3bb; --wall: #eef1f8; --node: #eef1f8; --node-ink: #10131d; --focus: #7d9bff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10131d; --panel: #181c29; --cell: #1c2130; --cell-alt: #191d2b; --line: #2d3346;
+  --ink: #eef1f8; --muted: #9aa3bb; --wall: #eef1f8; --node: #eef1f8; --node-ink: #10131d; --focus: #7d9bff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px;
+  display: flex; justify-content: center; padding: 32px 16px 40px;
+}
+main { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 40px; letter-spacing: -0.02em; margin: 0; }
+h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.which { font-weight: 600; color: var(--muted); margin: 0; }
+.board { width: min(100%, 320px); aspect-ratio: 1; border: 3px solid var(--wall); border-radius: 16px; overflow: hidden; background: var(--cell); margin: 6px 0; }
+.board svg { display: block; width: 100%; height: 100%; }
+p.lead { margin: 0; line-height: 1.45; }
+.actions { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+a.btn {
+  display: block; padding: 15px 18px; border-radius: 14px; font-weight: 600; font-size: 17px; text-decoration: none;
+  color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line);
+}
+a.btn.primary { color: #fff; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); box-shadow: none; }
+a.btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.note { color: var(--muted); font-size: 14px; margin: 4px 0 0; line-height: 1.4; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Zip<span>Zap</span>Zop</h1>
+  <p class="which" id="which"></p>
+  <div class="board" id="board" aria-hidden="true"></div>
+  <p class="lead" id="lead"></p>
+  <div class="actions">
+    <a class="btn" id="open-app" hidden></a>
+    <a class="btn" id="store" href="https://play.google.com/store/apps/details?id=com.onurbaykal.zipzapzop"></a>
+    <a class="btn" id="web"></a>
+  </div>
+  <p class="note" id="note"></p>
+</main>
+<script>
+/*ENGINE*/
+</script>
+<script>
+(() => {
+  const STORE = 'https://play.google.com/store/apps/details?id=com.onurbaykal.zipzapzop';
+  // Keep in step with DAILY in page.html: the same date, id and options make the same puzzle.
+  const DAILY = { easy: { n: 5, opts: { clues: 1.3 } }, medium: { n: 6, opts: { clues: 0.9 } }, hard: { n: 7, opts: { clues: 0.5, walls: 2 } } };
+  const ARCHIVE_START = '2026-10-01';
+  const STRINGS = {
+    en: { easy: 'Easy', medium: 'Medium', hard: 'Hard', which: 'Daily {date} · {label}', lead: 'A friend shared this Daily puzzle. Draw one line through every cell, passing the numbers in order. Can you beat their time?', open: 'Open in ZipZapZop', store: 'Get it on Google Play', web: 'Play in your browser', note: 'Past days open in the archive, so they don\'t count toward your streak.' },
+    tr: { easy: 'Kolay', medium: 'Orta', hard: 'Zor', which: 'Günlük {date} · {label}', lead: 'Bir arkadaşın bu günlük bulmacayı paylaştı. Sayılardan sırayla geçerek her hücreden tek bir çizgi çiz. Onun süresini geçebilir misin?', open: 'ZipZapZop\'ta aç', store: 'Google Play\'den indir', web: 'Tarayıcıda oyna', note: 'Geçmiş günler arşivde açılır, bu yüzden serine sayılmaz.' },
+    es: { easy: 'Fácil', medium: 'Medio', hard: 'Difícil', which: 'Diario {date} · {label}', lead: 'Un amigo compartió este reto diario. Traza una línea por todas las casillas pasando por los números en orden. ¿Puedes superar su tiempo?', open: 'Abrir en ZipZapZop', store: 'Descárgalo en Google Play', web: 'Jugar en el navegador', note: 'Los días anteriores se abren en el archivo, así que no cuentan para tu racha.' },
+    de: { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', which: 'Täglich {date} · {label}', lead: 'Ein Freund hat dieses Tagesrätsel geteilt. Zieh eine Linie durch jedes Feld und triff die Zahlen der Reihe nach. Schaffst du seine Zeit?', open: 'In ZipZapZop öffnen', store: 'Bei Google Play holen', web: 'Im Browser spielen', note: 'Frühere Tage öffnen sich im Archiv und zählen nicht für deine Serie.' },
+    fr: { easy: 'Facile', medium: 'Moyen', hard: 'Difficile', which: 'Du jour {date} · {label}', lead: 'Un ami a partagé ce défi du jour. Tracez une ligne qui passe par chaque case et par les nombres dans l\'ordre. Ferez-vous mieux que lui ?', open: 'Ouvrir dans ZipZapZop', store: 'Disponible sur Google Play', web: 'Jouer dans le navigateur', note: 'Les jours passés s\'ouvrent dans les archives et ne comptent pas pour votre série.' },
+    pt: { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', which: 'Diário {date} · {label}', lead: 'Um amigo compartilhou este desafio diário. Trace uma linha por todas as casas, passando pelos números em ordem. Consegue superar o tempo dele?', open: 'Abrir no ZipZapZop', store: 'Baixar no Google Play', web: 'Jogar no navegador', note: 'Dias anteriores abrem no arquivo, então não contam para sua sequência.' },
+  };
+  const lang = (navigator.languages || [navigator.language || 'en']).map((l) => String(l).slice(0, 2).toLowerCase()).find((l) => STRINGS[l]) || 'en';
+  document.documentElement.lang = lang;
+  const t = (k, vars) => (STRINGS[lang][k] || STRINGS.en[k]).replace(/\{(\w+)\}/g, (_, v) => vars[v]);
+  const $ = (id) => document.getElementById(id);
+
+  const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const parseDay = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const q = new URLSearchParams(location.search);
+  const now = new Date(), tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  let d = q.get('d') || '', p = q.get('p') || '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || ymd(parseDay(d)) !== d || d < ARCHIVE_START || d > ymd(tomorrow)) d = ymd(now);
+  if (!DAILY[p]) p = 'easy';
+  const qs = '?d=' + d + '&p=' + p;
+
+  let date = d;
+  try { date = parseDay(d).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }); } catch (_) {}
+  $('which').textContent = t('which', { date, label: t(p) });
+  $('lead').textContent = t('lead');
+  $('store').textContent = t('store');
+  $('web').textContent = t('web');
+  $('web').href = '../play/' + qs;
+  if (d < ymd(now)) $('note').textContent = t('note');
+
+  // Android: open the app through its zipzapzop:// link; Chrome goes to the Play Store if it isn't installed.
+  if (/Android/i.test(navigator.userAgent)) {
+    const app = $('open-app');
+    app.textContent = t('open');
+    app.href = 'intent://daily' + qs + '#Intent;scheme=zipzapzop;package=com.onurbaykal.zipzapzop;S.browser_fallback_url=' + encodeURIComponent(STORE) + ';end';
+    app.hidden = false; app.classList.add('primary');
+  } else {
+    $('web').classList.add('primary');
+    $('web').parentNode.prepend($('web'));
+  }
+
+  // The puzzle itself, numbers and walls only, so the friend can see it's the right one.
+  const cfg = DAILY[p], E = typeof ZapEngine !== 'undefined' ? ZapEngine : null;
+  if (!E) return;
+  const puz = E.generate(cfg.n, E.hashString('zap/' + d + '/' + p), cfg.opts), n = puz.n;
+  let s = `<svg viewBox="0 0 ${n} ${n}" xmlns="http://www.w3.org/2000/svg">`;
+  for (let i = 0; i < n * n; i++) if ((Math.floor(i / n) + i % n) % 2) s += `<rect x="${i % n}" y="${Math.floor(i / n)}" width="1" height="1" fill="var(--cell-alt)"/>`;
+  for (let k = 1; k < n; k++) s += `<path d="M${k} 0V${n}M0 ${k}H${n}" stroke="var(--line)" stroke-width="0.02"/>`;
+  for (const key of puz.walls) {
+    const [a, b] = key.split('-').map(Number), r = Math.floor(a / n), c = a % n;
+    s += b - a === 1 ? `<path d="M${c + 1} ${r}V${r + 1}" stroke="var(--wall)" stroke-width="0.1" stroke-linecap="round"/>`
+      : `<path d="M${c} ${r + 1}H${c + 1}" stroke="var(--wall)" stroke-width="0.1" stroke-linecap="round"/>`;
+  }
+  for (const [i, k] of Object.entries(puz.nums)) {
+    const x = +i % n + 0.5, y = Math.floor(+i / n) + 0.5;
+    s += `<circle cx="${x}" cy="${y}" r="0.3" fill="var(--node)"/><text x="${x}" y="${y}" dy="0.11" text-anchor="middle" font-size="0.32" font-weight="800" font-family="Bricolage Grotesque, system-ui, sans-serif" fill="var(--node-ink)">${k}</text>`;
+  }
+  $('board').innerHTML = s + '</svg>';
+})();
+</script>
+</body>
+</html>
