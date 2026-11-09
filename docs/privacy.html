@@ -35,7 +35,7 @@ a { color: var(--b); }
     <h2>What the game stores on your device</h2>
     <ul>
       <li>Your progress: daily puzzle results and times, hints used, your Ladder level and energy, your Endless run and best run, today's free-hint count and tutorial progress.</li>
-      <li>Your settings: the last mode and difficulty you played, accessibility options (motion, theme, contrast, text size) and whether the daily reminder is on and at what time.</li>
+      <li>Your settings: the last mode and difficulty you played, accessibility options (motion, theme, contrast, text size) and whether the daily reminder and streak alert are on and at what time, and the times of day you solved your first Daily over the last two weeks (used only to time the reminder).</li>
     </ul>
     <p>This data never leaves your device through the app. Uninstalling the Android app or clearing the browser's site data deletes it. If Android's own backup is turned on for your Google account, Android may include it in your device backup; that is handled by Google under your account settings, not by ZipZapZop.</p>
   </section>
@@ -43,8 +43,8 @@ a { color: var(--b); }
   <section>
     <h2>Permissions (Android app)</h2>
     <ul>
-      <li><b>Notifications</b> (<code>POST_NOTIFICATIONS</code>): used for the daily reminder, one local notification a day at the time you pick, reminding you to play the daily puzzles. It is skipped on days you have already solved all of them. The reminder is on by default at 9:00 and starts after your first solved puzzle (on Android 13 and newer, Android asks for your permission then); you can turn it off or change the time in the app's settings at any time.</li>
-      <li><b>Run at startup</b> (<code>RECEIVE_BOOT_COMPLETED</code>): used only to re-schedule that reminder after your phone restarts.</li>
+      <li><b>Notifications</b> (<code>POST_NOTIFICATIONS</code>): used for the daily reminder, one local notification a day reminding you to play the daily puzzles, either at the time you pick or, with "At my usual time" on, a little before the time you usually play (worked out on your device from when you solved your first Daily on recent days). It is skipped on days you have already solved all of them. With the streak alert on, you may also get one evening notification on a day your daily streak would end, unless you've solved a Daily that day or a streak freeze covers it. The reminder is on by default at 9:00 and starts after your first solved puzzle (on Android 13 and newer, Android asks for your permission then); you can turn it or the streak alert off, or change the time, in the app's settings at any time.</li>
+      <li><b>Run at startup</b> (<code>RECEIVE_BOOT_COMPLETED</code>): used only to re-schedule these reminders after your phone restarts.</li>
     </ul>
     <p>The reminder is scheduled on the device. No server sends it.</p>
     <ul>

@@ -3,4 +3,6 @@
     <string name="reminder_channel">Recordatorio del reto diario</string>
     <string name="reminder_title">Los retos de hoy están listos</string>
     <string name="reminder_text">Fácil, Medio y Difícil te esperan. Mantén tu racha.</string>
+    <string name="streak_title">Tu racha de %1$d días termina esta noche</string>
+    <string name="streak_text">Resuelve un reto diario antes de medianoche para mantenerla.</string>
 </resources>
