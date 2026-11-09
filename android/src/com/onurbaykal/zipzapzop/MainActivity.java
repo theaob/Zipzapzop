@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(getResources().getColor(R.color.bg));
         root.addView(web);
-        // The banner ad floats over the game in a slot the page keeps free under the logo (see placeBanner).
+        // The banner ad floats over the game in a slot the page keeps free under the board's buttons (see placeBanner).
         bannerHost = new FrameLayout(this);
         bannerHost.setVisibility(View.GONE);
         root.addView(bannerHost, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, android.view.Gravity.TOP));

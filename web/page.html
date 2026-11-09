@@ -57,10 +57,9 @@ h1 { font-family: var(--display); font-weight: 800; font-size: 2.4rem; line-heig
 h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* Modes live in a tab bar fixed to the bottom of the screen (beside the board on short landscape screens). */
 .wrap { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-/* On tall screens the whole stack (logo, banner, puzzle info, board, buttons) is centred in the space above the tab bar. */
-.wrap { min-height: 100%; box-sizing: border-box; justify-content: center; }
-/* Banner ad slot under the logo (Android only, once an ad has loaded). The app draws the ad over this space. */
-.ad-slot { height: var(--ad-h, 50px); margin-top: -6px; flex: none; }
+/* Banner ad slot under the board's buttons (Android only, once an ad has loaded). The app draws the ad over this
+   space; the extra margin keeps it clear of the buttons so it isn't tapped by accident. */
+.ad-slot { height: var(--ad-h, 50px); margin-top: 8px; flex: none; }
 .ad-slot[hidden] { display: none; }
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); border-top: 1px solid var(--line);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
@@ -399,7 +398,6 @@ button:disabled { opacity: 0.45; cursor: default; }
       </div>
     </div>
   </header>
-  <div class="ad-slot" id="ad-slot" aria-hidden="true" hidden></div>
 
   <div class="lesson" id="lesson" aria-live="polite" hidden><small id="lesson-step"></small><p id="lesson-text"></p></div>
 
@@ -429,6 +427,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     <button id="clear" data-i18n="clear">Clear</button>
     <button id="new" class="primary" data-i18n="new_puzzle">New puzzle</button>
   </div>
+
+  <div class="ad-slot" id="ad-slot" aria-hidden="true" hidden></div>
 
   <div class="sr-only" id="announce" aria-live="polite"></div>
   <nav class="tabbar" aria-label="Mode" data-i18n-aria="mode_group">
@@ -1034,14 +1034,16 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   }
 
-  // Banner ad (Android): the app says when one has loaded; the page keeps a slot free under the logo and tells
+  // Banner ad (Android): the app says when one has loaded; the page keeps a slot free under the board's buttons and tells
   // the app where it is, or that it has none to show (Learn, landscape, a sheet open, scrolled out of view).
   let bannerReady = false; // the app sends the banner's height in dp (= CSS px), 0 when there is none
   function placeBanner() {
     const app = window.ZipZapZopAndroid;
     if (!app || !app.placeBanner) return;
     const slot = $('ad-slot'), r = slot.getBoundingClientRect();
-    const show = !slot.hidden && r.height > 0 && r.bottom > 0 && !document.querySelector('[role="dialog"]:not([hidden])');
+    // Only while the whole slot is on screen above the tab bar, so the ad never covers the bar or the header.
+    const bar = document.querySelector('.tabbar').getBoundingClientRect();
+    const show = !slot.hidden && r.height > 0 && r.top >= 0 && r.bottom <= bar.top && !document.querySelector('[role="dialog"]:not([hidden])');
     app.placeBanner(show, Math.round(r.top));
   }
   window.zzzBanner = (height) => {
