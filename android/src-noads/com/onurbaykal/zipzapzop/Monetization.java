@@ -14,6 +14,7 @@ final class Monetization {
     void start() {}
     void attachBanner(ViewGroup host, BannerListener listener) {}
     void setBannerWanted(boolean wanted) {}
+    void sizeBanner(int widthDp, int maxDp) {}
     void watchRewardedAd(String purpose) {}
     void buyRemoveAds() {}
     void buyEndless() {}

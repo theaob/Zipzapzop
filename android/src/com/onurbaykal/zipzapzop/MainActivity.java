@@ -227,6 +227,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public int bannerHeight() { return bannerHeight; }
 
+        // The page reports how much room it has for a banner under the board, in CSS pixels (= dp); 0 for none.
+        @JavascriptInterface
+        public void sizeBanner(final int width, final int maxHeight) {
+            onUi(new Runnable() { @Override public void run() { money.sizeBanner(width, maxHeight); } });
+        }
+
         // The page reports where its banner slot is, in CSS pixels from the top of the game, or that it has none
         // right now (Learn, a sheet open, the slot scrolled away).
         @JavascriptInterface

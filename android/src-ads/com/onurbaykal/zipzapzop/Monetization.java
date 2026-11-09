@@ -2,7 +2,6 @@ package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), an adaptive banner under
+// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), an inline adaptive banner under
 // the logo (not in Learn, not for Remove ads buyers), Google's
 // consent flow (UMP), and two one-time Play purchases: "remove_ads" and "endless" (unlocks Endless mode).
 // Every callback that touches state runs on the main thread.
@@ -63,13 +62,17 @@ final class Monetization {
     private final Map<String, RewardedAd> rewarded = new HashMap<>();
     private final Set<String> loadingRewarded = new HashSet<>();
     private String message;
-    // Banner: the page reserves its slot once one has loaded, and says when it wants it shown.
+    // Banner: the page asks for one sized to the free space under the board, reserves its slot once it has loaded,
+    // and says when it wants it shown.
     interface BannerListener { void bannerReady(int heightDp); } // 0: no banner to show
     private ViewGroup bannerHost;
     private BannerListener bannerListener;
     private AdView banner;
     private boolean bannerLoaded;
     private int bannerHeightDp;
+    private int bannerWidthDp;
+    private int bannerMaxDp;       // the most height the page has room for; under 50 means no banner
+    private int bannerRequestedMax; // the max the current banner was loaded with
     private boolean bannerWanted;
 
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
@@ -288,24 +291,39 @@ final class Monetization {
         if (adsStarted.get()) loadBanner();
     }
 
+    // The page's free space for a banner. A new banner is loaded only when the room changed noticeably,
+    // so switching modes doesn't fetch a new ad every time.
+    void sizeBanner(int widthDp, int maxDp) {
+        boolean same = banner != null && widthDp == bannerWidthDp && Math.abs(maxDp - bannerRequestedMax) < 24
+            && (!bannerLoaded || bannerHeightDp <= maxDp);
+        bannerWidthDp = widthDp;
+        bannerMaxDp = maxDp;
+        if (same) return;
+        dropBanner();
+        loadBanner();
+    }
+
     void setBannerWanted(boolean wanted) {
         bannerWanted = wanted;
         showBanner();
     }
 
     private void loadBanner() {
-        if (bannerHost == null || banner != null || adsRemoved() || !consent.canRequestAds()) return;
-        // Adaptive: as wide as the game column (the screen less 16 dp gutters, at most 520 dp), with the height AdMob
-        // picks for that width and device (about 50 dp on phones, up to 90 dp on tablets).
-        DisplayMetrics m = activity.getResources().getDisplayMetrics();
-        int widthDp = Math.min(520, (int) (m.widthPixels / m.density) - 32);
-        AdSize size = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, widthDp);
-        bannerHeightDp = size.getHeight();
+        if (bannerHost == null || banner != null || bannerMaxDp < 50 || bannerWidthDp < 50 || adsRemoved()
+            || !consent.canRequestAds()) return;
+        // Inline adaptive: as wide as the board, and as tall as AdMob likes up to the free space under it.
+        // The real height is known once an ad loads, and can change when the ad refreshes.
+        AdSize size = AdSize.getInlineAdaptiveBannerAdSize(bannerWidthDp, bannerMaxDp);
+        bannerRequestedMax = bannerMaxDp;
         banner = new AdView(activity);
         banner.setAdUnitId(BuildConfig.ADMOB_BANNER);
         banner.setAdSize(size);
         banner.setAdListener(new AdListener() {
-            @Override public void onAdLoaded() { setBannerLoaded(true); }
+            @Override public void onAdLoaded() {
+                AdSize s = banner.getAdSize();
+                bannerHeightDp = s != null ? s.getHeight() : 50;
+                setBannerLoaded(true);
+            }
             @Override public void onAdFailedToLoad(LoadAdError e) { setBannerLoaded(false); } // AdView retries on its own refresh
         });
         bannerHost.addView(banner, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL));
@@ -313,7 +331,7 @@ final class Monetization {
     }
 
     private void setBannerLoaded(boolean loaded) {
-        if (bannerLoaded == loaded) return;
+        if (bannerLoaded == loaded && !loaded) return; // a refreshed ad may have a new height, so always resend those
         bannerLoaded = loaded;
         bannerListener.bannerReady(loaded ? bannerHeightDp : 0);
         showBanner();
