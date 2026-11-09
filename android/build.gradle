@@ -69,6 +69,9 @@ android {
 
     buildTypes {
         debug {
+            // Signed with the upload key when CI has it, so a test APK installed from GitHub can sign in to Play Games
+            // once the upload key's SHA-1 is an Android credential there. Otherwise the runner's throwaway debug key.
+            if (keystore) signingConfig signingConfigs.release
             manifestPlaceholders = [admobAppId: testAppId]
             buildConfigField 'String', 'ADMOB_REWARDED_HINT', "\"${testRewardedId}\""
             buildConfigField 'String', 'ADMOB_REWARDED_ENERGY', "\"${testRewardedId}\""

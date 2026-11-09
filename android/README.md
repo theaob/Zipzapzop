@@ -3,7 +3,7 @@
 A WebView wrapper around the same game as the web version (`../web/page.html` + `../web/engine.js`), with fonts bundled so it plays offline. `make_page.py` writes `assets/index.html` from the web source on every build, so game changes only need to be made once.
 
 ## Gradle build (ads, purchases, Play release)
-GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug bundleRelease` on every change and uploads the debug APK and the release AAB as artifacts. Locally, with the Android SDK installed: `./gradlew assembleDebug`.
+GitHub Actions (`.github/workflows/android.yml`) runs `./gradlew assembleDebug bundleRelease` on every change and uploads the debug APK and the release AAB as artifacts. When the release keystore secrets are set, the debug APK is signed with the upload key too, and the run's summary shows its SHA-1, so a test APK installed from GitHub can sign in to Play Games once that SHA-1 is an Android credential in the Play Games project. It can't be installed over a copy from Play (different signature); uninstall that first. Locally, with the Android SDK installed: `./gradlew assembleDebug`.
 
 - Package `com.onurbaykal.zipzapzop`, min Android 7.0 (API 24), target and compile API 36.
 - Ads: only AdMob rewarded ads that the player asks for, after Google's consent form (UMP); no ads between puzzles. Hints: 3 free a day across Daily and Ladder, then one finished rewarded ad per extra hint. Ladder energy: each new level costs 1 of 5, refilling 1 every 30 minutes, and a finished rewarded ad adds 3. Learn, the web version and Remove ads buyers have unlimited hints and energy. Code in `src-ads/.../Monetization.java`.
