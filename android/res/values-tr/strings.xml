@@ -3,4 +3,6 @@
     <string name="reminder_channel">Günlük bulmaca hatırlatıcısı</string>
     <string name="reminder_title">Bugünün bulmacaları hazır</string>
     <string name="reminder_text">Kolay, Orta ve Zor seni bekliyor. Serini sürdür.</string>
+    <string name="streak_title">%1$d günlük serin bu gece bitiyor</string>
+    <string name="streak_text">Serini korumak için gece yarısından önce bir günlük bulmaca çöz.</string>
 </resources>

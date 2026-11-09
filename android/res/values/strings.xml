@@ -4,4 +4,6 @@
     <string name="reminder_channel">Daily challenge reminder</string>
     <string name="reminder_title">Today\'s challenges are ready</string>
     <string name="reminder_text">Easy, Medium and Hard are waiting. Keep your streak going.</string>
+    <string name="streak_title">Your %1$d-day streak ends tonight</string>
+    <string name="streak_text">Solve any daily before midnight to keep it going.</string>
 </resources>

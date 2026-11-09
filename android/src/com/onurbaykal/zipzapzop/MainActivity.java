@@ -276,6 +276,20 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void dailiesDone(String date) { Reminder.markAllDone(MainActivity.this, date); }
 
+        // Smarter reminders: "at my usual time" and the evening streak nudge, a Daily solve (to learn the
+        // usual time), and the streak the nudge protects. usualReminderTime() is "HH:MM" or "" while learning.
+        @JavascriptInterface
+        public void setReminderOptions(boolean usualTime, boolean streakNudge) { Reminder.options(MainActivity.this, usualTime, streakNudge); }
+
+        @JavascriptInterface
+        public void dailySolved() { Reminder.dailySolved(MainActivity.this); }
+
+        @JavascriptInterface
+        public void streakState(String riskDay, int streak, boolean covered) { Reminder.streakState(MainActivity.this, riskDay, streak, covered); }
+
+        @JavascriptInterface
+        public String usualReminderTime() { return Reminder.usualTime(MainActivity.this); }
+
         @JavascriptInterface
         public void share(final String text) {
             runOnUiThread(new Runnable() {

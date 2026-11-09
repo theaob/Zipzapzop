@@ -3,4 +3,6 @@
     <string name="reminder_channel">Rappel du défi du jour</string>
     <string name="reminder_title">Les défis du jour sont prêts</string>
     <string name="reminder_text">Facile, Moyen et Difficile vous attendent. Gardez votre série.</string>
+    <string name="streak_title">Votre série de %1$d jours se termine ce soir</string>
+    <string name="streak_text">Résolvez un défi du jour avant minuit pour la garder.</string>
 </resources>
