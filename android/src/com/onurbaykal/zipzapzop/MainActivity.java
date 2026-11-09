@@ -2,12 +2,14 @@ package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowInsets;
@@ -17,6 +19,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 // Hosts the ZipZapZop web game, bundled under assets/, in a full-screen WebView.
 public class MainActivity extends Activity {
@@ -280,6 +285,35 @@ public class MainActivity extends Activity {
                     send.setType("text/plain");
                     send.putExtra(Intent.EXTRA_TEXT, text);
                     startActivity(Intent.createChooser(send, "Share result"));
+                }
+            });
+        }
+
+        // Result picture (base64 PNG drawn by the page) plus text with the store link, through ShareProvider.
+        @JavascriptInterface
+        public void shareImage(final String text, final String pngBase64) {
+            final Uri uri;
+            try {
+                byte[] png = Base64.decode(pngBase64, Base64.DEFAULT);
+                FileOutputStream out = new FileOutputStream(ShareProvider.file(MainActivity.this));
+                try { out.write(png); } finally { out.close(); }
+                uri = ShareProvider.uri(MainActivity.this);
+            } catch (IOException | IllegalArgumentException e) {
+                share(text);
+                return;
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Intent send = new Intent(Intent.ACTION_SEND);
+                    send.setType("image/png");
+                    send.putExtra(Intent.EXTRA_STREAM, uri);
+                    send.putExtra(Intent.EXTRA_TEXT, text);
+                    // ClipData carries the read grant through the chooser to the app picked, and shows a preview.
+                    send.setClipData(ClipData.newRawUri(null, uri));
+                    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    try { startActivity(Intent.createChooser(send, "Share result")); }
+                    catch (ActivityNotFoundException e) { share(text); }
                 }
             });
         }
