@@ -23,7 +23,8 @@ def prop = { String name, String env -> findProperty(name) ?: System.getenv(env)
 def releaseAppId = prop('admobAppId', 'ADMOB_APP_ID') ?: testAppId
 def releaseRewardedId = prop('admobRewardedId', 'ADMOB_REWARDED_ID') ?: testRewardedId
 def releaseRewardedEnergyId = prop('admobRewardedEnergyId', 'ADMOB_REWARDED_ENERGY_ID') ?: testRewardedId
-def releaseBannerId = prop('admobBannerId', 'ADMOB_BANNER_ID') ?: testBannerId
+// The real banner unit ("Banner under board"); debug builds still use the test unit. ADMOB_BANNER_ID overrides it.
+def releaseBannerId = prop('admobBannerId', 'ADMOB_BANNER_ID') ?: 'ca-app-pub-3615836489279250/3097951874'
 def keystore = System.getenv('ZZZ_KEYSTORE_FILE')
 
 // Play Games is wired up only when res/values/games-ids.xml is present: CI writes it from the PLAY_GAMES_RESOURCES
