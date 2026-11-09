@@ -375,17 +375,18 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap {
     --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 900px);
     max-width: none; height: 100%; display: grid; justify-content: center; align-content: stretch;
-    grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto 1fr auto;
+    grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto 1fr auto auto;
     column-gap: 24px; row-gap: 12px;
   }
   .wrap > header { grid-column: 1; grid-row: 1; }
   .wrap > .lesson { grid-column: 1; grid-row: 2; }
   .wrap > .bar { grid-column: 1; grid-row: 3; align-self: start; }
   .wrap > .ladder { grid-column: 1; grid-row: 3; align-self: start; }
-  .wrap > .controls { grid-column: 1; grid-row: 5; }
+  .wrap > .controls { grid-column: 1; grid-row: 6; }
   .wrap { padding-bottom: 0; min-height: 0; }
-  .wrap > .ad-slot { display: none; }
-  .wrap > .tabbar { position: static; grid-column: 1; grid-row: 4; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
+  /* The banner takes the free space in the left column, above the tab bar. */
+  .wrap > .ad-slot { grid-column: 1; grid-row: 4; align-self: center; margin: 0; }
+  .wrap > .tabbar { position: static; grid-column: 1; grid-row: 5; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
 }
 </style>
@@ -1037,7 +1038,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
 
   // Banner ad (Android): the app says when one has loaded; the page keeps a slot free under the board's buttons and tells
-  // the app where it is, or that it has none to show (Learn, landscape, a sheet open, not fully on screen).
+  // the app where it is, or that it has none to show (Learn, a sheet open, not fully on screen).
   let bannerReady = false; // the app sends the banner's height in dp (= CSS px), 0 when there is none
   function placeBanner() {
     const app = window.ZipZapZopAndroid;
@@ -1059,16 +1060,30 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (h > 0) { bannerReady = true; $('ad-slot').style.setProperty('--ad-h', h + 'px'); }
   }
   // Tells the app how much room there is under the board's buttons (to just above the tab bar), so the banner can be as
-  // tall as fits: at least 50px, at most 250px. Measured in the current mode; Learn keeps the last size.
+  // tall as fits: at least 50px, at most 250px. In landscape it goes in the left column above the tab bar. Measured in the current mode; Learn keeps the last size.
   const LANDSCAPE = matchMedia('(orientation: landscape) and (min-width: 640px)');
   function sizeBanner() {
     const app = window.ZipZapZopAndroid;
     if (!app || !app.sizeBanner || mode === 'learn') return;
-    const controls = document.querySelector('.wrap > .controls').getBoundingClientRect();
-    const barTop = innerHeight - document.querySelector('.tabbar').offsetHeight;
-    const room = Math.floor(barTop - (controls.bottom + scrollY) - 16 - 8 - 8); // wrap gap, slot margin, breathing room
-    const width = Math.floor($('boardWrap').getBoundingClientRect().width);
-    app.sizeBanner(width, LANDSCAPE.matches || room < 50 ? 0 : Math.min(250, room));
+    let room, width;
+    // Measure without the current banner, whose old height would otherwise stretch the layout.
+    const slot = $('ad-slot'), wasHidden = slot.hidden;
+    slot.hidden = true;
+    if (LANDSCAPE.matches) {
+      // Left column: the free row between the puzzle info and the tab bar (12px grid gaps, 8px breathing room each side).
+      const above = Math.max(...[...document.querySelectorAll('.wrap > header, .wrap > .lesson, .wrap > .bar, .wrap > .ladder')]
+        .filter((el) => !el.hidden).map((el) => el.getBoundingClientRect().bottom));
+      room = Math.floor(document.querySelector('.tabbar').getBoundingClientRect().top - above - 12 - 12 - 16);
+      width = Math.floor(document.querySelector('.wrap > header').getBoundingClientRect().width);
+    } else {
+      // Under the buttons, down to the fixed tab bar (wrap gap, slot margin, breathing room).
+      const controls = document.querySelector('.wrap > .controls').getBoundingClientRect();
+      const barTop = innerHeight - document.querySelector('.tabbar').offsetHeight;
+      room = Math.floor(barTop - (controls.bottom + scrollY) - 16 - 8 - 8);
+      width = Math.floor($('boardWrap').getBoundingClientRect().width);
+    }
+    slot.hidden = wasHidden;
+    app.sizeBanner(width, room < 50 ? 0 : Math.min(250, room));
   }
   let sizeTimer = 0;
   addEventListener('scroll', placeBanner, { passive: true });
