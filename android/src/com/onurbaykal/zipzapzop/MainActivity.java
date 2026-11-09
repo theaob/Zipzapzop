@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
     private volatile String gamesState;
     private BackHandler back;
     private FrameLayout bannerHost;
-    private volatile boolean bannerReady; // read by the page when it (re)loads
+    private volatile int bannerHeight; // dp, 0 when there is no banner; read by the page when it (re)loads
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,9 +94,9 @@ public class MainActivity extends Activity {
         if (getWindowManager().getDefaultDisplay().getDisplayId() == Display.DEFAULT_DISPLAY) {
             money.attachBanner(bannerHost, new Monetization.BannerListener() {
                 @Override
-                public void bannerReady(boolean ready) {
-                    bannerReady = ready;
-                    web.evaluateJavascript("window.zzzBanner && window.zzzBanner(" + ready + ")", null);
+                public void bannerReady(int heightDp) {
+                    bannerHeight = heightDp;
+                    web.evaluateJavascript("window.zzzBanner && window.zzzBanner(" + heightDp + ")", null);
                 }
             });
         }
@@ -225,7 +225,7 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public boolean bannerReady() { return bannerReady; }
+        public int bannerHeight() { return bannerHeight; }
 
         // The page reports where its banner slot is, in CSS pixels from the top of the game, or that it has none
         // right now (Learn, a sheet open, the slot scrolled away).

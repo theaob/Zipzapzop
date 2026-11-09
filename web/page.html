@@ -62,7 +62,7 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .wrap { min-height: 100%; box-sizing: border-box; }
 .wrap > header { margin-bottom: auto; }
 /* Banner ad slot under the logo (Android only, once an ad has loaded). The app draws the ad over this space. */
-.ad-slot { height: 50px; margin: -6px 0 auto; flex: none; }
+.ad-slot { height: var(--ad-h, 50px); margin: -6px 0 auto; flex: none; }
 .ad-slot[hidden] { display: none; }
 .wrap > .ad-slot:not([hidden]) ~ * { margin-top: 0; }
 .wrap:has(> .ad-slot:not([hidden])) > header { margin-bottom: 0; }
@@ -1041,7 +1041,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   // Banner ad (Android): the app says when one has loaded; the page keeps a slot free under the logo and tells
   // the app where it is, or that it has none to show (Learn, landscape, a sheet open, scrolled out of view).
-  let bannerReady = false;
+  let bannerReady = false; // the app sends the banner's height in dp (= CSS px), 0 when there is none
   function placeBanner() {
     const app = window.ZipZapZopAndroid;
     if (!app || !app.placeBanner) return;
@@ -1049,12 +1049,16 @@ button:disabled { opacity: 0.45; cursor: default; }
     const show = !slot.hidden && r.height > 0 && r.bottom > 0 && !document.querySelector('[role="dialog"]:not([hidden])');
     app.placeBanner(show, Math.round(r.top));
   }
-  window.zzzBanner = (ready) => {
-    bannerReady = !!ready;
+  window.zzzBanner = (height) => {
+    bannerReady = height > 0;
+    if (bannerReady) $('ad-slot').style.setProperty('--ad-h', height + 'px');
     $('ad-slot').hidden = !bannerReady || mode === 'learn';
     placeBanner();
   };
-  if (window.ZipZapZopAndroid && window.ZipZapZopAndroid.bannerReady && window.ZipZapZopAndroid.bannerReady()) bannerReady = true;
+  if (window.ZipZapZopAndroid && window.ZipZapZopAndroid.bannerHeight) {
+    const h = window.ZipZapZopAndroid.bannerHeight();
+    if (h > 0) { bannerReady = true; $('ad-slot').style.setProperty('--ad-h', h + 'px'); }
+  }
   addEventListener('scroll', placeBanner, { passive: true });
   addEventListener('resize', placeBanner);
   new MutationObserver(placeBanner).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });

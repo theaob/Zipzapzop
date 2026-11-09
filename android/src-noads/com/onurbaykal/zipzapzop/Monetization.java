@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 final class Monetization {
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {}
 
-    interface BannerListener { void bannerReady(boolean ready); }
+    interface BannerListener { void bannerReady(int heightDp); }
 
     void start() {}
     void attachBanner(ViewGroup host, BannerListener listener) {}

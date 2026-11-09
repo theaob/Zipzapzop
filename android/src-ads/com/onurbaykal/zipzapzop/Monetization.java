@@ -2,6 +2,7 @@ package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,8 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), a 320x50 banner under the
-// logo (not in Learn, not for Remove ads buyers), Google's
+// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), an adaptive banner under
+// the logo (not in Learn, not for Remove ads buyers), Google's
 // consent flow (UMP), and two one-time Play purchases: "remove_ads" and "endless" (unlocks Endless mode).
 // Every callback that touches state runs on the main thread.
 final class Monetization {
@@ -63,11 +64,12 @@ final class Monetization {
     private final Set<String> loadingRewarded = new HashSet<>();
     private String message;
     // Banner: the page reserves its slot once one has loaded, and says when it wants it shown.
-    interface BannerListener { void bannerReady(boolean ready); }
+    interface BannerListener { void bannerReady(int heightDp); } // 0: no banner to show
     private ViewGroup bannerHost;
     private BannerListener bannerListener;
     private AdView banner;
     private boolean bannerLoaded;
+    private int bannerHeightDp;
     private boolean bannerWanted;
 
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
@@ -293,9 +295,15 @@ final class Monetization {
 
     private void loadBanner() {
         if (bannerHost == null || banner != null || adsRemoved() || !consent.canRequestAds()) return;
+        // Adaptive: as wide as the game column (the screen less 16 dp gutters, at most 520 dp), with the height AdMob
+        // picks for that width and device (about 50 dp on phones, up to 90 dp on tablets).
+        DisplayMetrics m = activity.getResources().getDisplayMetrics();
+        int widthDp = Math.min(520, (int) (m.widthPixels / m.density) - 32);
+        AdSize size = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, widthDp);
+        bannerHeightDp = size.getHeight();
         banner = new AdView(activity);
         banner.setAdUnitId(BuildConfig.ADMOB_BANNER);
-        banner.setAdSize(AdSize.BANNER);
+        banner.setAdSize(size);
         banner.setAdListener(new AdListener() {
             @Override public void onAdLoaded() { setBannerLoaded(true); }
             @Override public void onAdFailedToLoad(LoadAdError e) { setBannerLoaded(false); } // AdView retries on its own refresh
@@ -307,7 +315,7 @@ final class Monetization {
     private void setBannerLoaded(boolean loaded) {
         if (bannerLoaded == loaded) return;
         bannerLoaded = loaded;
-        bannerListener.bannerReady(loaded);
+        bannerListener.bannerReady(loaded ? bannerHeightDp : 0);
         showBanner();
     }
 
