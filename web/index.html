@@ -349,6 +349,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .seg span { display: block; text-align: center; padding: 9px 6px; border-radius: 9px; font-weight: 600; font-size: 0.88rem; color: var(--muted); }
 .seg input:checked + span { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(10, 14, 30, 0.18); }
 .seg input:focus-visible + span, .switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 1px; }
+.switch[hidden] { display: none; }
 .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
 .switch .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .switch .txt b { font-weight: 600; }
@@ -362,6 +363,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; }
 .time-row input { font: 600 1rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .time-row input:disabled { opacity: 0.5; }
+.switch:has(input:disabled) { opacity: 0.5; cursor: default; }
 .lang-row select { font: 600 0.95rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .ads-txt { display: flex; flex-direction: column; gap: 2px; }
 .ads-txt b { font-weight: 600; }
@@ -508,7 +510,15 @@ button:disabled { opacity: 0.45; cursor: default; }
         <span class="txt"><b data-i18n="reminder">Daily reminder</b><small data-i18n="reminder_desc">A notification when today's challenges are ready. Skipped on days you've already solved all three.</small></span>
         <input type="checkbox" id="opt-reminder"><span class="track" aria-hidden="true"></span>
       </label>
+      <label class="switch" for="opt-reminder-auto">
+        <span class="txt"><b data-i18n="reminder_auto">At my usual time</b><small data-i18n="reminder_auto_desc">Learns when you usually play and reminds you a little before. Until then, uses the time below.</small></span>
+        <input type="checkbox" id="opt-reminder-auto"><span class="track" aria-hidden="true"></span>
+      </label>
       <label class="time-row" for="opt-reminder-time"><span data-i18n="remind_at">Remind me at</span><input type="time" id="opt-reminder-time" value="09:00"></label>
+      <label class="switch" for="opt-reminder-streak">
+        <span class="txt"><b data-i18n="streak_nudge">Streak alert</b><small data-i18n="streak_nudge_desc">An evening notification when your streak would end tonight. Skipped if a streak freeze covers the day.</small></span>
+        <input type="checkbox" id="opt-reminder-streak"><span class="track" aria-hidden="true"></span>
+      </label>
       <p class="desc" id="reminder-note" hidden></p>
     </div>
     <div class="opt" id="ads-opt" hidden>
@@ -787,7 +797,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Theme', light: 'Light', dark: 'Dark',
       contrast: 'High contrast', contrast_desc: 'Darker grid lines and text, thicker walls, no checkerboard.',
       reminder: 'Daily reminder', reminder_desc: "A notification when today's challenges are ready. Skipped on days you've already solved all three.",
-      remind_at: 'Remind me at', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
+      remind_at: 'Remind me at', reminder_auto: 'At my usual time', reminder_auto_desc: 'Learns when you usually play and reminds you a little before. Until then, uses the time below.', streak_nudge: 'Streak alert', streak_nudge_desc: 'An evening notification when your streak would end tonight. Skipped if a streak freeze covers the day.', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
       remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase unlocks unlimited hints and energy, with no ads to watch.',
       ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices', privacy_policy: 'Privacy policy', terms: 'Terms of service',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
@@ -834,7 +844,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Tema', light: 'Açık', dark: 'Koyu',
       contrast: 'Yüksek kontrast', contrast_desc: 'Daha koyu ızgara çizgileri ve yazılar, kalın duvarlar, dama deseni yok.',
       reminder: 'Günlük hatırlatıcı', reminder_desc: 'Bugünün bulmacaları hazır olduğunda bir bildirim. Üçünü de çözdüğünüz günlerde gönderilmez.',
-      remind_at: 'Hatırlatma saati', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
+      remind_at: 'Hatırlatma saati', reminder_auto: 'Genelde oynadığım saatte', reminder_auto_desc: 'Genelde ne zaman oynadığını öğrenir ve biraz öncesinde hatırlatır. O zamana kadar aşağıdaki saati kullanır.', streak_nudge: 'Seri uyarısı', streak_nudge_desc: 'Serin bu gece bitecekse akşam bir bildirim. Günü bir seri dondurma kurtarıyorsa gönderilmez.', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
       remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, reklam izlemeden sınırsız ipucu ve enerji açar.',
       ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri', privacy_policy: 'Gizlilik politikası', terms: 'Kullanım koşulları',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
@@ -881,7 +891,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Tema', light: 'Claro', dark: 'Oscuro',
       contrast: 'Alto contraste', contrast_desc: 'Líneas y texto más oscuros, muros más gruesos, sin tablero de ajedrez.',
       reminder: 'Recordatorio diario', reminder_desc: 'Una notificación cuando los retos de hoy estén listos. Se omite los días en que ya resolviste los tres.',
-      remind_at: 'Recordarme a las', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
+      remind_at: 'Recordarme a las', reminder_auto: 'A mi hora habitual', reminder_auto_desc: 'Aprende cuándo sueles jugar y te avisa un poco antes. Mientras tanto, usa la hora de abajo.', streak_nudge: 'Aviso de racha', streak_nudge_desc: 'Una notificación por la tarde cuando tu racha terminaría esta noche. Se omite si una congelación de racha cubre el día.', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
       remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra desbloquea pistas y energía ilimitadas, sin ver anuncios.',
       ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad', privacy_policy: 'Política de privacidad', terms: 'Términos del servicio',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
@@ -928,7 +938,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Design', light: 'Hell', dark: 'Dunkel',
       contrast: 'Hoher Kontrast', contrast_desc: 'Dunklere Linien und Texte, dickere Wände, kein Schachbrettmuster.',
       reminder: 'Tägliche Erinnerung', reminder_desc: 'Eine Benachrichtigung, wenn die heutigen Rätsel bereit sind. Entfällt an Tagen, an denen du alle drei gelöst hast.',
-      remind_at: 'Erinnern um', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
+      remind_at: 'Erinnern um', reminder_auto: 'Zu meiner üblichen Zeit', reminder_auto_desc: 'Lernt, wann du meistens spielst, und erinnert dich kurz davor. Bis dahin gilt die Uhrzeit unten.', streak_nudge: 'Serien-Warnung', streak_nudge_desc: 'Eine Benachrichtigung am Abend, wenn deine Serie heute Nacht enden würde. Entfällt, wenn ein Serienschutz den Tag abdeckt.', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
       remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
       ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen', privacy_policy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
@@ -975,7 +985,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Thème', light: 'Clair', dark: 'Sombre',
       contrast: 'Contraste élevé', contrast_desc: 'Lignes et texte plus foncés, murs plus épais, sans damier.',
       reminder: 'Rappel quotidien', reminder_desc: 'Une notification quand les défis du jour sont prêts. Ignoré les jours où vous avez déjà résolu les trois.',
-      remind_at: 'Me rappeler à', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
+      remind_at: 'Me rappeler à', reminder_auto: 'À mon heure habituelle', reminder_auto_desc: 'Apprend quand vous jouez d’habitude et vous prévient un peu avant. En attendant, utilise l’heure ci-dessous.', streak_nudge: 'Alerte de série', streak_nudge_desc: 'Une notification le soir quand votre série prendrait fin cette nuit. Ignorée si un gel de série couvre la journée.', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
       remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat débloque indices et énergie illimités, sans regarder de pubs.',
       ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité', privacy_policy: 'Politique de confidentialité', terms: 'Conditions d\'utilisation',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
@@ -1022,7 +1032,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       theme: 'Tema', light: 'Claro', dark: 'Escuro',
       contrast: 'Alto contraste', contrast_desc: 'Linhas e textos mais escuros, paredes mais grossas, sem xadrez.',
       reminder: 'Lembrete diário', reminder_desc: 'Uma notificação quando os desafios de hoje estiverem prontos. Não é enviada nos dias em que você já resolveu os três.',
-      remind_at: 'Lembrar às', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
+      remind_at: 'Lembrar às', reminder_auto: 'No meu horário habitual', reminder_auto_desc: 'Aprende quando você costuma jogar e avisa um pouco antes. Até lá, usa o horário abaixo.', streak_nudge: 'Alerta de sequência', streak_nudge_desc: 'Uma notificação à noite quando sua sequência terminaria hoje. Não é enviada se um congelamento de sequência cobrir o dia.', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
       remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra libera dicas e energia ilimitadas, sem assistir anúncios.',
       ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade', privacy_policy: 'Política de privacidade', terms: 'Termos de serviço',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
@@ -1799,6 +1809,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         showStreak(); if (typeof pushStreak === 'function') pushStreak();
         const bridge = window.ZipZapZopAndroid;
         if (!archiveDate && !nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
+        if (!archiveDate && bridge && bridge.dailySolved) bridge.dailySolved();
       }
       if (mode === 'endless') {
         // The next seed is picked now, so leaving and coming back can't count the same puzzle twice.
@@ -2201,21 +2212,37 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const bridge = window.ZipZapZopAndroid;
   // On by default at 09:00. It is switched on for real (asking for notification permission on
   // Android 13+) after the first solved Daily or Ladder puzzle, unless the player set it already.
-  const reminder = Object.assign({ on: true, time: '09:00' }, store.get('reminder', {}));
+  // auto: remind at the player's usual time (learned on the device from Daily solves), falling back to
+  // `time` until there are a few days to go on. Players who already picked a time other than 09:00 keep it.
+  // streak: the evening "your streak ends tonight" nudge.
+  const savedReminder = store.get('reminder', {});
+  const reminder = Object.assign({ on: true, time: '09:00', auto: !savedReminder.time || savedReminder.time === '09:00', streak: true }, savedReminder);
+  const smartReminder = !!(bridge && bridge.setReminderOptions);
   function syncReminderUi() {
+    const usual = reminder.auto && smartReminder && bridge.usualReminderTime ? bridge.usualReminderTime() : '';
     $('opt-reminder').checked = reminder.on;
-    $('opt-reminder-time').value = reminder.time;
-    $('opt-reminder-time').disabled = !reminder.on;
+    $('opt-reminder-time').value = usual || reminder.time;
+    $('opt-reminder-time').disabled = !reminder.on || !!usual;
+    $('opt-reminder-auto').checked = reminder.auto;
+    $('opt-reminder-auto').disabled = !reminder.on;
+    $('opt-reminder-streak').checked = reminder.streak;
+    $('opt-reminder-streak').disabled = !reminder.on;
   }
   function saveReminder() {
-    store.set('reminder', reminder); syncReminderUi();
+    store.set('reminder', reminder);
+    if (smartReminder) bridge.setReminderOptions(reminder.auto, reminder.streak);
     const [h, m] = reminder.time.split(':').map(Number);
     bridge.setReminder(reminder.on, h, m);
+    syncReminderUi();
   }
   if (bridge && bridge.setReminder) {
     $('reminder-opt').hidden = false;
+    $('opt-reminder-auto').closest('.switch').hidden = $('opt-reminder-streak').closest('.switch').hidden = !smartReminder;
+    if (smartReminder) bridge.setReminderOptions(reminder.auto, reminder.streak);
     syncReminderUi();
     $('opt-reminder').onchange = (e) => { reminder.on = e.target.checked; saveReminder(); };
+    $('opt-reminder-auto').onchange = (e) => { reminder.auto = e.target.checked; saveReminder(); };
+    $('opt-reminder-streak').onchange = (e) => { reminder.streak = e.target.checked; saveReminder(); };
     if (store.get('reminder', null) == null) {
       window.zzzArmReminder = () => { window.zzzArmReminder = null; if (store.get('reminder', null) == null) saveReminder(); };
     }
@@ -2378,6 +2405,17 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // A new day can start while the app sits in the background.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) showStreak(); });
   showStreak();
+  pushStreak(); // after the streak helpers above exist; the reminder setup runs earlier
+  // Tells Android which day the streak ends on unless a Daily is solved (the day after the last day it's
+  // alive through, solved or frozen), how long it is, and whether a freeze would cover that day. Sent at
+  // launch and after each Daily solve, so the evening nudge only fires on a day that would break the streak.
+  function pushStreak() {
+    const b = window.ZipZapZopAndroid;
+    if (!b || !b.streakState) return;
+    const s = streakInfo();
+    const risk = s.current && s.aliveThrough ? dayStr(dayNum(s.aliveThrough) + 1) : '';
+    b.streakState(risk, s.current, !!risk && streakFreezeCovers(risk));
+  }
   // Game Stats (Play Games profile): one event per Daily or Ladder solve, with the values for that solve only;
   // Play Games adds them up. Endless (a purchase) and Learn (the tutorial) are left out, as Game Stats rules require.
   let statsProgress = -1;
@@ -2442,7 +2480,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-09 · 1d35efa';
+  const WEB_BUILD = '2026-11-09 · 4b08c7a';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
