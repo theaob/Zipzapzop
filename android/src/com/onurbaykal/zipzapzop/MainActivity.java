@@ -87,8 +87,7 @@ public class MainActivity extends Activity {
             @Override
             public void run() { pushGamesState(); }
         });
-        gamesState = games.stateJson();
-        games.start();
+        gamesState = games.stateJson(); // signs in from onResume, which runs right after this on launch
         back = new BackHandler(this, new Runnable() {
             @Override
             public void run() { handleBack(); }
@@ -130,6 +129,12 @@ public class MainActivity extends Activity {
     private void pushGamesState() {
         gamesState = games.stateJson();
         web.evaluateJavascript("window.zzzGamesState && window.zzzGamesState(" + gamesState + ")", null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        games.onResume();
     }
 
     @Override
