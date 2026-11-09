@@ -64,6 +64,8 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); border-top: 1px solid var(--line);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
 .tabbar .modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; max-width: 520px; margin: 0 auto; }
+/* Big tablets held upright: a wider game column so the board fills more of the screen. */
+@media (orientation: portrait) and (min-width: 720px) { .wrap, .tabbar .modes { max-width: 680px; } }
 .tabbar button { border: 0; background: transparent; color: var(--muted); font: 600 0.75rem var(--body); display: flex; flex-direction: column; align-items: center; gap: 3px;
   min-height: 52px; padding: 5px 2px 4px; border-radius: 14px; cursor: pointer; min-width: 0; }
 .tabbar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -366,12 +368,12 @@ button:disabled { opacity: 0.45; cursor: default; }
 .learn-row button { flex: none; }
 @media (max-width: 420px) { h1 { font-size: 2rem; } }
 @media (max-width: 340px) { .tabbar svg { padding-inline: 10px; } .head-actions { gap: 6px; } }
-/* Short landscape screens (car displays in Android Auto, tablets, laptops): the board fills the height on the right,
+/* Landscape screens (car displays in Android Auto, tablets, laptops): the board fills the height on the right,
    with the title, mode, info and controls in a column beside it. */
-@media (orientation: landscape) and (max-height: 860px) and (min-width: 640px) {
+@media (orientation: landscape) and (min-width: 640px) {
   body { padding-block: 12px; }
   .wrap {
-    --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 760px);
+    --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 900px);
     max-width: none; height: 100%; display: grid; justify-content: center; align-content: stretch;
     grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto 1fr auto;
     column-gap: 24px; row-gap: 12px;
@@ -1058,7 +1060,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
   // Tells the app how much room there is under the board's buttons (to just above the tab bar), so the banner can be as
   // tall as fits: at least 50px, at most 250px. Measured in the current mode; Learn keeps the last size.
-  const LANDSCAPE = matchMedia('(orientation: landscape) and (max-height: 860px) and (min-width: 640px)');
+  const LANDSCAPE = matchMedia('(orientation: landscape) and (min-width: 640px)');
   function sizeBanner() {
     const app = window.ZipZapZopAndroid;
     if (!app || !app.sizeBanner || mode === 'learn') return;
