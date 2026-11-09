@@ -55,7 +55,6 @@ body {
 header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 h1 { font-family: var(--display); font-weight: 800; font-size: 2.4rem; line-height: 1; margin: 0; letter-spacing: -0.02em; }
 h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.tag { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 /* Modes live in a tab bar fixed to the bottom of the screen (beside the board on short landscape screens). */
 .wrap { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 /* On tall screens only the logo row stays at the top: the puzzle info, board and buttons sit at the bottom,
@@ -397,7 +396,6 @@ button:disabled { opacity: 0.45; cursor: default; }
           <button class="streak-btn off" id="streak-open" aria-haspopup="dialog"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="flameA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color: var(--spark-b)"/><stop offset="1" style="stop-color: var(--spark-a)"/></linearGradient></defs><path fill="url(#flameA)" d="M12 2c.6 3.2 2.4 4.9 4 6.6 1.7 1.8 3 3.7 3 6.4A7 7 0 0 1 5 15c0-2.3 1-4.1 2.4-5.4.2 1.6.9 2.8 2 3.4C9 9 10.2 5.3 12 2z"/></svg><span id="streak-n">0</span><span class="ice" id="streak-ice" aria-hidden="true" hidden>❄</span></button>
         </div>
       </div>
-      <div class="tag" data-i18n="tag">One line. Every cell. Numbers in order.</div>
     </div>
   </header>
 
@@ -2371,7 +2369,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-09 · 112d17f';
+  const WEB_BUILD = '2026-11-09 · 8d53e74';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
