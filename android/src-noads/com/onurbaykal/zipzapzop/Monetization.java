@@ -1,6 +1,7 @@
 package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
+import android.view.ViewGroup;
 
 // Stand-in used by build-apk.sh, which can't fetch the AdMob and Play Billing libraries.
 // The page hides everything ad-related when adsState() reports available: false.
@@ -8,7 +9,11 @@ import android.app.Activity;
 final class Monetization {
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {}
 
+    interface BannerListener { void bannerReady(boolean ready); }
+
     void start() {}
+    void attachBanner(ViewGroup host, BannerListener listener) {}
+    void setBannerWanted(boolean wanted) {}
     void watchRewardedAd(String purpose) {}
     void buyRemoveAds() {}
     void buyEndless() {}

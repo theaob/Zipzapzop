@@ -61,6 +61,11 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
    just above the tab bar, near the player's thumbs. */
 .wrap { min-height: 100%; box-sizing: border-box; }
 .wrap > header { margin-bottom: auto; }
+/* Banner ad slot under the logo (Android only, once an ad has loaded). The app draws the ad over this space. */
+.ad-slot { height: 50px; margin: -6px 0 auto; flex: none; }
+.ad-slot[hidden] { display: none; }
+.wrap > .ad-slot:not([hidden]) ~ * { margin-top: 0; }
+.wrap:has(> .ad-slot:not([hidden])) > header { margin-bottom: 0; }
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); border-top: 1px solid var(--line);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
 .tabbar .modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; max-width: 520px; margin: 0 auto; }
@@ -383,6 +388,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap > .controls { grid-column: 1; grid-row: 5; }
   .wrap { padding-bottom: 0; min-height: 0; }
   .wrap > header { margin-bottom: 0; }
+  .wrap > .ad-slot { display: none; }
   .wrap > .tabbar { position: static; grid-column: 1; grid-row: 4; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
 }
@@ -398,6 +404,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       </div>
     </div>
   </header>
+  <div class="ad-slot" id="ad-slot" aria-hidden="true" hidden></div>
 
   <div class="lesson" id="lesson" aria-live="polite" hidden><small id="lesson-step"></small><p id="lesson-text"></p></div>
 
@@ -598,7 +605,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'High contrast', contrast_desc: 'Darker grid lines and text, thicker walls, no checkerboard.',
       reminder: 'Daily reminder', reminder_desc: "A notification when today's challenges are ready. Skipped on days you've already solved all three.",
       remind_at: 'Remind me at', reminder_auto: 'At my usual time', reminder_auto_desc: 'Learns when you usually play and reminds you a little before. Until then, uses the time below.', streak_nudge: 'Streak alert', streak_nudge_desc: 'An evening notification when your streak would end tonight. Skipped if a streak freeze covers the day.', reminder_blocked: 'Notifications are blocked for ZipZapZop. Allow them in your phone settings to get reminders.',
-      remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase unlocks unlimited hints and energy, with no ads to watch.',
+      remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase removes the banner and unlocks unlimited hints and energy, with no ads to watch.',
       ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices', privacy_policy: 'Privacy policy', terms: 'Terms of service',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
       easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved',
@@ -645,7 +652,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Yüksek kontrast', contrast_desc: 'Daha koyu ızgara çizgileri ve yazılar, kalın duvarlar, dama deseni yok.',
       reminder: 'Günlük hatırlatıcı', reminder_desc: 'Bugünün bulmacaları hazır olduğunda bir bildirim. Üçünü de çözdüğünüz günlerde gönderilmez.',
       remind_at: 'Hatırlatma saati', reminder_auto: 'Genelde oynadığım saatte', reminder_auto_desc: 'Genelde ne zaman oynadığını öğrenir ve biraz öncesinde hatırlatır. O zamana kadar aşağıdaki saati kullanır.', streak_nudge: 'Seri uyarısı', streak_nudge_desc: 'Serin bu gece bitecekse akşam bir bildirim. Günü bir seri dondurma kurtarıyorsa gönderilmez.', reminder_blocked: 'ZipZapZop için bildirimler engelli. Hatırlatma almak için telefon ayarlarından izin verin.',
-      remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, reklam izlemeden sınırsız ipucu ve enerji açar.',
+      remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, banner reklamı kaldırır ve reklam izlemeden sınırsız ipucu ve enerji açar.',
       ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri', privacy_policy: 'Gizlilik politikası', terms: 'Kullanım koşulları',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
       easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü',
@@ -692,7 +699,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Alto contraste', contrast_desc: 'Líneas y texto más oscuros, muros más gruesos, sin tablero de ajedrez.',
       reminder: 'Recordatorio diario', reminder_desc: 'Una notificación cuando los retos de hoy estén listos. Se omite los días en que ya resolviste los tres.',
       remind_at: 'Recordarme a las', reminder_auto: 'A mi hora habitual', reminder_auto_desc: 'Aprende cuándo sueles jugar y te avisa un poco antes. Mientras tanto, usa la hora de abajo.', streak_nudge: 'Aviso de racha', streak_nudge_desc: 'Una notificación por la tarde cuando tu racha terminaría esta noche. Se omite si una congelación de racha cubre el día.', reminder_blocked: 'Las notificaciones de ZipZapZop están bloqueadas. Permítelas en los ajustes del teléfono para recibir recordatorios.',
-      remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra desbloquea pistas y energía ilimitadas, sin ver anuncios.',
+      remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra quita el banner y desbloquea pistas y energía ilimitadas, sin ver anuncios.',
       ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad', privacy_policy: 'Política de privacidad', terms: 'Términos del servicio',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
       easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto',
@@ -739,7 +746,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Hoher Kontrast', contrast_desc: 'Dunklere Linien und Texte, dickere Wände, kein Schachbrettmuster.',
       reminder: 'Tägliche Erinnerung', reminder_desc: 'Eine Benachrichtigung, wenn die heutigen Rätsel bereit sind. Entfällt an Tagen, an denen du alle drei gelöst hast.',
       remind_at: 'Erinnern um', reminder_auto: 'Zu meiner üblichen Zeit', reminder_auto_desc: 'Lernt, wann du meistens spielst, und erinnert dich kurz davor. Bis dahin gilt die Uhrzeit unten.', streak_nudge: 'Serien-Warnung', streak_nudge_desc: 'Eine Benachrichtigung am Abend, wenn deine Serie heute Nacht enden würde. Entfällt, wenn ein Serienschutz den Tag abdeckt.', reminder_blocked: 'Benachrichtigungen für ZipZapZop sind blockiert. Erlaube sie in den Telefoneinstellungen, um Erinnerungen zu erhalten.',
-      remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
+      remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf entfernt das Werbebanner und schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
       ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen', privacy_policy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
       easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst',
@@ -786,7 +793,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Contraste élevé', contrast_desc: 'Lignes et texte plus foncés, murs plus épais, sans damier.',
       reminder: 'Rappel quotidien', reminder_desc: 'Une notification quand les défis du jour sont prêts. Ignoré les jours où vous avez déjà résolu les trois.',
       remind_at: 'Me rappeler à', reminder_auto: 'À mon heure habituelle', reminder_auto_desc: 'Apprend quand vous jouez d’habitude et vous prévient un peu avant. En attendant, utilise l’heure ci-dessous.', streak_nudge: 'Alerte de série', streak_nudge_desc: 'Une notification le soir quand votre série prendrait fin cette nuit. Ignorée si un gel de série couvre la journée.', reminder_blocked: 'Les notifications de ZipZapZop sont bloquées. Autorisez-les dans les réglages du téléphone pour recevoir des rappels.',
-      remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat débloque indices et énergie illimités, sans regarder de pubs.',
+      remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat retire la bannière et débloque indices et énergie illimités, sans regarder de pubs.',
       ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité', privacy_policy: 'Politique de confidentialité', terms: 'Conditions d\'utilisation',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
       easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu',
@@ -833,7 +840,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       contrast: 'Alto contraste', contrast_desc: 'Linhas e textos mais escuros, paredes mais grossas, sem xadrez.',
       reminder: 'Lembrete diário', reminder_desc: 'Uma notificação quando os desafios de hoje estiverem prontos. Não é enviada nos dias em que você já resolveu os três.',
       remind_at: 'Lembrar às', reminder_auto: 'No meu horário habitual', reminder_auto_desc: 'Aprende quando você costuma jogar e avisa um pouco antes. Até lá, usa o horário abaixo.', streak_nudge: 'Alerta de sequência', streak_nudge_desc: 'Uma notificação à noite quando sua sequência terminaria hoje. Não é enviada se um congelamento de sequência cobrir o dia.', reminder_blocked: 'As notificações do ZipZapZop estão bloqueadas. Permita-as nas configurações do celular para receber lembretes.',
-      remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra libera dicas e energia ilimitadas, sem assistir anúncios.',
+      remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra remove o banner e libera dicas e energia ilimitadas, sem assistir anúncios.',
       ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade', privacy_policy: 'Política de privacidade', terms: 'Termos de serviço',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
       easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido',
@@ -1032,6 +1039,26 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
   }
 
+  // Banner ad (Android): the app says when one has loaded; the page keeps a slot free under the logo and tells
+  // the app where it is, or that it has none to show (Learn, landscape, a sheet open, scrolled out of view).
+  let bannerReady = false;
+  function placeBanner() {
+    const app = window.ZipZapZopAndroid;
+    if (!app || !app.placeBanner) return;
+    const slot = $('ad-slot'), r = slot.getBoundingClientRect();
+    const show = !slot.hidden && r.height > 0 && r.bottom > 0 && !document.querySelector('[role="dialog"]:not([hidden])');
+    app.placeBanner(show, Math.round(r.top));
+  }
+  window.zzzBanner = (ready) => {
+    bannerReady = !!ready;
+    $('ad-slot').hidden = !bannerReady || mode === 'learn';
+    placeBanner();
+  };
+  if (window.ZipZapZopAndroid && window.ZipZapZopAndroid.bannerReady && window.ZipZapZopAndroid.bannerReady()) bannerReady = true;
+  addEventListener('scroll', placeBanner, { passive: true });
+  addEventListener('resize', placeBanner);
+  new MutationObserver(placeBanner).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+
   function load() {
     buildSizes();
     $('sizes').setAttribute('aria-label', t(mode === 'ladder' ? 'worlds_group' : 'difficulty_group'));
@@ -1040,6 +1067,8 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('mode-ladder').setAttribute('aria-pressed', String(mode === 'ladder'));
     $('mode-endless').setAttribute('aria-pressed', String(mode === 'endless'));
     const learn = mode === 'learn';
+    $('ad-slot').hidden = !bannerReady || learn;
+    placeBanner();
     $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
     wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn && mode !== 'endless';

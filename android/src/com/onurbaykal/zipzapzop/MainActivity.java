@@ -35,6 +35,8 @@ public class MainActivity extends Activity {
     private GameServices games;
     private volatile String gamesState;
     private BackHandler back;
+    private FrameLayout bannerHost;
+    private volatile boolean bannerReady; // read by the page when it (re)loads
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,10 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(getResources().getColor(R.color.bg));
         root.addView(web);
+        // The banner ad floats over the game in a slot the page keeps free under the logo (see placeBanner).
+        bannerHost = new FrameLayout(this);
+        bannerHost.setVisibility(View.GONE);
+        root.addView(bannerHost, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, android.view.Gravity.TOP));
         root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
@@ -84,6 +90,16 @@ public class MainActivity extends Activity {
             }
         });
         adsState = money.stateJson();
+        // No banner on an Android Auto car screen: only the phone's own display gets one.
+        if (getWindowManager().getDefaultDisplay().getDisplayId() == Display.DEFAULT_DISPLAY) {
+            money.attachBanner(bannerHost, new Monetization.BannerListener() {
+                @Override
+                public void bannerReady(boolean ready) {
+                    bannerReady = ready;
+                    web.evaluateJavascript("window.zzzBanner && window.zzzBanner(" + ready + ")", null);
+                }
+            });
+        }
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
@@ -206,6 +222,19 @@ public class MainActivity extends Activity {
             // Only known purposes, since it is echoed back into JavaScript.
             if (!"hint".equals(purpose) && !"energy".equals(purpose)) return;
             onUi(new Runnable() { @Override public void run() { money.watchRewardedAd(purpose); } });
+        }
+
+        @JavascriptInterface
+        public boolean bannerReady() { return bannerReady; }
+
+        // The page reports where its banner slot is, in CSS pixels from the top of the game, or that it has none
+        // right now (Learn, a sheet open, the slot scrolled away).
+        @JavascriptInterface
+        public void placeBanner(final boolean visible, final double top) {
+            onUi(new Runnable() { @Override public void run() {
+                bannerHost.setTranslationY((float) (top * getResources().getDisplayMetrics().density));
+                money.setBannerWanted(visible);
+            } });
         }
 
         @JavascriptInterface

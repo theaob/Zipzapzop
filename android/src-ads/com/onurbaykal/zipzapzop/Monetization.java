@@ -2,6 +2,10 @@ package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
@@ -14,7 +18,10 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
@@ -35,7 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), Google's
+// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), a 320x50 banner under the
+// logo (not in Learn, not for Remove ads buyers), Google's
 // consent flow (UMP), and two one-time Play purchases: "remove_ads" and "endless" (unlocks Endless mode).
 // Every callback that touches state runs on the main thread.
 final class Monetization {
@@ -54,6 +62,13 @@ final class Monetization {
     private final Map<String, RewardedAd> rewarded = new HashMap<>();
     private final Set<String> loadingRewarded = new HashSet<>();
     private String message;
+    // Banner: the page reserves its slot once one has loaded, and says when it wants it shown.
+    interface BannerListener { void bannerReady(boolean ready); }
+    private ViewGroup bannerHost;
+    private BannerListener bannerListener;
+    private AdView banner;
+    private boolean bannerLoaded;
+    private boolean bannerWanted;
 
     Monetization(Activity activity, Runnable onChange, RewardedAdListener onRewarded) {
         this.activity = activity;
@@ -84,7 +99,7 @@ final class Monetization {
 
     private void startAds() {
         if (adsRemoved() || !consent.canRequestAds() || !adsStarted.compareAndSet(false, true)) return;
-        MobileAds.initialize(activity, status -> loadAllRewarded());
+        MobileAds.initialize(activity, status -> { loadAllRewarded(); loadBanner(); });
     }
 
     private static String unitFor(String purpose) {
@@ -259,10 +274,54 @@ final class Monetization {
 
     private void setAdsRemoved(boolean removed) {
         prefs.edit().putBoolean("adsRemoved", removed).apply();
-        if (removed) rewarded.clear();
-        else if (adsStarted.get()) loadAllRewarded();
+        if (removed) { rewarded.clear(); dropBanner(); }
+        else if (adsStarted.get()) { loadAllRewarded(); loadBanner(); }
         else startAds();
         onChange.run();
+    }
+
+    void attachBanner(ViewGroup host, BannerListener listener) {
+        bannerHost = host;
+        bannerListener = listener;
+        if (adsStarted.get()) loadBanner();
+    }
+
+    void setBannerWanted(boolean wanted) {
+        bannerWanted = wanted;
+        showBanner();
+    }
+
+    private void loadBanner() {
+        if (bannerHost == null || banner != null || adsRemoved() || !consent.canRequestAds()) return;
+        banner = new AdView(activity);
+        banner.setAdUnitId(BuildConfig.ADMOB_BANNER);
+        banner.setAdSize(AdSize.BANNER);
+        banner.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() { setBannerLoaded(true); }
+            @Override public void onAdFailedToLoad(LoadAdError e) { setBannerLoaded(false); } // AdView retries on its own refresh
+        });
+        bannerHost.addView(banner, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL));
+        banner.loadAd(new AdRequest.Builder().build());
+    }
+
+    private void setBannerLoaded(boolean loaded) {
+        if (bannerLoaded == loaded) return;
+        bannerLoaded = loaded;
+        bannerListener.bannerReady(loaded);
+        showBanner();
+    }
+
+    private void showBanner() {
+        if (bannerHost == null) return;
+        bannerHost.setVisibility(banner != null && bannerLoaded && bannerWanted && !adsRemoved() ? View.VISIBLE : View.GONE);
+    }
+
+    private void dropBanner() {
+        if (banner == null) return;
+        bannerHost.removeView(banner);
+        banner.destroy();
+        banner = null;
+        setBannerLoaded(false);
     }
 
     private void setEndlessOwned(boolean owned) {
@@ -296,5 +355,8 @@ final class Monetization {
             ? d.getOneTimePurchaseOfferDetails().getFormattedPrice() : JSONObject.NULL;
     }
 
-    void destroy() { if (billing != null) billing.endConnection(); }
+    void destroy() {
+        if (billing != null) billing.endConnection();
+        if (banner != null) banner.destroy();
+    }
 }
