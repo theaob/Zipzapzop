@@ -65,6 +65,32 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .sizes button .tick { color: var(--ok); margin-left: 4px; }
 .sizes button { min-width: 44px; padding: 0 12px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 600 0.85rem var(--body); cursor: pointer; font-variant-numeric: tabular-nums; }
 .sizes button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.sizes button.cal { min-width: 34px; padding: 0 8px; display: inline-grid; place-items: center; color: var(--muted); }
+/* Daily archive: a strip naming the past day being played, and the calendar sheet. */
+.archive-strip { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px; font-size: 0.9rem; }
+.archive-strip[hidden] { display: none; }
+.archive-strip span { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.archive-strip b { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archive-strip button { flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 600 0.82rem var(--body); cursor: pointer; }
+.cal-desc { margin: -8px 0 0; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cal-nav b { font-family: var(--display); font-weight: 700; font-size: 1.05rem; text-transform: capitalize; }
+.cal-nav small { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
+.cal-nav button { width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 700 1.1rem var(--body); cursor: pointer; }
+.cal-nav button:disabled { opacity: 0.35; cursor: default; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-grid .wd { text-align: center; color: var(--muted); font-size: 0.72rem; font-weight: 600; padding-bottom: 2px; text-transform: uppercase; }
+.cal-grid button { aspect-ratio: 1; min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 600 0.92rem var(--body); font-variant-numeric: tabular-nums; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0; }
+.cal-grid button:disabled { background: transparent; border-color: transparent; color: var(--muted); opacity: 0.45; cursor: default; }
+.cal-grid button .dots { display: flex; gap: 3px; }
+.cal-grid button .dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
+.cal-grid button .dots i.on { background: var(--ok); }
+.cal-grid button.full { background: color-mix(in srgb, var(--ok) 16%, var(--bg)); border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+.cal-grid button.today { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.cal-grid button[aria-current="date"] { outline: 3px solid var(--focus); outline-offset: 1px; }
+.cal-legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.8rem; margin-top: -6px; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.cal-legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
 .meta { display: flex; gap: 14px; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 600; }
 .board-wrap { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1; }
@@ -396,6 +422,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   <div class="lesson" id="lesson" aria-live="polite" hidden><small id="lesson-step"></small><p id="lesson-text"></p></div>
 
+  <div class="archive-strip" id="archive-strip" hidden><span data-i18n="archive">Archive</span><b id="archive-day"></b><button id="archive-today" data-i18n="back_today">Back to today</button></div>
+
   <div class="bar">
     <div class="sizes" role="group" aria-label="Daily difficulty" data-i18n-aria="difficulty_group" id="sizes"></div>
     <div class="meta"><span id="label"></span><span class="energy" id="energy" hidden></span><span><b id="timer">0:00</b></span></div>
@@ -429,6 +457,16 @@ button:disabled { opacity: 0.45; cursor: default; }
 <div class="map" id="levels" role="dialog" aria-modal="true" aria-labelledby="levels-title" hidden>
   <div class="map-head"><div><h2 id="levels-title" data-i18n="ladder">Ladder</h2><p id="levels-sub"></p></div><button id="levels-close" data-i18n="done">Done</button></div>
   <div class="map-scroll" id="map-scroll"></div>
+</div>
+
+<div class="sheet" id="archive" role="dialog" aria-modal="true" aria-labelledby="archive-title" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="archive-title" data-i18n="archive">Archive</h2><button id="archive-close" data-i18n="done">Done</button></div>
+    <p class="cal-desc" data-i18n="archive_desc">Play the Daily puzzles you missed. They don't count toward your streak or the leaderboards.</p>
+    <div class="cal-nav"><button id="cal-prev" aria-label="Previous month" data-i18n-aria="prev_month">‹</button><div><b id="cal-month"></b><small id="cal-count"></small></div><button id="cal-next" aria-label="Next month" data-i18n-aria="next_month">›</button></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend"><span><i aria-hidden="true"></i><span data-i18n="cal_legend">One dot per difficulty solved</span></span></div>
+  </div>
 </div>
 
 <div class="sheet" id="streak" role="dialog" aria-modal="true" aria-labelledby="streak-title" hidden>
@@ -525,6 +563,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   }
   function puzzleInfo() {
     const pos = mode === 'ladder' && ladderPos();
+    if (mode === 'daily' && archiveDate) return { mode: 'archive', puzzle: dailyId, date: archiveDate, size: puz.n };
     const id = mode === 'daily' ? dailyId : mode === 'endless' ? 'run_' + (endless.run + 1) : pos ? `w${pos.w + 1}_l${pos.l}` : 'lesson_' + (lesson + 1);
     return { mode, puzzle: id, size: puz.n };
   }
@@ -587,7 +626,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase unlocks unlimited hints and energy, with no ads to watch.',
       ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices', privacy_policy: 'Privacy policy', terms: 'Terms of service',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
-      easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved',
+      easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved', archive: 'Archive', archive_open: 'Past Daily puzzles', archive_desc: "Play the Daily puzzles you missed. They don't count toward your streak or the leaderboards.", back_today: 'Back to today', archive_more: 'Pick another day', archive_count: '{n} of {total} solved', prev_month: 'Previous month', next_month: 'Next month', cal_legend: 'One dot per difficulty solved', today_mark: 'today', archive_day_aria: '{date}, {n} of 3 solved',
       lesson1: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.',
       lesson2: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. If you let go, the line snaps back to the last number you reached.',
       lesson3: "Thick bars are <b>walls</b>. Your line can't cross them.",
@@ -634,7 +673,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, reklam izlemeden sınırsız ipucu ve enerji açar.',
       ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri', privacy_policy: 'Gizlilik politikası', terms: 'Kullanım koşulları',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
-      easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü',
+      easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü', archive: 'Arşiv', archive_open: 'Geçmiş günlük bulmacalar', archive_desc: 'Kaçırdığın günlük bulmacaları oyna. Serine ve sıralamalara sayılmazlar.', back_today: 'Bugüne dön', archive_more: 'Başka bir gün seç', archive_count: '{total} bulmacadan {n} çözüldü', prev_month: 'Önceki ay', next_month: 'Sonraki ay', cal_legend: 'Çözülen her zorluk için bir nokta', today_mark: 'bugün', archive_day_aria: '{date}, 3 bulmacadan {n} çözüldü',
       lesson1: '<b>1</b>\'den <b>2</b>\'ye sürükleyin, ama yol boyunca <b>her kareden</b> geçin. Noktalar doldurulmamış kareleri gösterir.',
       lesson2: 'Sayılardan <b>sırayla</b> geçin: önce 1, sonra 2, sonra 3. Parmağınızı kaldırırsanız çizgi ulaştığınız son sayıya geri döner.',
       lesson3: 'Kalın çubuklar <b>duvardır</b>. Çizginiz onları geçemez.',
@@ -681,7 +720,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra desbloquea pistas y energía ilimitadas, sin ver anuncios.',
       ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad', privacy_policy: 'Política de privacidad', terms: 'Términos del servicio',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
-      easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto',
+      easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto', archive: 'Archivo', archive_open: 'Retos diarios anteriores', archive_desc: 'Juega los retos diarios que te perdiste. No cuentan para tu racha ni para las clasificaciones.', back_today: 'Volver a hoy', archive_more: 'Elegir otro día', archive_count: '{n} de {total} resueltos', prev_month: 'Mes anterior', next_month: 'Mes siguiente', cal_legend: 'Un punto por cada dificultad resuelta', today_mark: 'hoy', archive_day_aria: '{date}, {n} de 3 resueltos',
       lesson1: 'Arrastra del <b>1</b> al <b>2</b>, pero pasa por <b>todas las casillas</b>. Los puntos marcan las casillas que faltan.',
       lesson2: 'Pasa por los números <b>en orden</b>: 1, luego 2, luego 3. Si sueltas, la línea vuelve al último número alcanzado.',
       lesson3: 'Las barras gruesas son <b>muros</b>. Tu línea no puede cruzarlos.',
@@ -728,7 +767,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
       ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen', privacy_policy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
-      easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst',
+      easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst', archive: 'Archiv', archive_open: 'Frühere Tagesrätsel', archive_desc: 'Spiele die Tagesrätsel, die du verpasst hast. Sie zählen nicht für deine Serie oder die Bestenlisten.', back_today: 'Zurück zu heute', archive_more: 'Anderen Tag wählen', archive_count: '{n} von {total} gelöst', prev_month: 'Vorheriger Monat', next_month: 'Nächster Monat', cal_legend: 'Ein Punkt pro gelöster Schwierigkeit', today_mark: 'heute', archive_day_aria: '{date}, {n} von 3 gelöst',
       lesson1: 'Ziehe von <b>1</b> nach <b>2</b>, aber durch <b>jedes Feld</b>. Die Punkte zeigen Felder, die noch fehlen.',
       lesson2: 'Erreiche die Zahlen <b>der Reihe nach</b>: 1, dann 2, dann 3. Lässt du los, springt die Linie zur zuletzt erreichten Zahl zurück.',
       lesson3: 'Dicke Balken sind <b>Wände</b>. Deine Linie kann sie nicht überqueren.',
@@ -775,7 +814,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat débloque indices et énergie illimités, sans regarder de pubs.',
       ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité', privacy_policy: 'Politique de confidentialité', terms: 'Conditions d\'utilisation',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
-      easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu',
+      easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu', archive: 'Archives', archive_open: 'Défis du jour passés', archive_desc: 'Jouez aux défis du jour que vous avez manqués. Ils ne comptent ni pour votre série ni pour les classements.', back_today: 'Revenir à aujourd\'hui', archive_more: 'Choisir un autre jour', archive_count: '{n} sur {total} résolus', prev_month: 'Mois précédent', next_month: 'Mois suivant', cal_legend: 'Un point par difficulté résolue', today_mark: 'aujourd\'hui', archive_day_aria: '{date}, {n} sur 3 résolus',
       lesson1: 'Allez du <b>1</b> au <b>2</b>, en passant par <b>toutes les cases</b>. Les points marquent les cases restantes.',
       lesson2: 'Passez par les nombres <b>dans l\'ordre</b> : 1, puis 2, puis 3. Si vous lâchez, la ligne revient au dernier nombre atteint.',
       lesson3: 'Les barres épaisses sont des <b>murs</b>. Votre ligne ne peut pas les traverser.',
@@ -822,7 +861,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra libera dicas e energia ilimitadas, sem assistir anúncios.',
       ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade', privacy_policy: 'Política de privacidade', terms: 'Termos de serviço',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
-      easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido',
+      easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido', archive: 'Arquivo', archive_open: 'Desafios diários anteriores', archive_desc: 'Jogue os desafios diários que você perdeu. Eles não contam para sua sequência nem para os placares.', back_today: 'Voltar para hoje', archive_more: 'Escolher outro dia', archive_count: '{n} de {total} resolvidos', prev_month: 'Mês anterior', next_month: 'Próximo mês', cal_legend: 'Um ponto por dificuldade resolvida', today_mark: 'hoje', archive_day_aria: '{date}, {n} de 3 resolvidos',
       lesson1: 'Arraste do <b>1</b> ao <b>2</b>, passando por <b>todas as casas</b>. Os pontos marcam as casas que faltam.',
       lesson2: 'Passe pelos números <b>em ordem</b>: 1, depois 2, depois 3. Se você soltar, a linha volta ao último número alcançado.',
       lesson3: 'Barras grossas são <b>paredes</b>. Sua linha não pode atravessá-las.',
@@ -977,7 +1016,16 @@ button:disabled { opacity: 0.45; cursor: default; }
   if (!endless.seed) endless.seed = newSeed();
   const saveEndless = () => store.set('endless', endless);
   const daily = () => DAILY.find((d) => d.id === dailyId) || DAILY[0];
-  const dailyKey = (id) => 'daily:' + today() + ':' + (id || dailyId);
+  // Daily archive: archiveDate is the past day on screen in Daily mode, or null for today's live Daily.
+  // Archive solves are kept under their own keys (zap:archive:<date>:<id>), never zap:daily:*, so the streak,
+  // achievements, daily leaderboards and Game Stats only ever see Dailies solved on their own day.
+  const ARCHIVE_START = '2026-10-01';
+  let archiveDate = null;
+  const dayOf = () => archiveDate || today();
+  const dailyKey = (id) => (archiveDate ? 'archive:' : 'daily:') + dayOf() + ':' + (id || dailyId);
+  const hintsKey = () => (archiveDate ? 'archivehints:' : 'dailyhints:') + dayOf() + ':' + dailyId;
+  // Time of a day's Daily, solved live on that day or later from the archive; null if not solved.
+  const dayTime = (date, id) => store.get('daily:' + date + ':' + id, null) ?? store.get('archive:' + date + ':' + id, null);
   let puz, path, won, startTime, elapsed, timerId, cells = [];
   let celebrate = false, celebrateTimer = null, hintsUsed = 0, bestInfo = null;
   // Accessibility settings, kept per device. "system" follows the phone or browser setting.
@@ -1010,15 +1058,24 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (mode !== 'daily') return; // Ladder picks worlds and levels on the ladder map; Endless has no choice
     for (const d of DAILY) {
       const b = document.createElement('button');
-      const done = store.get(dailyKey(d.id), null) != null;
+      const done = dayTime(dayOf(), d.id) != null;
       b.innerHTML = t(d.id) + (done ? `<span class="tick" aria-label="${t('solved_mark')}">✓</span>` : '');
       b.setAttribute('aria-pressed', String(d.id === dailyId));
       b.onclick = () => { dailyId = d.id; store.set('dailyDiff', dailyId); load(); };
       box.appendChild(b);
     }
+    const cal = document.createElement('button');
+    cal.className = 'cal'; cal.id = 'archive-open';
+    cal.setAttribute('aria-label', t('archive_open')); cal.title = t('archive_open'); cal.setAttribute('aria-haspopup', 'dialog');
+    cal.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+    cal.onclick = openArchive;
+    box.appendChild(cal);
   }
 
   function load() {
+    if (mode !== 'daily' || archiveDate === today()) archiveDate = null;
+    $('archive-strip').hidden = !archiveDate;
+    if (archiveDate) $('archive-day').textContent = longDate(archiveDate);
     buildSizes();
     $('sizes').setAttribute('aria-label', t(mode === 'ladder' ? 'worlds_group' : 'difficulty_group'));
     if (mode === 'ladder') rootEl.dataset.world = WORLDS[world].id; else delete rootEl.dataset.world;
@@ -1038,7 +1095,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('lesson-text').innerHTML = t(L.text);
     } else if (mode === 'daily') {
       const d = daily();
-      puz = E.generate(d.n, E.hashString('zap/' + today() + '/' + d.id), d.opts);
+      puz = E.generate(d.n, E.hashString('zap/' + dayOf() + '/' + d.id), d.opts);
     } else if (mode === 'endless') {
       // Big grids now and then can't be tightened to one solution; roll a new seed until one is.
       for (let tries = 0; ; tries++) {
@@ -1053,12 +1110,12 @@ button:disabled { opacity: 0.45; cursor: default; }
     }
     path = []; won = false; elapsed = 0; startTime = null;
     celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
-    hintsUsed = mode === 'daily' ? store.get('dailyhints:' + today() + ':' + dailyId, 0) : 0;
+    hintsUsed = mode === 'daily' ? store.get(hintsKey(), store.get('dailyhints:' + dayOf() + ':' + dailyId, 0)) : 0;
     clearInterval(timerId); timerId = null;
     $('label').textContent = modeLabel();
     bestInfo = null;
     renderLadder();
-    const saved = mode === 'daily' && store.get(dailyKey(), null);
+    const saved = mode === 'daily' && dayTime(dayOf(), dailyId);
     closeGate();
     buildBoard();
     if (saved) { path = puz.solution.slice(); won = true; elapsed = saved; }
@@ -1274,7 +1331,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   const endlessDiff = () => { const d = ENDLESS.find((x) => x.n === puz.n) || ENDLESS[0]; return `${t(d.id)} ${puz.n}×${puz.n}`; };
   function modeLabel() {
     if (mode === 'learn') return t('how_to_play');
-    if (mode === 'daily') return today();
+    if (mode === 'daily') return dayOf();
     if (mode === 'endless') return t('endless_label', { run: endless.run, best: endless.best, diff: endlessDiff() });
     return ladderLabel();
   }
@@ -1311,7 +1368,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     const what = mode === 'daily' ? t(daily().id) : t('world_level_short', { world: worldName(pos.w), level: pos.l, total: WORLD_LEVELS });
     // After replaying a level of the unfinished world, Next goes back to the level still to solve.
     const nextL = pos && (!pos.current && inFrontier() ? frontierLevel() : pos.l % WORLD_LEVELS + 1);
-    let nextLabel = pos ? t('level', { level: nextL }) : next ? t('play_x', { label: t(next.id) }) : t('play_ladder');
+    let nextLabel = pos ? t('level', { level: nextL }) : next ? t('play_x', { label: t(next.id) }) : archiveDate ? t('archive_more') : t('play_ladder');
     let title = t('solved'), soon = '';
     if (worldDone) {
       const last = pos.w === WORLDS.length - 1;
@@ -1332,7 +1389,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     wrap.appendChild(div);
   }
 
-  const shareWhich = () => mode === 'daily' ? t('share_daily', { date: today(), label: t(daily().id) }) : mode === 'endless' ? t('share_endless', { n: endless.run }) : t('share_ladder', { world: worldName(ladderPos().w), level: ladderPos().l, total: WORLD_LEVELS });
+  const shareWhich = () => mode === 'daily' ? t('share_daily', { date: dayOf(), label: t(daily().id) }) : mode === 'endless' ? t('share_endless', { n: endless.run }) : t('share_ladder', { world: worldName(ladderPos().w), level: ladderPos().l, total: WORLD_LEVELS });
   const shareHints = () => !hintsUsed ? t('hints_none') : hintsUsed === 1 ? t('hints_one') : t('hints_many', { n: hintsUsed });
   function shareText() {
     return `ZipZapZop ${shareWhich()}\n⚡ ${t('share_line', { time: fmt(elapsed), hints: shareHints() })}`;
@@ -1465,7 +1522,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     const i = DAILY.findIndex((d) => d.id === dailyId);
     for (let k = 1; k < DAILY.length; k++) {
       const d = DAILY[(i + k) % DAILY.length];
-      if (store.get(dailyKey(d.id), null) == null) return d;
+      if (dayTime(dayOf(), d.id) == null) return d;
     }
     return null;
   }
@@ -1493,6 +1550,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     else {
       const d = nextDaily();
       if (d) { dailyId = d.id; store.set('dailyDiff', dailyId); }
+      else if (archiveDate) { openArchive(); return; }
       else { mode = 'ladder'; store.set('mode', mode); }
     }
     load();
@@ -1572,11 +1630,11 @@ button:disabled { opacity: 0.45; cursor: default; }
       if (mode === 'learn') { if (lesson === LESSONS.length - 1) store.set('tutorialDone', true); }
       else if (window.zzzArmReminder) window.zzzArmReminder();
       if (mode === 'daily') {
-        store.set(dailyKey(), elapsed); store.set('dailyhints:' + today() + ':' + dailyId, hintsUsed); buildSizes();
+        store.set(dailyKey(), elapsed); store.set(hintsKey(), hintsUsed); buildSizes();
         showStreak(); if (typeof pushStreak === 'function') pushStreak();
         const bridge = window.ZipZapZopAndroid;
-        if (!nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
-        if (bridge && bridge.dailySolved) bridge.dailySolved();
+        if (!archiveDate && !nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
+        if (!archiveDate && bridge && bridge.dailySolved) bridge.dailySolved();
       }
       if (mode === 'endless') {
         // The next seed is picked now, so leaving and coming back can't count the same puzzle twice.
@@ -1591,8 +1649,9 @@ button:disabled { opacity: 0.45; cursor: default; }
         if (prev == null || elapsed < prev) store.set(key, elapsed);
         bestInfo = prev == null ? null : { best: Math.min(prev, elapsed), isNew: elapsed < prev };
       }
-      if (mode !== 'learn') gamesSync(mode === 'ladder' && ladderPos().current ? level : 0);
-      if (mode === 'daily' || mode === 'ladder') gamesSolved();
+      // Archive solves stay off Play Games: no achievements, leaderboard times or Game Stats.
+      if (mode !== 'learn' && !archiveDate) gamesSync(mode === 'ladder' && ladderPos().current ? level : 0);
+      if ((mode === 'daily' && !archiveDate) || mode === 'ladder') gamesSolved();
     }
   }
 
@@ -1866,7 +1925,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     b.textContent = t('tap_again'); b.classList.add('confirm'); toast(t('skip_confirm'));
     skipArmed = setTimeout(disarmSkip, 2500);
   };
-  $('mode-daily').onclick = () => { mode = 'daily'; store.set('mode', mode); load(); };
+  $('mode-daily').onclick = () => { mode = 'daily'; archiveDate = null; store.set('mode', mode); load(); };
   $('mode-learn').onclick = () => { mode = 'learn'; lesson = 0; store.set('lesson', 0); store.set('mode', mode); load(); };
   $('mode-ladder').onclick = () => { mode = 'ladder'; store.set('mode', mode); load(); };
   $('mode-endless').onclick = () => { mode = 'endless'; store.set('mode', mode); load(); };
@@ -1889,6 +1948,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (!sheet.hidden) { closeA11y(); return 'handled'; }
     if (!streakSheet.hidden) { closeStreak(); return 'handled'; }
     if (!levelsSheet.hidden) { closeLevels(); return 'handled'; }
+    if (!archiveSheet.hidden) { closeArchive(); return 'handled'; }
     const box = wrap.querySelector('.toast.box'); // the share text shown for copying by hand
     if (box) { box.remove(); return 'handled'; }
     if (Date.now() - backArmedAt < BACK_EXIT_MS) return 'exit';
@@ -1910,6 +1970,68 @@ button:disabled { opacity: 0.45; cursor: default; }
   sheet.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', () => { a11y[r.name] = r.value; saveA11y(); }));
   $('opt-contrast').onchange = (e) => { a11y.contrast = e.target.checked; saveA11y(); };
   $('opt-large').onchange = (e) => { a11y.large = e.target.checked; saveA11y(); };
+
+  // Daily archive: a month calendar of past days from ARCHIVE_START to yesterday. A dot per difficulty solved
+  // that day (live or from the archive); picking a day plays its Dailies. Today goes back to the live Daily.
+  const archiveSheet = $('archive');
+  const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const parseDay = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const longDate = (s) => { try { return parseDay(s).toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'long' }); } catch (_) { return s; } };
+  let calMonth = null; // first day of the month on show
+  function renderArchive() {
+    const start = parseDay(ARCHIVE_START), now = today(), y = calMonth.getFullYear(), m = calMonth.getMonth();
+    const first = new Date(y, m, 1), days = new Date(y, m + 1, 0).getDate();
+    $('cal-month').textContent = first.toLocaleDateString(lang, { month: 'long', year: 'numeric' });
+    $('cal-prev').disabled = first <= new Date(start.getFullYear(), start.getMonth(), 1);
+    $('cal-next').disabled = ymd(new Date(y, m + 1, 1)) > now;
+    const grid = $('cal-grid');
+    let h = '';
+    for (let k = 0; k < 7; k++) h += `<span class="wd" aria-hidden="true">${new Date(2024, 0, 1 + k).toLocaleDateString(lang, { weekday: 'narrow' })}</span>`; // 2024-01-01 was a Monday
+    for (let k = 0; k < (first.getDay() + 6) % 7; k++) h += '<span></span>';
+    let solved = 0, total = 0;
+    for (let d = 1; d <= days; d++) {
+      const s = ymd(new Date(y, m, d)), open = s >= ARCHIVE_START && s <= now, isToday = s === now;
+      const on = DAILY.map((x) => dayTime(s, x.id) != null), n = on.filter(Boolean).length;
+      if (open && !isToday) { total += DAILY.length; solved += n; }
+      const label = t('archive_day_aria', { date: longDate(s), n }) + (isToday ? ', ' + t('today_mark') : '');
+      h += `<button data-d="${s}" class="${(n === DAILY.length ? 'full ' : '') + (isToday ? 'today' : '')}"${open ? '' : ' disabled'}${s === archiveDate ? ' aria-current="date"' : ''} aria-label="${label}">${d}`
+        + (open ? `<span class="dots" aria-hidden="true">${on.map((v) => `<i${v ? ' class="on"' : ''}></i>`).join('')}</span>` : '') + '</button>';
+    }
+    grid.innerHTML = h;
+    $('cal-count').textContent = total ? t('archive_count', { n: solved, total }) : '';
+    grid.querySelectorAll('button:not(:disabled)').forEach((b) => { b.onclick = () => pickArchiveDay(b.dataset.d); });
+  }
+  function openArchive() {
+    const d = parseDay(archiveDate || today());
+    calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    renderArchive();
+    archiveSheet.hidden = false;
+    ($('cal-grid').querySelector('[aria-current]') || $('cal-grid').querySelector('.today') || $('archive-close')).focus();
+  }
+  function closeArchive() { archiveSheet.hidden = true; const b = $('archive-open'); if (b) b.focus(); }
+  function pickArchiveDay(s) {
+    saveLine();
+    archiveDate = s === today() ? null : s;
+    const left = DAILY.find((x) => dayTime(s, x.id) == null);
+    if (left) { dailyId = left.id; store.set('dailyDiff', dailyId); }
+    mode = 'daily'; store.set('mode', mode);
+    archiveSheet.hidden = true;
+    if (archiveDate) track('archive_open', { date: s });
+    load();
+  }
+  $('archive-close').onclick = closeArchive;
+  $('archive-today').onclick = () => { archiveDate = null; load(); };
+  $('cal-prev').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderArchive(); };
+  $('cal-next').onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderArchive(); };
+  archiveSheet.addEventListener('click', (e) => { if (e.target === archiveSheet) closeArchive(); });
+  archiveSheet.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeArchive(); }
+    if (e.key === 'Tab') {
+      const f = [...archiveSheet.querySelectorAll('button:not(:disabled)')], first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   // Daily reminder: only in the Android app, which schedules a local notification.
   const bridge = window.ZipZapZopAndroid;
@@ -2017,7 +2139,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (dailyStreaks(days).best >= 7) unlock('week_streak');
     if (dates.some((d) => days[d].has('hard') && store.get('dailyhints:' + d + ':hard', null) === 0)) unlock('unassisted');
     if (done > 0) bridge.gamesScore('ladder', done);
-    DAILY.forEach((d) => { const ms = store.get(dailyKey(d.id), null); if (ms != null) bridge.gamesScore('daily_' + d.id, ms); });
+    DAILY.forEach((d) => { const ms = store.get('daily:' + today() + ':' + d.id, null); if (ms != null) bridge.gamesScore('daily_' + d.id, ms); });
     // Game Stats progression: Ladder levels solved, sent once a session and whenever it goes up.
     if (done !== statsProgress) { statsProgress = done; gamesEvent('progressUpdate', { currentProgress: done }); }
   }
@@ -2171,6 +2293,8 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('lesson-text').innerHTML = t(LESSONS[lesson].text);
     }
     $('label').textContent = modeLabel();
+    if (archiveDate) $('archive-day').textContent = longDate(archiveDate);
+    if (!archiveSheet.hidden) renderArchive();
     renderLadder();
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
     if (window.zzzGamesState && lastGamesState) window.zzzGamesState(lastGamesState);
