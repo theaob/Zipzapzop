@@ -267,6 +267,38 @@ button:disabled { opacity: 0.45; cursor: default; }
 :root[data-text="large"] body { font-size: 17px; }
 .head-actions { display: flex; gap: 8px; align-items: center; }
 .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+/* Daily streak: a pill in the header, and a sheet with this week's days and the streak freeze. */
+.brand { flex: 1 1 auto; }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.streak-btn { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 38px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 700 0.95rem var(--body); font-variant-numeric: tabular-nums; cursor: pointer; position: relative; }
+.streak-btn .flame { width: 18px; height: 18px; }
+.streak-btn.off .flame { opacity: 0.35; filter: grayscale(1); }
+.streak-btn.todo { border-color: var(--spark-a); }
+.streak-btn .ice { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; background: #dff1ff; color: #1b6fb8; font-size: 11px; line-height: 1; border: 1px solid var(--panel); }
+.streak-btn .ice[hidden] { display: none; }
+.streak-hero { display: flex; align-items: center; gap: 14px; }
+.streak-hero .flame { width: 48px; height: 48px; flex: none; }
+.streak-hero.off .flame { opacity: 0.35; filter: grayscale(1); }
+.streak-hero b { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.streak-hero span { color: var(--muted); font-size: 0.9rem; }
+.streak-hero small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+.streak-note { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+.week-title { display: block; margin-bottom: 8px; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; margin: 0; padding: 0; list-style: none; }
+.week li { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 0.75rem; font-weight: 600; }
+.week i { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-size: 1rem; background: var(--bg); border: 1px solid var(--line); }
+.week .done i { background: linear-gradient(135deg, var(--spark-a), var(--spark-b)); border-color: transparent; color: #fff; }
+.week .frozen i { background: #dff1ff; border-color: #9ccbf0; color: #1b6fb8; }
+.week .today i { box-shadow: 0 0 0 2px var(--ink); }
+.week .today { color: var(--ink); }
+.freeze { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--bg); }
+.freeze .ice { width: 34px; height: 34px; flex: none; border-radius: 999px; display: grid; place-items: center; background: #dff1ff; color: #1b6fb8; font-size: 1.1rem; }
+.freeze.used .ice { opacity: 0.45; }
+.freeze b { display: block; }
+.freeze p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.streak-play { height: 44px; border-radius: 12px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.95rem var(--body); cursor: pointer; }
+.streak-play[hidden] { display: none; }
+.win .streak-line { color: var(--ink); font-weight: 600; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .sheet {
   position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
@@ -343,8 +375,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 <div class="wrap">
   <header>
-    <div>
-      <h1>Zip<span>Zap</span>Zop</h1>
+    <div class="brand">
+      <div class="title-row"><h1>Zip<span>Zap</span>Zop</h1>
+        <button class="streak-btn off" id="streak-open" aria-haspopup="dialog"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="flameA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color: var(--spark-b)"/><stop offset="1" style="stop-color: var(--spark-a)"/></linearGradient></defs><path fill="url(#flameA)" d="M12 2c.6 3.2 2.4 4.9 4 6.6 1.7 1.8 3 3.7 3 6.4A7 7 0 0 1 5 15c0-2.3 1-4.1 2.4-5.4.2 1.6.9 2.8 2 3.4C9 9 10.2 5.3 12 2z"/></svg><span id="streak-n">0</span><span class="ice" id="streak-ice" aria-hidden="true" hidden>❄</span></button>
+      </div>
       <div class="tag" data-i18n="tag">One line. Every cell. Numbers in order.</div>
     </div>
     <div class="head-actions">
@@ -395,6 +429,17 @@ button:disabled { opacity: 0.45; cursor: default; }
 <div class="map" id="levels" role="dialog" aria-modal="true" aria-labelledby="levels-title" hidden>
   <div class="map-head"><div><h2 id="levels-title" data-i18n="ladder">Ladder</h2><p id="levels-sub"></p></div><button id="levels-close" data-i18n="done">Done</button></div>
   <div class="map-scroll" id="map-scroll"></div>
+</div>
+
+<div class="sheet" id="streak" role="dialog" aria-modal="true" aria-labelledby="streak-title" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="streak-title" data-i18n="streak_title">Daily streak</h2><button id="streak-close" data-i18n="done">Done</button></div>
+    <div class="streak-hero" id="streak-hero"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="flameB" x1="0" y1="1" x2="0" y2="0"><stop offset="0" style="stop-color: var(--spark-b)"/><stop offset="1" style="stop-color: var(--spark-a)"/></linearGradient></defs><path fill="url(#flameB)" d="M12 2c.6 3.2 2.4 4.9 4 6.6 1.7 1.8 3 3.7 3 6.4A7 7 0 0 1 5 15c0-2.3 1-4.1 2.4-5.4.2 1.6.9 2.8 2 3.4C9 9 10.2 5.3 12 2z"/></svg><div><b id="streak-big">0</b> <span id="streak-unit"></span><small id="streak-best"></small></div></div>
+    <p class="streak-note" id="streak-note"></p>
+    <div><b class="week-title" data-i18n="streak_week">This week</b><ul class="week" id="streak-week"></ul></div>
+    <div class="freeze" id="freeze"><span class="ice" aria-hidden="true">❄</span><div><b data-i18n="freeze">Streak freeze</b><p id="freeze-desc"></p></div></div>
+    <button class="streak-play" id="streak-play" data-i18n="play_today">Play today's puzzle</button>
+  </div>
 </div>
 
 <div class="sheet" id="a11y" role="dialog" aria-modal="true" aria-labelledby="a11y-title" hidden>
@@ -994,6 +1039,59 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
     return 'en';
   }
+  const STREAK_STRINGS = {
+    en: {
+      streak_title: 'Daily streak', streak_n: '{n}-day streak', streak_unit: 'days in a row', streak_unit_one: 'day in a row', streak_best: 'Best: {n}',
+      streak_done: "Today's done. Solve a Daily tomorrow to keep it going.", streak_todo: 'Solve any Daily today to keep your streak.',
+      streak_frozen: 'Your freeze covered yesterday. Solve a Daily today to keep your streak.', streak_none: 'Solve a Daily to start a streak.',
+      streak_week: 'This week', freeze: 'Streak freeze', freeze_ready: 'Ready. If you miss a single day this week, it keeps your streak going.',
+      freeze_used: 'Used this week. You get a new one on Monday.', freeze_saved: 'Your streak freeze saved your streak.',
+      day_solved: 'solved', day_frozen: 'covered by freeze', day_missed: 'not solved',
+    },
+    tr: {
+      streak_title: 'Günlük seri', streak_n: '{n} günlük seri', streak_unit: 'gün üst üste', streak_best: 'En iyi: {n}',
+      streak_done: 'Bugünkü tamam. Seriyi sürdürmek için yarın bir Günlük bulmaca çöz.', streak_todo: 'Serini korumak için bugün bir Günlük bulmaca çöz.',
+      streak_frozen: 'Dünü seri dondurucun korudu. Serini korumak için bugün bir Günlük bulmaca çöz.', streak_none: 'Seri başlatmak için bir Günlük bulmaca çöz.',
+      streak_week: 'Bu hafta', freeze: 'Seri dondurucu', freeze_ready: 'Hazır. Bu hafta tek bir gün kaçırırsan serin bozulmaz.',
+      freeze_used: 'Bu hafta kullanıldı. Pazartesi yenisi gelir.', freeze_saved: 'Seri dondurucun serini kurtardı.',
+      day_solved: 'çözüldü', day_frozen: 'dondurucuyla korundu', day_missed: 'çözülmedi',
+    },
+    es: {
+      streak_title: 'Racha diaria', streak_n: 'Racha de {n} días', streak_n_one: 'Racha de 1 día', streak_unit: 'días seguidos', streak_unit_one: 'día seguido', streak_best: 'Mejor: {n}',
+      streak_done: 'Hoy ya está. Resuelve un diario mañana para seguir.', streak_todo: 'Resuelve cualquier diario hoy para mantener tu racha.',
+      streak_frozen: 'Tu congelador cubrió ayer. Resuelve un diario hoy para mantener tu racha.', streak_none: 'Resuelve un diario para empezar una racha.',
+      streak_week: 'Esta semana', freeze: 'Congelador de racha', freeze_ready: 'Listo. Si te saltas un solo día esta semana, tu racha sigue.',
+      freeze_used: 'Usado esta semana. El lunes tendrás uno nuevo.', freeze_saved: 'Tu congelador ha salvado tu racha.',
+      day_solved: 'resuelto', day_frozen: 'cubierto por el congelador', day_missed: 'sin resolver',
+    },
+    de: {
+      streak_title: 'Tagesserie', streak_n: '{n}-Tage-Serie', streak_n_one: '1-Tag-Serie', streak_unit: 'Tage in Folge', streak_unit_one: 'Tag in Folge', streak_best: 'Bestwert: {n}',
+      streak_done: 'Heute erledigt. Löse morgen ein Tagesrätsel, um weiterzumachen.', streak_todo: 'Löse heute ein Tagesrätsel, um deine Serie zu halten.',
+      streak_frozen: 'Dein Serienschutz hat gestern abgedeckt. Löse heute ein Tagesrätsel, um deine Serie zu halten.', streak_none: 'Löse ein Tagesrätsel, um eine Serie zu starten.',
+      streak_week: 'Diese Woche', freeze: 'Serienschutz', freeze_ready: 'Bereit. Verpasst du diese Woche einen einzelnen Tag, bleibt deine Serie erhalten.',
+      freeze_used: 'Diese Woche verbraucht. Am Montag gibt es einen neuen.', freeze_saved: 'Dein Serienschutz hat deine Serie gerettet.',
+      day_solved: 'gelöst', day_frozen: 'durch Serienschutz abgedeckt', day_missed: 'nicht gelöst',
+    },
+    fr: {
+      streak_title: 'Série quotidienne', streak_n: 'Série de {n} jours', streak_n_one: 'Série de 1 jour', streak_unit: 'jours d’affilée', streak_unit_one: 'jour d’affilée', streak_best: 'Record : {n}',
+      streak_done: 'C’est fait pour aujourd’hui. Résolvez un puzzle du jour demain pour continuer.', streak_todo: 'Résolvez un puzzle du jour aujourd’hui pour garder votre série.',
+      streak_frozen: 'Votre gel a couvert hier. Résolvez un puzzle du jour aujourd’hui pour garder votre série.', streak_none: 'Résolvez un puzzle du jour pour lancer une série.',
+      streak_week: 'Cette semaine', freeze: 'Gel de série', freeze_ready: 'Prêt. Si vous manquez un seul jour cette semaine, votre série continue.',
+      freeze_used: 'Utilisé cette semaine. Un nouveau arrive lundi.', freeze_saved: 'Votre gel de série a sauvé votre série.',
+      day_solved: 'résolu', day_frozen: 'couvert par le gel', day_missed: 'non résolu',
+    },
+    pt: {
+      streak_title: 'Sequência diária', streak_n: 'Sequência de {n} dias', streak_n_one: 'Sequência de 1 dia', streak_unit: 'dias seguidos', streak_unit_one: 'dia seguido', streak_best: 'Recorde: {n}',
+      streak_done: 'Hoje está feito. Resolva um diário amanhã para continuar.', streak_todo: 'Resolva qualquer diário hoje para manter sua sequência.',
+      streak_frozen: 'Seu congelamento cobriu ontem. Resolva um diário hoje para manter sua sequência.', streak_none: 'Resolva um diário para começar uma sequência.',
+      streak_week: 'Esta semana', freeze: 'Congelamento de sequência', freeze_ready: 'Pronto. Se você perder um único dia nesta semana, sua sequência continua.',
+      freeze_used: 'Usado nesta semana. Você ganha um novo na segunda-feira.', freeze_saved: 'Seu congelamento salvou sua sequência.',
+      day_solved: 'resolvido', day_frozen: 'coberto pelo congelamento', day_missed: 'não resolvido',
+    },
+  };
+  for (const l in STREAK_STRINGS) Object.assign(STRINGS[l], STREAK_STRINGS[l]);
+  // Counted text: uses key_one for 1 where a language has it.
+  const tn = (key, n) => t(n === 1 && STRINGS[lang] && STRINGS[lang][key + '_one'] ? key + '_one' : key, { n });
   function t(key, vars) {
     let str = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
     if (vars) str = str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
@@ -1398,6 +1496,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       div.classList.add('world-done');
     }
     const best = bestInfo ? ' · ' + (bestInfo.isNew ? t('new_best') : t('best', { time: fmt(bestInfo.best) })) : '';
+    if (mode === 'daily') {
+      const st = streakInfo();
+      if (st.current) soon += `<p class="streak-line">🔥 ${tn('streak_n', st.current)}${st.frozen.has(st.T - 1) ? ' · ❄ ' + t('freeze_saved') : ''}</p>`;
+    }
     div.innerHTML = `<div><h2>${title}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}${best}</p>${soon}</div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
     div.querySelector('.next').onclick = nextPuzzle;
     div.querySelector('.share').onclick = share;
@@ -1646,10 +1748,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       else if (window.zzzArmReminder) window.zzzArmReminder();
       if (mode === 'daily') {
         store.set(dailyKey(), elapsed); store.set('dailyhints:' + today() + ':' + dailyId, hintsUsed); buildSizes();
+        showStreak(); if (typeof pushStreak === 'function') pushStreak();
         const bridge = window.ZipZapZopAndroid;
         if (!nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
         if (bridge && bridge.dailySolved) bridge.dailySolved();
-        pushStreak();
       }
       if (mode === 'endless') {
         // The next seed is picked now, so leaving and coming back can't count the same puzzle twice.
@@ -1960,6 +2062,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   let backArmedAt = 0;
   window.zzzBack = () => {
     if (!sheet.hidden) { closeA11y(); return 'handled'; }
+    if (!streakSheet.hidden) { closeStreak(); return 'handled'; }
     if (!levelsSheet.hidden) { closeLevels(); return 'handled'; }
     const box = wrap.querySelector('.toast.box'); // the share text shown for copying by hand
     if (box) { box.remove(); return 'handled'; }
@@ -2015,7 +2118,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('opt-reminder-auto').closest('.switch').hidden = $('opt-reminder-streak').closest('.switch').hidden = !smartReminder;
     if (smartReminder) bridge.setReminderOptions(reminder.auto, reminder.streak);
     syncReminderUi();
-    pushStreak();
     $('opt-reminder').onchange = (e) => { reminder.on = e.target.checked; saveReminder(); };
     $('opt-reminder-auto').onchange = (e) => { reminder.auto = e.target.checked; saveReminder(); };
     $('opt-reminder-streak').onchange = (e) => { reminder.streak = e.target.checked; saveReminder(); };
@@ -2094,35 +2196,103 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     // Game Stats progression: Ladder levels solved, sent once a session and whenever it goes up.
     if (done !== statsProgress) { statsProgress = done; gamesEvent('progressUpdate', { currentProgress: done }); }
   }
-  // Days in a row with a Daily solved: the longest run, and the run that ends today (0 if today isn't solved yet).
-  function dailyStreaks(days) {
+  // Daily streak: days in a row with a Daily solved on its own day (archive solves are stored elsewhere and
+  // never count). Each Monday-to-Sunday week has one streak freeze: a single missed day is covered if its
+  // week's freeze is unused. A covered day keeps the run going but doesn't add to it. Everything is worked
+  // out from the saved solves, so the shown streak, the Week streak achievement and the dailyStreak stat agree.
+  const dayNum = (d) => Date.parse(d + 'T00:00:00Z') / 864e5;
+  const dayStr = (n) => new Date(n * 864e5).toISOString().slice(0, 10);
+  const weekOf = (n) => Math.floor((n + 3) / 7); // weeks start on Monday (day 0, 1970-01-01, was a Thursday)
+  function streakInfo(days) {
+    const T = dayNum(today()), used = new Set(), frozen = new Set();
     let run = 0, best = 0, prev = null;
-    for (const d of Object.keys(days).sort()) {
-      const n = Date.parse(d + 'T00:00:00Z') / 864e5;
-      run = prev !== null && n === prev + 1 ? run + 1 : 1; prev = n; best = Math.max(best, run);
+    for (const d of Object.keys(days || dailyDays()).sort()) {
+      const n = dayNum(d);
+      if (n > T) continue; // the clock went back
+      if (prev !== null && n === prev + 1) run++;
+      else if (prev !== null && n === prev + 2 && !used.has(weekOf(prev + 1))) { used.add(weekOf(prev + 1)); frozen.add(prev + 1); run++; }
+      else run = 1;
+      prev = n; best = Math.max(best, run);
     }
-    return { best, current: prev === Date.parse(today() + 'T00:00:00Z') / 864e5 ? run : 0 };
+    let current = 0, through = prev;
+    if (prev !== null && prev >= T - 1) current = run;
+    else if (prev === T - 2 && !used.has(weekOf(T - 1))) { current = run; used.add(weekOf(T - 1)); frozen.add(T - 1); through = T - 1; }
+    return {
+      current, best,
+      today: prev === T, // solved a Daily today
+      aliveThrough: current ? dayStr(through) : null, // last day the streak is alive through, solved or frozen
+      freezeReady: !used.has(weekOf(T)), // this week's freeze is still unused
+      frozen, used, T,
+    };
   }
-  // Streak freeze seam: true if missing `day` ('YYYY-MM-DD') would be bridged by a streak freeze, so the
-  // evening nudge isn't needed. No freezes yet; the streak freeze work fills this in.
-  function streakFreezeCovers(day) { return false; }
+  function dailyStreaks(days) { const s = streakInfo(days); return { best: s.best, current: s.current }; }
+  // True when missing `day` ('YYYY-MM-DD') would be covered by a freeze: the streak is alive through the day
+  // before, and that day's week still has its freeze.
+  function streakFreezeCovers(day) {
+    const s = streakInfo(), n = dayNum(day);
+    return s.current > 0 && dayNum(s.aliveThrough) === n - 1 && !s.used.has(weekOf(n));
+  }
+  const streakSheet = $('streak');
+  function showStreak() {
+    const s = streakInfo(), btn = $('streak-open');
+    $('streak-n').textContent = s.current;
+    btn.classList.toggle('off', !s.current);
+    btn.classList.toggle('todo', s.current > 0 && !s.today);
+    $('streak-ice').hidden = !s.freezeReady || !s.current;
+    btn.setAttribute('aria-label', tn('streak_n', s.current) + (s.freezeReady ? ', ' + t('freeze') : ''));
+    if (!streakSheet.hidden) fillStreak(s);
+    return s;
+  }
+  function fillStreak(s) {
+    $('streak-hero').classList.toggle('off', !s.current);
+    $('streak-big').textContent = s.current;
+    $('streak-unit').textContent = tn('streak_unit', s.current);
+    $('streak-best').textContent = s.best ? t('streak_best', { n: s.best }) : '';
+    $('streak-note').textContent = t(s.today ? 'streak_done' : !s.current ? 'streak_none' : s.frozen.has(s.T - 1) ? 'streak_frozen' : 'streak_todo');
+    const days = dailyDays(), mon = s.T - ((s.T + 3) % 7), fmtDay = new Intl.DateTimeFormat(lang, { weekday: 'narrow', timeZone: 'UTC' });
+    const long = new Intl.DateTimeFormat(lang, { weekday: 'long', timeZone: 'UTC' });
+    let h = '';
+    for (let n = mon; n < mon + 7; n++) {
+      const done = !!days[dayStr(n)], fr = s.frozen.has(n), d = new Date(n * 864e5);
+      const cls = (done ? 'done' : fr ? 'frozen' : '') + (n === s.T ? ' today' : '');
+      const state = done ? t('day_solved') : fr ? t('day_frozen') : n < s.T ? t('day_missed') : '';
+      h += `<li class="${cls}" aria-label="${long.format(d)}${state ? ', ' + state : ''}"><i aria-hidden="true">${done ? '✓' : fr ? '❄' : ''}</i><span aria-hidden="true">${fmtDay.format(d)}</span></li>`;
+    }
+    $('streak-week').innerHTML = h;
+    $('freeze').classList.toggle('used', !s.freezeReady);
+    $('freeze-desc').textContent = t(s.freezeReady ? 'freeze_ready' : 'freeze_used');
+    $('streak-play').hidden = s.today;
+  }
+  function openStreak() { streakSheet.hidden = false; fillStreak(showStreak()); $('streak-close').focus(); }
+  function closeStreak() { streakSheet.hidden = true; $('streak-open').focus(); }
+  $('streak-open').onclick = openStreak;
+  $('streak-close').onclick = closeStreak;
+  $('streak-play').onclick = () => { closeStreak(); mode = 'daily'; store.set('mode', mode);
+    if (store.get(dailyKey(), null) != null && nextDaily()) dailyId = nextDaily().id; // the open difficulty is done: go to one that isn't
+    load();
+  };
+  streakSheet.addEventListener('click', (e) => { if (e.target === streakSheet) closeStreak(); });
+  streakSheet.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeStreak(); }
+    if (e.key === 'Tab') {
+      const f = [...streakSheet.querySelectorAll('button:not([hidden])')], first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  // A new day can start while the app sits in the background.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) showStreak(); });
+  showStreak();
+  pushStreak(); // after the streak helpers above exist; the reminder setup runs earlier
   // Tells Android which day the streak ends on unless a Daily is solved (the day after the last day it's
-  // alive through), how long it is, and whether a freeze would cover that day. Sent at launch and after
-  // each Daily solve, so the evening nudge only fires on a day that would really break the streak.
+  // alive through, solved or frozen), how long it is, and whether a freeze would cover that day. Sent at
+  // launch and after each Daily solve, so the evening nudge only fires on a day that would break the streak.
   function pushStreak() {
     const b = window.ZipZapZopAndroid;
     if (!b || !b.streakState) return;
-    const dates = Object.keys(dailyDays()).sort();
-    const dayNum = (d) => Date.parse(d + 'T00:00:00Z') / 864e5;
-    const dayStr = (n) => new Date(n * 864e5).toISOString().slice(0, 10);
-    const last = dates.length ? dayNum(dates[dates.length - 1]) : null, now = dayNum(today());
-    let run = 0;
-    if (last !== null && now - last <= 1) { // alive through `last`: solved today or yesterday
-      run = 1;
-      for (let i = dates.length - 2; i >= 0 && dayNum(dates[i]) === last - run; i--) run++;
-    }
-    const risk = run ? dayStr(last + 1) : '';
-    b.streakState(risk, run, !!risk && streakFreezeCovers(risk));
+    const s = streakInfo();
+    const risk = s.current && s.aliveThrough ? dayStr(dayNum(s.aliveThrough) + 1) : '';
+    b.streakState(risk, s.current, !!risk && streakFreezeCovers(risk));
   }
   // Game Stats (Play Games profile): one event per Daily or Ladder solve, with the values for that solve only;
   // Play Games adds them up. Endless (a purchase) and Learn (the tutorial) are left out, as Game Stats rules require.
@@ -2179,14 +2349,14 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     renderLadder();
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
     if (window.zzzGamesState && lastGamesState) window.zzzGamesState(lastGamesState);
-    hintLabel(); showEnergy(); disarmSkip();
+    hintLabel(); showEnergy(); disarmSkip(); showStreak();
     const card = wrap.querySelector('.win');
     if (card) { card.remove(); if (card.classList.contains('lock')) showEndlessLock(); else if (card.classList.contains('gate')) showGate(); else showWin(); }
     applyA11y();
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-09 · fea863a';
+  const WEB_BUILD = '2026-11-09 · f85e6df';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
