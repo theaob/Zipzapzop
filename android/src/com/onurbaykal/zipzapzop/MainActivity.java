@@ -229,7 +229,7 @@ public class MainActivity extends Activity {
             onUi(new Runnable() { @Override public void run() { telemetry.pageError(message); } });
         }
 
-        // Google Play Games: sign-in state, achievements, leaderboard scores and Play Games' own screens.
+        // Google Play Games: sign-in state, achievements, leaderboard scores, Game Stats events and Play Games' own screens.
         @JavascriptInterface
         public String gamesState() { return gamesState; }
 
@@ -246,6 +246,11 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void gamesScore(final String key, final double score) {
             onUi(new Runnable() { @Override public void run() { games.submitScore(key, (long) score); } });
+        }
+
+        @JavascriptInterface
+        public void gamesEvent(final String name, final String propsJson) {
+            onUi(new Runnable() { @Override public void run() { games.recordEvent(name, propsJson); } });
         }
 
         @JavascriptInterface

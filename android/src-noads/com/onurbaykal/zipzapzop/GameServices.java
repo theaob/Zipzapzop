@@ -11,6 +11,7 @@ final class GameServices {
     String stateJson() { return "{\"available\":false,\"signedIn\":false}"; }
     void unlock(String key) {}
     void submitScore(String key, long score) {}
+    void recordEvent(String name, String propsJson) {}
     void showAchievements() {}
     void showLeaderboards() {}
 }
