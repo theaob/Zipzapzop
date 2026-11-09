@@ -1,11 +1,13 @@
 package com.onurbaykal.zipzapzop;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.games.AuthenticationResult;
 import com.google.android.gms.games.GameStatsClient;
 import com.google.android.gms.games.PlayGames;
@@ -33,6 +35,8 @@ final class GameServices {
     private boolean signedIn;
     private boolean launched; // the launch check has run in this activity
     private boolean busy;     // a sign-in check or prompt is in flight
+    private boolean failed;   // the last sign-in or Play Games screen didn't open; the page says so
+    private Runnable afterSignIn; // a Play Games screen the player asked for while signed out
 
     GameServices(Activity activity, Runnable onChange) {
         this.activity = activity;
@@ -54,7 +58,12 @@ final class GameServices {
         PlayGames.getGamesSignInClient(activity).isAuthenticated().addOnCompleteListener(activity, t -> {
             busy = false;
             update(t, "isAuthenticated");
-            if (first && !signedIn && mayPromptAtLaunch()) prompt(true);
+            Runnable next = afterSignIn;
+            if (next != null) { // the player tapped Achievements or Leaderboards while this check ran
+                afterSignIn = null;
+                if (signedIn) next.run();
+                else { afterSignIn = next; prompt(false); }
+            } else if (first && !signedIn && mayPromptAtLaunch()) prompt(true);
         });
     }
 
@@ -70,6 +79,9 @@ final class GameServices {
             update(t, "signIn");
             if (atLaunch && !signedIn) prefs.edit().putLong(PREF_DISMISSED, System.currentTimeMillis()).apply();
             if (signedIn) prefs.edit().remove(PREF_DISMISSED).apply();
+            Runnable next = afterSignIn;
+            afterSignIn = null;
+            if (signedIn && next != null) next.run();
         });
     }
 
@@ -84,6 +96,7 @@ final class GameServices {
     // Android credential in the Play Games project.
     private void update(Task<AuthenticationResult> t, String what) {
         signedIn = t.isSuccessful() && t.getResult() != null && t.getResult().isAuthenticated();
+        failed = !t.isSuccessful();
         if (!t.isSuccessful()) {
             Exception e = t.getException();
             String code = e instanceof ApiException ? " (status " + ((ApiException) e).getStatusCode() + ")" : "";
@@ -95,7 +108,7 @@ final class GameServices {
     }
 
     String stateJson() {
-        return "{\"available\":" + available + ",\"signedIn\":" + signedIn + "}";
+        return "{\"available\":" + available + ",\"signedIn\":" + signedIn + ",\"failed\":" + failed + "}";
     }
 
     // key: the achievement's resource name without "achievement_", e.g. "meadow_complete".
@@ -133,16 +146,44 @@ final class GameServices {
         }
     }
 
+    // Achievements and Leaderboards in Settings work signed out too: they sign the player in first, then open.
     void showAchievements() {
-        if (signedIn) show(PlayGames.getAchievementsClient(activity).getAchievementsIntent());
+        whenSignedIn(() -> show(PlayGames.getAchievementsClient(activity).getAchievementsIntent(), "achievements"));
     }
 
     void showLeaderboards() {
-        if (signedIn) show(PlayGames.getLeaderboardsClient(activity).getAllLeaderboardsIntent());
+        whenSignedIn(() -> show(PlayGames.getLeaderboardsClient(activity).getAllLeaderboardsIntent(), "leaderboards"));
     }
 
-    private void show(Task<Intent> task) {
-        task.addOnSuccessListener(activity, intent -> activity.startActivityForResult(intent, REQ_UI));
+    private void whenSignedIn(Runnable open) {
+        if (!available) return;
+        if (signedIn) { open.run(); return; }
+        afterSignIn = open;
+        if (!busy) prompt(false);
+    }
+
+    private void show(Task<Intent> task, String what) {
+        task.addOnCompleteListener(activity, t -> {
+            if (t.isSuccessful() && t.getResult() != null) {
+                try {
+                    activity.startActivityForResult(t.getResult(), REQ_UI);
+                    if (failed) { failed = false; onChange.run(); }
+                    return;
+                } catch (ActivityNotFoundException e) {
+                    Log.w(TAG, what + ": no Play Games screen on this device", e);
+                }
+            } else {
+                Exception e = t.getException();
+                String code = e instanceof ApiException ? " (status " + ((ApiException) e).getStatusCode() + ")" : "";
+                Log.w(TAG, what + " failed" + code, e);
+                // A sign-in that has lapsed shows up here first; the next tap signs in again.
+                if (e instanceof ApiException && ((ApiException) e).getStatusCode() == CommonStatusCodes.SIGN_IN_REQUIRED) {
+                    signedIn = false;
+                }
+            }
+            failed = true;
+            onChange.run();
+        });
     }
 
     @SuppressWarnings("DiscouragedApi") // the IDs are looked up by name: which ones exist depends on the export
