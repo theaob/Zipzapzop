@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -41,7 +40,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lockPhonePortrait();
         web = new WebView(this);
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setBackgroundColor(getResources().getColor(R.color.bg));
@@ -113,17 +111,6 @@ public class MainActivity extends Activity {
             @Override
             public void run() { handleBack(); }
         });
-    }
-
-    // Portrait on a phone's own screen. On an Android Auto car screen (another display, landscape or portrait) and on
-    // tablets the page lays itself out for any shape, and Android Auto rejects games pillarboxed on landscape screens.
-    // Moving to another display recreates the activity, so this runs again there.
-    @SuppressWarnings("deprecation") // getDefaultDisplay(): Activity.getDisplay() needs API 30, the local SDK is 23
-    private void lockPhonePortrait() {
-        boolean ownScreen = getWindowManager().getDefaultDisplay().getDisplayId() == Display.DEFAULT_DISPLAY;
-        boolean phone = getResources().getConfiguration().smallestScreenWidthDp < 600;
-        setRequestedOrientation(ownScreen && phone
-            ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     // Back goes to the page first: it closes Settings, or asks for a second press before exiting.

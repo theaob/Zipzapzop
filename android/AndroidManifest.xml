@@ -29,8 +29,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode">
-            <!-- No screenOrientation lock here: MainActivity keeps phones in portrait, while car screens and tablets
-                 get any shape. Android Auto: CAR_LAUNCHER plus appCategory="game" puts the game on the car screen,
+            <!-- No screenOrientation lock: phones, tablets and car screens all rotate freely, and the page lays itself
+                 out for portrait or landscape (configChanges keeps the game running through a rotation). Android Auto: CAR_LAUNCHER plus appCategory="game" puts the game on the car screen,
                  parked only (Android 15+ phones). Never add distractionOptimized metadata: that is what keeps
                  Android Auto from showing the game while the car moves. -->
             <intent-filter>
