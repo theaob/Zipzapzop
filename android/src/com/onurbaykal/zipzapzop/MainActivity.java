@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -35,11 +34,12 @@ public class MainActivity extends Activity {
     private GameServices games;
     private volatile String gamesState;
     private BackHandler back;
+    private FrameLayout bannerHost;
+    private volatile int bannerHeight; // dp, 0 when there is no banner; read by the page when it (re)loads
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lockPhonePortrait();
         web = new WebView(this);
         web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setBackgroundColor(getResources().getColor(R.color.bg));
@@ -63,6 +63,10 @@ public class MainActivity extends Activity {
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(getResources().getColor(R.color.bg));
         root.addView(web);
+        // The banner ad floats over the game in a slot the page keeps free under the board's buttons (see placeBanner).
+        bannerHost = new FrameLayout(this);
+        bannerHost.setVisibility(View.GONE);
+        root.addView(bannerHost, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, android.view.Gravity.TOP));
         root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
@@ -84,6 +88,16 @@ public class MainActivity extends Activity {
             }
         });
         adsState = money.stateJson();
+        // No banner on an Android Auto car screen: only the phone's own display gets one.
+        if (getWindowManager().getDefaultDisplay().getDisplayId() == Display.DEFAULT_DISPLAY) {
+            money.attachBanner(bannerHost, new Monetization.BannerListener() {
+                @Override
+                public void bannerReady(int heightDp) {
+                    bannerHeight = heightDp;
+                    web.evaluateJavascript("window.zzzBanner && window.zzzBanner(" + heightDp + ")", null);
+                }
+            });
+        }
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl("file:///android_asset/index.html");
         Reminder.schedule(this); // alarms are dropped when the app is force-stopped
@@ -97,17 +111,6 @@ public class MainActivity extends Activity {
             @Override
             public void run() { handleBack(); }
         });
-    }
-
-    // Portrait on a phone's own screen. On an Android Auto car screen (another display, landscape or portrait) and on
-    // tablets the page lays itself out for any shape, and Android Auto rejects games pillarboxed on landscape screens.
-    // Moving to another display recreates the activity, so this runs again there.
-    @SuppressWarnings("deprecation") // getDefaultDisplay(): Activity.getDisplay() needs API 30, the local SDK is 23
-    private void lockPhonePortrait() {
-        boolean ownScreen = getWindowManager().getDefaultDisplay().getDisplayId() == Display.DEFAULT_DISPLAY;
-        boolean phone = getResources().getConfiguration().smallestScreenWidthDp < 600;
-        setRequestedOrientation(ownScreen && phone
-            ? ActivityInfo.SCREEN_ORIENTATION_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     // Back goes to the page first: it closes Settings, or asks for a second press before exiting.
@@ -206,6 +209,25 @@ public class MainActivity extends Activity {
             // Only known purposes, since it is echoed back into JavaScript.
             if (!"hint".equals(purpose) && !"energy".equals(purpose)) return;
             onUi(new Runnable() { @Override public void run() { money.watchRewardedAd(purpose); } });
+        }
+
+        @JavascriptInterface
+        public int bannerHeight() { return bannerHeight; }
+
+        // The page reports how much room it has for a banner under the board, in CSS pixels (= dp); 0 for none.
+        @JavascriptInterface
+        public void sizeBanner(final int width, final int maxHeight) {
+            onUi(new Runnable() { @Override public void run() { money.sizeBanner(width, maxHeight); } });
+        }
+
+        // The page reports where its banner slot is, in CSS pixels from the top of the game, or that it has none
+        // right now (Learn, a sheet open, the slot scrolled away).
+        @JavascriptInterface
+        public void placeBanner(final boolean visible, final double top) {
+            onUi(new Runnable() { @Override public void run() {
+                bannerHost.setTranslationY((float) (top * getResources().getDisplayMetrics().density));
+                money.setBannerWanted(visible);
+            } });
         }
 
         @JavascriptInterface
