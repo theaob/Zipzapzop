@@ -6,7 +6,7 @@ import android.app.Activity;
 final class GameServices {
     GameServices(Activity activity, Runnable onChange) {}
 
-    void start() {}
+    void onResume() {}
     void signIn() {}
     String stateJson() { return "{\"available\":false,\"signedIn\":false}"; }
     void unlock(String key) {}
