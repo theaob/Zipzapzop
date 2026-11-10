@@ -405,7 +405,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media (max-width: 340px) { .tabbar svg { padding-inline: 10px; } .head-actions { gap: 6px; } }
 /* Landscape screens (car displays in Android Auto, tablets, laptops): the board fills the height on the right,
    with the title, mode, info and controls in a column beside it. */
-@media (orientation: landscape) and (min-width: 640px) {
+@media (orientation: landscape) and (min-width: 640px), (min-aspect-ratio: 3/2) {
   body { padding-block: 12px; }
   .wrap {
     --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 900px);
@@ -423,6 +423,33 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap > .ad-slot { grid-column: 1; grid-row: 4; align-self: center; margin: 0; }
   .wrap > .tabbar { position: static; grid-column: 1; grid-row: 5; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
+}
+/* Short, wide screens (Android Auto car displays, small phones on their side): tighter spacing and a narrower
+   side column so the whole board fits the height. */
+@media (min-aspect-ratio: 3/2) and (max-height: 440px) {
+  body { padding-block: 8px; }
+  .wrap { --board: min(calc(100dvh - 16px), calc(100vw - 32px - 16px - 220px), 900px);
+    grid-template-columns: minmax(220px, 340px) var(--board); column-gap: 16px; row-gap: 8px; }
+  h1 { font-size: 1.7rem; }
+  .streak-btn { height: 32px; font-size: 0.85rem; padding: 0 10px 0 8px; }
+  .sizes { gap: 4px; }
+  .sizes button { height: 30px; padding: 0 9px; min-width: 36px; font-size: 0.8rem; }
+  .sizes button.cal { min-width: 30px; padding: 0 6px; }
+  .bar { row-gap: 4px; }
+  .meta { font-size: 0.8rem; }
+  .ladder { gap: 5px; padding: 6px 10px; }
+  .ladder-name { font-size: 1rem; }
+  .ladder-top { gap: 10px; }
+  .ladder-name { flex: none; }
+  .ladder .pill { height: 28px; padding: 0 9px; }
+  /* Icon only; the label stays for screen readers. */
+  .ladder .pill span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ladder-sub { font-size: 0.75rem; flex-wrap: wrap; row-gap: 0; white-space: nowrap; }
+  .wrap > .tabbar { border-radius: 14px; padding: 2px; }
+  .tabbar button { min-height: 40px; padding: 3px 2px 2px; gap: 1px; font-size: 0.68rem; border-radius: 12px; }
+  .tabbar svg { width: 20px; height: 20px; padding: 2px 10px; }
+  .controls { gap: 6px; }
+  .controls button { height: 36px; min-width: 0; font-size: 0.85rem; }
 }
 </style>
 
@@ -1299,7 +1326,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Tells the app how much room there is under the board's buttons (to just above the tab bar), so the banner can be as
   // tall as fits: at least 50px, at most 250px. In landscape it goes in the left column above the tab bar. Measured in the current mode; Learn keeps the last size.
-  const LANDSCAPE = matchMedia('(orientation: landscape) and (min-width: 640px)');
+  const LANDSCAPE = matchMedia('(orientation: landscape) and (min-width: 640px), (min-aspect-ratio: 3/2)');
   function sizeBanner() {
     const app = window.ZipZapZopAndroid;
     if (!app || !app.sizeBanner || mode === 'learn') return;
@@ -2596,7 +2623,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-09 · c8cb909';
+  const WEB_BUILD = '2026-11-10 · e773dca';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
