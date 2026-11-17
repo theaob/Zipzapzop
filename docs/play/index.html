@@ -460,6 +460,12 @@ button:disabled { opacity: 0.45; cursor: default; }
   .tabbar svg { width: 20px; height: 20px; padding: 2px 10px; }
   .controls { gap: 6px; }
   .controls button { height: 36px; min-width: 0; font-size: 0.85rem; }
+  /* The solved card in the side column: compact, so it fits above the tab bar. */
+  .result .win { padding: 8px 12px; gap: 4px 8px; border-radius: 12px; }
+  .result .win h2 { font-size: 1.05rem; }
+  .result .win p { font-size: 0.75rem; margin: 0; }
+  .result .win .actions { flex: 1 1 100%; }
+  .result .win button { flex: 1 1 0; height: 32px; padding: 0 8px; font-size: 0.8rem; border-radius: 8px; }
 }
 </style>
 
@@ -2708,7 +2714,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-17 · 6821c8c';
+  const WEB_BUILD = '2026-11-17 · 639c778';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
