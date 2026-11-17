@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// AdMob rewarded ads for extra hints and Ladder energy (only when the player asks for one), an inline adaptive banner under
+// AdMob rewarded ads for extra hints, Ladder energy and older Daily archive weeks (only when the player asks for one), an inline adaptive banner under
 // the logo (not in Learn, not for Remove ads buyers), Google's
 // consent flow (UMP), and two one-time Play purchases: "remove_ads" and "endless" (unlocks Endless mode).
 // Every callback that touches state runs on the main thread.
@@ -58,7 +58,7 @@ final class Monetization {
     private final AtomicBoolean adsStarted = new AtomicBoolean(false);
     private BillingClient billing;
     private final Map<String, ProductDetails> products = new HashMap<>();
-    // One rewarded ad unit per purpose, so AdMob reports hint and energy ads separately.
+    // One rewarded ad unit per purpose, so AdMob reports hint, energy and archive ads separately.
     private final Map<String, RewardedAd> rewarded = new HashMap<>();
     private final Set<String> loadingRewarded = new HashSet<>();
     private String message;
@@ -108,10 +108,12 @@ final class Monetization {
     }
 
     private static String unitFor(String purpose) {
-        return "energy".equals(purpose) ? BuildConfig.ADMOB_REWARDED_ENERGY : BuildConfig.ADMOB_REWARDED_HINT;
+        if ("energy".equals(purpose)) return BuildConfig.ADMOB_REWARDED_ENERGY;
+        if ("archive".equals(purpose)) return BuildConfig.ADMOB_REWARDED_ARCHIVE;
+        return BuildConfig.ADMOB_REWARDED_HINT;
     }
 
-    private void loadAllRewarded() { loadRewarded("hint"); loadRewarded("energy"); }
+    private void loadAllRewarded() { loadRewarded("hint"); loadRewarded("energy"); loadRewarded("archive"); }
 
     private void loadRewarded(final String purpose) {
         if (loadingRewarded.contains(purpose) || rewarded.containsKey(purpose) || adsRemoved() || !consent.canRequestAds()) return;
@@ -126,7 +128,7 @@ final class Monetization {
             });
     }
 
-    // The player chose to watch an ad for a reward (`purpose`: "hint" or "energy"). Reports "reward",
+    // The player chose to watch an ad for a reward (`purpose`: "hint", "energy" or "archive"). Reports "reward",
     // "closed" (left before the reward) or "unavailable" (no ad loaded yet, offline, or no consent to request ads).
     void watchRewardedAd(final String purpose) {
         RewardedAd ad = rewarded.remove(purpose);

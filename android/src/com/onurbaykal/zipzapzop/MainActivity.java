@@ -229,7 +229,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void watchRewardedAd(final String purpose) {
             // Only known purposes, since it is echoed back into JavaScript.
-            if (!"hint".equals(purpose) && !"energy".equals(purpose)) return;
+            if (!"hint".equals(purpose) && !"energy".equals(purpose) && !"archive".equals(purpose)) return;
             onUi(new Runnable() { @Override public void run() { money.watchRewardedAd(purpose); } });
         }
 

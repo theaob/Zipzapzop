@@ -108,6 +108,18 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 0.8rem; margin-top: -6px; }
 .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .cal-legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+/* Locked archive days (Android app with ads): dimmed with a lock; the unlock row sits under the calendar. */
+.cal-grid button.locked { background: transparent; border-style: dashed; color: var(--muted); }
+.cal-grid button.locked .lk { width: 11px; height: 11px; fill: currentColor; }
+.cal-unlock { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+.cal-unlock[hidden] { display: none; }
+.cal-unlock p { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+.cal-unlock .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cal-unlock button { flex: 1 1 auto; height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.88rem var(--body); cursor: pointer; white-space: nowrap; }
+.cal-unlock button.share { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.cal-unlock button:disabled { opacity: 0.5; cursor: default; }
+.cal-unlock.nudge #cal-ad { animation: calNudge 0.5s ease 2; }
+@keyframes calNudge { 50% { transform: scale(1.05); } }
 .meta { display: flex; gap: 14px; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); font-weight: 600; }
 .board-wrap { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1; }
@@ -528,6 +540,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     <div class="cal-nav"><button id="cal-prev" aria-label="Previous month" data-i18n-aria="prev_month">‹</button><div><b id="cal-month"></b><small id="cal-count"></small></div><button id="cal-next" aria-label="Next month" data-i18n-aria="next_month">›</button></div>
     <div class="cal-grid" id="cal-grid"></div>
     <div class="cal-legend"><span><i aria-hidden="true"></i><span data-i18n="cal_legend">One dot per difficulty solved</span></span></div>
+    <div class="cal-unlock" id="cal-unlock" hidden><p id="cal-unlock-text"></p><div class="actions"><button id="cal-buy" class="share"></button><button id="cal-ad"></button></div></div>
   </div>
 </div>
 
@@ -689,7 +702,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Remove ads', remove_ads_price: 'Remove ads · {price}', ads_desc: 'One purchase removes the banner and unlocks unlimited hints and energy, with no ads to watch.',
       ads_off: 'Ads are off. Thanks for supporting ZipZapZop!', restore: 'Restore purchase', privacy: 'Privacy choices', privacy_policy: 'Privacy policy', terms: 'Terms of service',
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
-      easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved', archive: 'Archive', archive_open: 'Past Daily puzzles', archive_desc: "Play the Daily puzzles you missed. They don't count toward your streak or the leaderboards.", back_today: 'Back to today', archive_more: 'Pick another day', archive_count: '{n} of {total} solved', prev_month: 'Previous month', next_month: 'Next month', cal_legend: 'One dot per difficulty solved', today_mark: 'today', archive_day_aria: '{date}, {n} of 3 solved', link_after_tutorial: 'Finish the quick tutorial, then the shared puzzle opens.',
+      easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved', archive: 'Archive', archive_open: 'Past Daily puzzles', archive_desc: "Play the Daily puzzles you missed. They don't count toward your streak or the leaderboards.", back_today: 'Back to today', archive_more: 'Pick another day', archive_count: '{n} of {total} solved', prev_month: 'Previous month', next_month: 'Next month', cal_legend: 'One dot per difficulty solved', today_mark: 'today', archive_day_aria: '{date}, {n} of 3 solved', link_after_tutorial: 'Finish the quick tutorial, then the shared puzzle opens.', archive_free: 'The last {n} days are free. Watch an ad to unlock {k} more, or remove ads to unlock the whole archive.', archive_unlock: 'Watch ad · +{k} days', archive_unlocked: 'Unlocked {k} more days.', archive_gate_title: 'Locked puzzle', archive_gate_more: 'Ads needed for this day: {n}', archive_lock_aria: 'locked',
       lesson1: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.',
       lesson2: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. You can let go any time and carry on from the end of the line.',
       lesson3: "Thick bars are <b>walls</b>. Your line can't cross them.",
@@ -736,7 +749,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Reklamları kaldır', remove_ads_price: 'Reklamları kaldır · {price}', ads_desc: 'Tek seferlik satın alma, banner reklamı kaldırır ve reklam izlemeden sınırsız ipucu ve enerji açar.',
       ads_off: 'Reklamlar kapalı. ZipZapZop\'u desteklediğiniz için teşekkürler!', restore: 'Satın almayı geri yükle', privacy: 'Gizlilik seçenekleri', privacy_policy: 'Gizlilik politikası', terms: 'Kullanım koşulları',
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
-      easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü', archive: 'Arşiv', archive_open: 'Geçmiş günlük bulmacalar', archive_desc: 'Kaçırdığın günlük bulmacaları oyna. Serine ve sıralamalara sayılmazlar.', back_today: 'Bugüne dön', archive_more: 'Başka bir gün seç', archive_count: '{total} bulmacadan {n} çözüldü', prev_month: 'Önceki ay', next_month: 'Sonraki ay', cal_legend: 'Çözülen her zorluk için bir nokta', today_mark: 'bugün', archive_day_aria: '{date}, 3 bulmacadan {n} çözüldü', link_after_tutorial: 'Kısa eğitimi bitir, ardından paylaşılan bulmaca açılacak.',
+      easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü', archive: 'Arşiv', archive_open: 'Geçmiş günlük bulmacalar', archive_desc: 'Kaçırdığın günlük bulmacaları oyna. Serine ve sıralamalara sayılmazlar.', back_today: 'Bugüne dön', archive_more: 'Başka bir gün seç', archive_count: '{total} bulmacadan {n} çözüldü', prev_month: 'Önceki ay', next_month: 'Sonraki ay', cal_legend: 'Çözülen her zorluk için bir nokta', today_mark: 'bugün', archive_day_aria: '{date}, 3 bulmacadan {n} çözüldü', link_after_tutorial: 'Kısa eğitimi bitir, ardından paylaşılan bulmaca açılacak.', archive_free: 'Son {n} gün ücretsiz. {k} gün daha açmak için reklam izle ya da reklamları kaldırıp tüm arşivi aç.', archive_unlock: 'Reklam izle · +{k} gün', archive_unlocked: '{k} gün daha açıldı.', archive_gate_title: 'Kilitli bulmaca', archive_gate_more: 'Bu günü açmak için gereken reklam: {n}', archive_lock_aria: 'kilitli',
       lesson1: '<b>1</b>\'den <b>2</b>\'ye sürükleyin, ama yol boyunca <b>her kareden</b> geçin. Noktalar doldurulmamış kareleri gösterir.',
       lesson2: 'Sayılardan <b>sırayla</b> geçin: önce 1, sonra 2, sonra 3. Parmağınızı istediğiniz an kaldırıp çizginin ucundan devam edebilirsiniz.',
       lesson3: 'Kalın çubuklar <b>duvardır</b>. Çizginiz onları geçemez.',
@@ -783,7 +796,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Quitar anuncios', remove_ads_price: 'Quitar anuncios · {price}', ads_desc: 'Una sola compra quita el banner y desbloquea pistas y energía ilimitadas, sin ver anuncios.',
       ads_off: 'Anuncios desactivados. ¡Gracias por apoyar ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opciones de privacidad', privacy_policy: 'Política de privacidad', terms: 'Términos del servicio',
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
-      easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto', archive: 'Archivo', archive_open: 'Retos diarios anteriores', archive_desc: 'Juega los retos diarios que te perdiste. No cuentan para tu racha ni para las clasificaciones.', back_today: 'Volver a hoy', archive_more: 'Elegir otro día', archive_count: '{n} de {total} resueltos', prev_month: 'Mes anterior', next_month: 'Mes siguiente', cal_legend: 'Un punto por cada dificultad resuelta', today_mark: 'hoy', archive_day_aria: '{date}, {n} de 3 resueltos', link_after_tutorial: 'Termina el tutorial rápido y se abrirá el puzle compartido.',
+      easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto', archive: 'Archivo', archive_open: 'Retos diarios anteriores', archive_desc: 'Juega los retos diarios que te perdiste. No cuentan para tu racha ni para las clasificaciones.', back_today: 'Volver a hoy', archive_more: 'Elegir otro día', archive_count: '{n} de {total} resueltos', prev_month: 'Mes anterior', next_month: 'Mes siguiente', cal_legend: 'Un punto por cada dificultad resuelta', today_mark: 'hoy', archive_day_aria: '{date}, {n} de 3 resueltos', link_after_tutorial: 'Termina el tutorial rápido y se abrirá el puzle compartido.', archive_free: 'Los últimos {n} días son gratis. Mira un anuncio para desbloquear {k} más, o quita los anuncios para desbloquear todo el archivo.', archive_unlock: 'Ver anuncio · +{k} días', archive_unlocked: 'Se desbloquearon {k} días más.', archive_gate_title: 'Puzle bloqueado', archive_gate_more: 'Anuncios necesarios para este día: {n}', archive_lock_aria: 'bloqueado',
       lesson1: 'Arrastra del <b>1</b> al <b>2</b>, pero pasa por <b>todas las casillas</b>. Los puntos marcan las casillas que faltan.',
       lesson2: 'Pasa por los números <b>en orden</b>: 1, luego 2, luego 3. Puedes soltar cuando quieras y seguir desde el extremo de la línea.',
       lesson3: 'Las barras gruesas son <b>muros</b>. Tu línea no puede cruzarlos.',
@@ -830,7 +843,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Werbung entfernen', remove_ads_price: 'Werbung entfernen · {price}', ads_desc: 'Ein einmaliger Kauf entfernt das Werbebanner und schaltet unbegrenzte Tipps und Energie frei, ganz ohne Werbung.',
       ads_off: 'Werbung ist aus. Danke, dass du ZipZapZop unterstützt!', restore: 'Kauf wiederherstellen', privacy: 'Datenschutzoptionen', privacy_policy: 'Datenschutzerklärung', terms: 'Nutzungsbedingungen',
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
-      easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst', archive: 'Archiv', archive_open: 'Frühere Tagesrätsel', archive_desc: 'Spiele die Tagesrätsel, die du verpasst hast. Sie zählen nicht für deine Serie oder die Bestenlisten.', back_today: 'Zurück zu heute', archive_more: 'Anderen Tag wählen', archive_count: '{n} von {total} gelöst', prev_month: 'Vorheriger Monat', next_month: 'Nächster Monat', cal_legend: 'Ein Punkt pro gelöster Schwierigkeit', today_mark: 'heute', archive_day_aria: '{date}, {n} von 3 gelöst', link_after_tutorial: 'Beende die kurze Einführung, dann öffnet sich das geteilte Rätsel.',
+      easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst', archive: 'Archiv', archive_open: 'Frühere Tagesrätsel', archive_desc: 'Spiele die Tagesrätsel, die du verpasst hast. Sie zählen nicht für deine Serie oder die Bestenlisten.', back_today: 'Zurück zu heute', archive_more: 'Anderen Tag wählen', archive_count: '{n} von {total} gelöst', prev_month: 'Vorheriger Monat', next_month: 'Nächster Monat', cal_legend: 'Ein Punkt pro gelöster Schwierigkeit', today_mark: 'heute', archive_day_aria: '{date}, {n} von 3 gelöst', link_after_tutorial: 'Beende die kurze Einführung, dann öffnet sich das geteilte Rätsel.', archive_free: 'Die letzten {n} Tage sind kostenlos. Sieh dir eine Werbung an, um {k} weitere freizuschalten, oder entferne die Werbung, um das ganze Archiv freizuschalten.', archive_unlock: 'Werbung ansehen · +{k} Tage', archive_unlocked: '{k} weitere Tage freigeschaltet.', archive_gate_title: 'Gesperrtes Rätsel', archive_gate_more: 'Benötigte Werbungen für diesen Tag: {n}', archive_lock_aria: 'gesperrt',
       lesson1: 'Ziehe von <b>1</b> nach <b>2</b>, aber durch <b>jedes Feld</b>. Die Punkte zeigen Felder, die noch fehlen.',
       lesson2: 'Erreiche die Zahlen <b>der Reihe nach</b>: 1, dann 2, dann 3. Du kannst jederzeit loslassen und am Ende der Linie weitermachen.',
       lesson3: 'Dicke Balken sind <b>Wände</b>. Deine Linie kann sie nicht überqueren.',
@@ -877,7 +890,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Supprimer les pubs', remove_ads_price: 'Supprimer les pubs · {price}', ads_desc: 'Un seul achat retire la bannière et débloque indices et énergie illimités, sans regarder de pubs.',
       ads_off: 'Pubs désactivées. Merci de soutenir ZipZapZop !', restore: 'Restaurer l\'achat', privacy: 'Choix de confidentialité', privacy_policy: 'Politique de confidentialité', terms: 'Conditions d\'utilisation',
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
-      easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu', archive: 'Archives', archive_open: 'Défis du jour passés', archive_desc: 'Jouez aux défis du jour que vous avez manqués. Ils ne comptent ni pour votre série ni pour les classements.', back_today: 'Revenir à aujourd\'hui', archive_more: 'Choisir un autre jour', archive_count: '{n} sur {total} résolus', prev_month: 'Mois précédent', next_month: 'Mois suivant', cal_legend: 'Un point par difficulté résolue', today_mark: 'aujourd\'hui', archive_day_aria: '{date}, {n} sur 3 résolus', link_after_tutorial: 'Terminez le court tutoriel, puis le puzzle partagé s\'ouvrira.',
+      easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu', archive: 'Archives', archive_open: 'Défis du jour passés', archive_desc: 'Jouez aux défis du jour que vous avez manqués. Ils ne comptent ni pour votre série ni pour les classements.', back_today: 'Revenir à aujourd\'hui', archive_more: 'Choisir un autre jour', archive_count: '{n} sur {total} résolus', prev_month: 'Mois précédent', next_month: 'Mois suivant', cal_legend: 'Un point par difficulté résolue', today_mark: 'aujourd\'hui', archive_day_aria: '{date}, {n} sur 3 résolus', link_after_tutorial: 'Terminez le court tutoriel, puis le puzzle partagé s\'ouvrira.', archive_free: 'Les {n} derniers jours sont gratuits. Regardez une pub pour en débloquer {k} de plus, ou supprimez les pubs pour débloquer toutes les archives.', archive_unlock: 'Voir une pub · +{k} jours', archive_unlocked: '{k} jours de plus débloqués.', archive_gate_title: 'Puzzle verrouillé', archive_gate_more: 'Pubs nécessaires pour ce jour : {n}', archive_lock_aria: 'verrouillé',
       lesson1: 'Allez du <b>1</b> au <b>2</b>, en passant par <b>toutes les cases</b>. Les points marquent les cases restantes.',
       lesson2: 'Passez par les nombres <b>dans l\'ordre</b> : 1, puis 2, puis 3. Vous pouvez lâcher à tout moment et reprendre au bout de la ligne.',
       lesson3: 'Les barres épaisses sont des <b>murs</b>. Votre ligne ne peut pas les traverser.',
@@ -924,7 +937,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       remove_ads: 'Remover anúncios', remove_ads_price: 'Remover anúncios · {price}', ads_desc: 'Uma única compra remove o banner e libera dicas e energia ilimitadas, sem assistir anúncios.',
       ads_off: 'Anúncios desativados. Obrigado por apoiar o ZipZapZop!', restore: 'Restaurar compra', privacy: 'Opções de privacidade', privacy_policy: 'Política de privacidade', terms: 'Termos de serviço',
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
-      easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido', archive: 'Arquivo', archive_open: 'Desafios diários anteriores', archive_desc: 'Jogue os desafios diários que você perdeu. Eles não contam para sua sequência nem para os placares.', back_today: 'Voltar para hoje', archive_more: 'Escolher outro dia', archive_count: '{n} de {total} resolvidos', prev_month: 'Mês anterior', next_month: 'Próximo mês', cal_legend: 'Um ponto por dificuldade resolvida', today_mark: 'hoje', archive_day_aria: '{date}, {n} de 3 resolvidos', link_after_tutorial: 'Termine o tutorial rápido e o quebra-cabeça compartilhado vai abrir.',
+      easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido', archive: 'Arquivo', archive_open: 'Desafios diários anteriores', archive_desc: 'Jogue os desafios diários que você perdeu. Eles não contam para sua sequência nem para os placares.', back_today: 'Voltar para hoje', archive_more: 'Escolher outro dia', archive_count: '{n} de {total} resolvidos', prev_month: 'Mês anterior', next_month: 'Próximo mês', cal_legend: 'Um ponto por dificuldade resolvida', today_mark: 'hoje', archive_day_aria: '{date}, {n} de 3 resolvidos', link_after_tutorial: 'Termine o tutorial rápido e o quebra-cabeça compartilhado vai abrir.', archive_free: 'Os últimos {n} dias são grátis. Assista a um anúncio para liberar mais {k}, ou remova os anúncios para liberar todo o arquivo.', archive_unlock: 'Assistir anúncio · +{k} dias', archive_unlocked: 'Mais {k} dias liberados.', archive_gate_title: 'Quebra-cabeça bloqueado', archive_gate_more: 'Anúncios necessários para este dia: {n}', archive_lock_aria: 'bloqueado',
       lesson1: 'Arraste do <b>1</b> ao <b>2</b>, passando por <b>todas as casas</b>. Os pontos marcam as casas que faltam.',
       lesson2: 'Passe pelos números <b>em ordem</b>: 1, depois 2, depois 3. Você pode soltar a qualquer momento e continuar da ponta da linha.',
       lesson3: 'Barras grossas são <b>paredes</b>. Sua linha não pode atravessá-las.',
@@ -1248,6 +1261,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     else restoreLine();
     render();
     if (endlessLocked()) showEndlessLock();
+    else if (archiveLocked()) showArchiveGate();
     else if (!payLadderLevel()) showGate();
     showEnergy();
   }
@@ -2066,7 +2080,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     div.querySelector('.next').focus();
   }
 
-  // Rewarded ads, for an extra hint or for energy. The app answers through zzzRewardedAd.
+  // Rewarded ads, for an extra hint, for energy or for another week of the Daily archive. The app answers through zzzRewardedAd.
   let adPending = false;
   function watchAd(purpose) {
     if (adPending) return;
@@ -2082,6 +2096,10 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (result === 'unavailable') toast(t('ad_unavailable'));
     if (purpose === 'hint') { if (result === 'reward') hint(); hintLabel(); }
     else if (purpose === 'energy' && result === 'reward') { addEnergy(ENERGY_AD); if (wrap.querySelector('.gate')) load(); else showEnergy(); }
+    else if (purpose === 'archive') {
+      if (result === 'reward') { unlockArchiveWeek(); if (wrap.querySelector('.agate')) load(); }
+      if (!archiveSheet.hidden) renderArchive();
+    }
   };
 
   $('undo').onclick = undo;
@@ -2178,15 +2196,77 @@ button:disabled { opacity: 0.45; cursor: default; }
     let solved = 0, total = 0;
     for (let d = 1; d <= days; d++) {
       const s = ymd(new Date(y, m, d)), open = s >= ARCHIVE_START && s <= now, isToday = s === now;
+      const locked = open && !isToday && !archiveDayOpen(s);
       const on = DAILY.map((x) => dayTime(s, x.id) != null), n = on.filter(Boolean).length;
       if (open && !isToday) { total += DAILY.length; solved += n; }
-      const label = t('archive_day_aria', { date: longDate(s), n }) + (isToday ? ', ' + t('today_mark') : '');
-      h += `<button data-d="${s}" class="${(n === DAILY.length ? 'full ' : '') + (isToday ? 'today' : '')}"${open ? '' : ' disabled'}${s === archiveDate ? ' aria-current="date"' : ''} aria-label="${label}">${d}`
-        + (open ? `<span class="dots" aria-hidden="true">${on.map((v) => `<i${v ? ' class="on"' : ''}></i>`).join('')}</span>` : '') + '</button>';
+      const label = t('archive_day_aria', { date: longDate(s), n }) + (isToday ? ', ' + t('today_mark') : '') + (locked ? ', ' + t('archive_lock_aria') : '');
+      h += `<button data-d="${s}" class="${(n === DAILY.length ? 'full ' : '') + (isToday ? 'today' : '') + (locked ? 'locked' : '')}"${open ? '' : ' disabled'}${s === archiveDate ? ' aria-current="date"' : ''} aria-label="${label}">${d}`
+        + (locked ? LOCK_SVG : open ? `<span class="dots" aria-hidden="true">${on.map((v) => `<i${v ? ' class="on"' : ''}></i>`).join('')}</span>` : '') + '</button>';
     }
     grid.innerHTML = h;
     $('cal-count').textContent = total ? t('archive_count', { n: solved, total }) : '';
-    grid.querySelectorAll('button:not(:disabled)').forEach((b) => { b.onclick = () => pickArchiveDay(b.dataset.d); });
+    grid.querySelectorAll('button:not(:disabled)').forEach((b) => {
+      b.onclick = () => (b.classList.contains('locked') ? nudgeUnlock() : pickArchiveDay(b.dataset.d));
+    });
+    renderUnlock();
+  }
+  // Archive gate, only in the Android app with ads: the ARCHIVE_FREE days before today are free, each finished
+  // rewarded ad opens ARCHIVE_STEP more days further back, and Remove ads opens the whole archive. zap:archiveFrom
+  // keeps the earliest day an ad opened, so those days stay open as the free week moves on (every day from there
+  // to today is open). A day with a solve stays open too. The browser version and builds without ads have it all.
+  const ARCHIVE_FREE = 7, ARCHIVE_STEP = 7;
+  const LOCK_SVG = '<svg class="lk" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h6V8a3 3 0 0 0-6 0v2z"/></svg>';
+  const archiveMetered = () => !!lastAdsState && lastAdsState.available && !lastAdsState.adsRemoved;
+  const addDays = (s, k) => { const d = parseDay(s); d.setDate(d.getDate() + k); return ymd(d); };
+  const daysBetween = (a, b) => Math.round((parseDay(b) - parseDay(a)) / 86400000);
+  // Earliest open archive day.
+  function archiveFrom() {
+    const free = addDays(today(), -ARCHIVE_FREE), u = store.get('archiveFrom', null);
+    const f = typeof u === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(u) && u < free ? u : free;
+    return f < ARCHIVE_START ? ARCHIVE_START : f;
+  }
+  const archiveAllOpen = () => !archiveMetered() || archiveFrom() <= ARCHIVE_START;
+  const archiveDayOpen = (s) => s >= ARCHIVE_START && (!archiveMetered() || s >= archiveFrom() || DAILY.some((x) => dayTime(s, x.id) != null));
+  const archiveLocked = () => mode === 'daily' && !!archiveDate && !archiveDayOpen(archiveDate);
+  function unlockArchiveWeek() {
+    const from = archiveFrom(), next = addDays(from, -ARCHIVE_STEP), to = next < ARCHIVE_START ? ARCHIVE_START : next;
+    store.set('archiveFrom', to);
+    track('archive_unlock', { from: to });
+    if (archiveSheet.hidden) toast(t('archive_unlocked', { k: daysBetween(to, from) })); // the calendar shows it otherwise
+  }
+  function renderUnlock() {
+    const box = $('cal-unlock');
+    box.hidden = archiveAllOpen();
+    if (box.hidden) return;
+    const st = lastAdsState || {};
+    $('cal-unlock-text').textContent = t('archive_free', { n: ARCHIVE_FREE, k: ARCHIVE_STEP });
+    $('cal-ad').textContent = t('archive_unlock', { k: ARCHIVE_STEP });
+    $('cal-ad').disabled = adPending;
+    $('cal-buy').textContent = st.price ? t('remove_ads_price', { price: st.price }) : t('remove_ads');
+  }
+  function nudgeUnlock() {
+    const box = $('cal-unlock');
+    box.classList.remove('nudge'); void box.offsetWidth; box.classList.add('nudge');
+    $('cal-ad').focus();
+  }
+  $('cal-ad').onclick = () => { watchAd('archive'); renderUnlock(); };
+  $('cal-buy').onclick = () => { track('archive_buy_tap', {}); bridge.buyRemoveAds(); };
+  // A locked day on the board: a shared link to an older day, or an archive day on screen when the gate came on.
+  function showArchiveGate() {
+    closeGate();
+    $('board').inert = true;
+    for (const id of ['undo', 'hint', 'clear']) $(id).disabled = true;
+    const need = Math.ceil(daysBetween(archiveDate, archiveFrom()) / ARCHIVE_STEP);
+    const div = document.createElement('div');
+    div.className = 'win gate agate';
+    div.innerHTML = `<div><h2>${t('archive_gate_title')}</h2><p>${t('archive_free', { n: ARCHIVE_FREE, k: ARCHIVE_STEP })}</p>${need > 1 ? `<p>${t('archive_gate_more', { n: need })}</p>` : ''}</div>`
+      + `<div class="actions"><button class="share pick">${t('archive_more')}</button><button class="share buy">${t('remove_ads')}</button><button class="next">${t('archive_unlock', { k: ARCHIVE_STEP })}</button></div>`;
+    div.querySelector('.pick').onclick = openArchive;
+    div.querySelector('.buy').onclick = () => { track('archive_buy_tap', {}); bridge.buyRemoveAds(); };
+    div.querySelector('.next').onclick = () => watchAd('archive');
+    wrap.appendChild(div);
+    div.querySelector('.next').focus();
+    track('archive_locked', { date: archiveDate });
   }
   function openArchive() {
     const d = parseDay(archiveDate || today());
@@ -2299,10 +2379,17 @@ button:disabled { opacity: 0.45; cursor: default; }
       if (puz) {
         hintLabel(); showEnergy();
         const gate = wrap.querySelector('.gate');
-        // Reload when a gate no longer applies (energy came back, Endless was bought) or Endless just locked.
-        if (gate ? (gate.classList.contains('lock') ? !endlessLocked() : payLadderLevel()) : endlessLocked()) load();
+        // Reload when a gate no longer applies (energy came back, Endless was bought, ads were removed so the
+        // archive is open) or a lock now applies (Endless, an older archive day).
+        let reload;
+        if (!gate) reload = endlessLocked() || archiveLocked();
+        else if (gate.classList.contains('lock')) reload = !endlessLocked();
+        else if (gate.classList.contains('agate')) reload = !archiveLocked();
+        else reload = payLadderLevel();
+        if (reload) load();
         else if (gate && gate.classList.contains('lock')) showEndlessLock(); // price may have loaded
       }
+      if (!archiveSheet.hidden) renderArchive();
       if (!st || !st.available) { $('ads-opt').hidden = true; return; }
       $('ads-opt').hidden = false;
       const buy = $('ads-buy');
@@ -2514,7 +2601,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (window.zzzGamesState && lastGamesState) window.zzzGamesState(lastGamesState);
     hintLabel(); showEnergy(); disarmSkip(); showStreak();
     const card = cardEl();
-    if (card) { clearCards(); if (card.classList.contains('lock')) showEndlessLock(); else if (card.classList.contains('gate')) showGate(); else showWin(); }
+    if (card) { clearCards(); if (card.classList.contains('lock')) showEndlessLock(); else if (card.classList.contains('agate')) showArchiveGate(); else if (card.classList.contains('gate')) showGate(); else showWin(); }
     applyA11y();
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
