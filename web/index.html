@@ -72,6 +72,7 @@ h1 span { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -w
 .tabbar svg { width: 24px; height: 24px; padding: 3px 16px; box-sizing: content-box; border-radius: 999px; flex: none; }
 .tabbar button[aria-pressed="true"] { color: var(--ink); }
 .tabbar button[aria-pressed="true"] svg { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); color: #fff; }
+.tabbar button:disabled { opacity: 0.35; }
 .tabbar button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 :root[data-contrast="high"] .tabbar button[aria-pressed="true"] svg { background: var(--ink); color: var(--bg); }
 :root[data-contrast="high"] .tabbar button[aria-pressed="true"] span { text-decoration: underline; text-underline-offset: 3px; }
@@ -483,7 +484,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     <button id="undo" data-i18n="undo">Undo</button>
     <button id="hint">Hint</button>
     <button id="clear" data-i18n="clear">Clear</button>
-    <button id="new" class="primary" data-i18n="new_puzzle">New puzzle</button>
+    <button id="new" class="primary">Skip</button>
   </div>
 
   <div class="ad-slot" id="ad-slot" aria-hidden="true" hidden></div>
@@ -836,7 +837,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
       settings: 'Settings', settings_tab: 'Settings', learn_desc: 'Four short lessons on the rules.', done: 'Done', difficulty_group: 'Daily difficulty',
       board_label: 'Puzzle grid. Drag to draw, or use arrow keys from the head of the line.',
-      undo: 'Undo', hint: 'Hint', clear: 'Clear', tap_again: 'Tap again', new_puzzle: 'New puzzle',
+      undo: 'Undo', hint: 'Hint', clear: 'Clear', tap_again: 'Tap again', new_puzzle: 'New puzzle', skip_tutorial: 'Skip tutorial',
       language: 'Language', language_device: 'Device language',
       motion: 'Motion', motion_desc: 'Animations when the line reaches a number and when you finish a puzzle.',
       motion_note: 'Your device is set to reduce motion.', device: 'Device', on: 'On', off: 'Off',
@@ -849,7 +850,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Larger text and numbers', large_desc: 'Bigger labels, buttons and checkpoint numbers.',
       easy: 'Easy', medium: 'Medium', hard: 'Hard', solved_mark: 'solved', archive: 'Archive', archive_open: 'Past Daily puzzles', archive_desc: "Play the Daily puzzles you missed. They don't count toward your streak or the leaderboards.", back_today: 'Back to today', archive_more: 'Pick another day', archive_count: '{n} of {total} solved', prev_month: 'Previous month', next_month: 'Next month', cal_legend: 'One dot per difficulty solved', today_mark: 'today', archive_day_aria: '{date}, {n} of 3 solved', link_after_tutorial: 'Finish the quick tutorial, then the shared puzzle opens.',
       lesson1: 'Drag from <b>1</b> to <b>2</b>, but cover <b>every square</b> on the way. The dots mark squares still to fill.',
-      lesson2: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. If you let go, the line snaps back to the last number you reached.',
+      lesson2: 'Pass the numbers <b>in order</b>: 1, then 2, then 3. You can let go any time and carry on from the end of the line.',
       lesson3: "Thick bars are <b>walls</b>. Your line can't cross them.",
       lesson4: 'Now all together: numbers in order, around the walls, through every square.',
       lesson_step: 'Lesson {n} of {total}', how_to_play: 'How to play', level_size: 'Level {level} · {size}×{size}',
@@ -883,7 +884,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
       settings: 'Ayarlar', settings_tab: 'Ayarlar', learn_desc: 'Kurallar için dört kısa ders.', done: 'Tamam', difficulty_group: 'Günlük zorluk',
       board_label: 'Bulmaca ızgarası. Çizmek için sürükleyin veya çizginin ucundan ok tuşlarını kullanın.',
-      undo: 'Geri al', hint: 'İpucu', clear: 'Temizle', tap_again: 'Tekrar dokun', new_puzzle: 'Yeni bulmaca',
+      undo: 'Geri al', hint: 'İpucu', clear: 'Temizle', tap_again: 'Tekrar dokun', new_puzzle: 'Yeni bulmaca', skip_tutorial: 'Eğitimi geç',
       language: 'Dil', language_device: 'Cihaz dili',
       motion: 'Hareket', motion_desc: 'Çizgi bir sayıya ulaştığında ve bulmacayı bitirdiğinizde animasyonlar.',
       motion_note: 'Cihazınız hareketi azaltacak şekilde ayarlı.', device: 'Cihaz', on: 'Açık', off: 'Kapalı',
@@ -896,7 +897,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Daha büyük yazı ve sayılar', large_desc: 'Daha büyük etiketler, düğmeler ve kontrol noktası sayıları.',
       easy: 'Kolay', medium: 'Orta', hard: 'Zor', solved_mark: 'çözüldü', archive: 'Arşiv', archive_open: 'Geçmiş günlük bulmacalar', archive_desc: 'Kaçırdığın günlük bulmacaları oyna. Serine ve sıralamalara sayılmazlar.', back_today: 'Bugüne dön', archive_more: 'Başka bir gün seç', archive_count: '{total} bulmacadan {n} çözüldü', prev_month: 'Önceki ay', next_month: 'Sonraki ay', cal_legend: 'Çözülen her zorluk için bir nokta', today_mark: 'bugün', archive_day_aria: '{date}, 3 bulmacadan {n} çözüldü', link_after_tutorial: 'Kısa eğitimi bitir, ardından paylaşılan bulmaca açılacak.',
       lesson1: '<b>1</b>\'den <b>2</b>\'ye sürükleyin, ama yol boyunca <b>her kareden</b> geçin. Noktalar doldurulmamış kareleri gösterir.',
-      lesson2: 'Sayılardan <b>sırayla</b> geçin: önce 1, sonra 2, sonra 3. Parmağınızı kaldırırsanız çizgi ulaştığınız son sayıya geri döner.',
+      lesson2: 'Sayılardan <b>sırayla</b> geçin: önce 1, sonra 2, sonra 3. Parmağınızı istediğiniz an kaldırıp çizginin ucundan devam edebilirsiniz.',
       lesson3: 'Kalın çubuklar <b>duvardır</b>. Çizginiz onları geçemez.',
       lesson4: 'Şimdi hepsi bir arada: sayılar sırayla, duvarların etrafından, her kareden geçerek.',
       lesson_step: 'Ders {n} / {total}', how_to_play: 'Nasıl oynanır', level_size: 'Seviye {level} · {size}×{size}',
@@ -930,7 +931,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
       settings: 'Ajustes', settings_tab: 'Ajustes', learn_desc: 'Cuatro lecciones cortas sobre las reglas.', done: 'Listo', difficulty_group: 'Dificultad diaria',
       board_label: 'Tablero del puzle. Arrastra para dibujar o usa las flechas desde el extremo de la línea.',
-      undo: 'Deshacer', hint: 'Pista', clear: 'Borrar', tap_again: 'Toca otra vez', new_puzzle: 'Nuevo puzle',
+      undo: 'Deshacer', hint: 'Pista', clear: 'Borrar', tap_again: 'Toca otra vez', new_puzzle: 'Nuevo puzle', skip_tutorial: 'Saltar tutorial',
       language: 'Idioma', language_device: 'Idioma del dispositivo',
       motion: 'Movimiento', motion_desc: 'Animaciones cuando la línea llega a un número y cuando terminas un puzle.',
       motion_note: 'Tu dispositivo tiene activada la reducción de movimiento.', device: 'Dispositivo', on: 'Sí', off: 'No',
@@ -943,7 +944,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Texto y números más grandes', large_desc: 'Etiquetas, botones y números de control más grandes.',
       easy: 'Fácil', medium: 'Medio', hard: 'Difícil', solved_mark: 'resuelto', archive: 'Archivo', archive_open: 'Retos diarios anteriores', archive_desc: 'Juega los retos diarios que te perdiste. No cuentan para tu racha ni para las clasificaciones.', back_today: 'Volver a hoy', archive_more: 'Elegir otro día', archive_count: '{n} de {total} resueltos', prev_month: 'Mes anterior', next_month: 'Mes siguiente', cal_legend: 'Un punto por cada dificultad resuelta', today_mark: 'hoy', archive_day_aria: '{date}, {n} de 3 resueltos', link_after_tutorial: 'Termina el tutorial rápido y se abrirá el puzle compartido.',
       lesson1: 'Arrastra del <b>1</b> al <b>2</b>, pero pasa por <b>todas las casillas</b>. Los puntos marcan las casillas que faltan.',
-      lesson2: 'Pasa por los números <b>en orden</b>: 1, luego 2, luego 3. Si sueltas, la línea vuelve al último número alcanzado.',
+      lesson2: 'Pasa por los números <b>en orden</b>: 1, luego 2, luego 3. Puedes soltar cuando quieras y seguir desde el extremo de la línea.',
       lesson3: 'Las barras gruesas son <b>muros</b>. Tu línea no puede cruzarlos.',
       lesson4: 'Ahora todo junto: números en orden, rodeando los muros, por todas las casillas.',
       lesson_step: 'Lección {n} de {total}', how_to_play: 'Cómo jugar', level_size: 'Nivel {level} · {size}×{size}',
@@ -977,7 +978,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
       settings: 'Einstellungen', settings_tab: 'Optionen', learn_desc: 'Vier kurze Lektionen zu den Regeln.', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
       board_label: 'Rätselgitter. Zum Zeichnen ziehen oder vom Ende der Linie aus die Pfeiltasten nutzen.',
-      undo: 'Zurück', hint: 'Tipp', clear: 'Löschen', tap_again: 'Nochmal tippen', new_puzzle: 'Neues Rätsel',
+      undo: 'Zurück', hint: 'Tipp', clear: 'Löschen', tap_again: 'Nochmal tippen', new_puzzle: 'Neues Rätsel', skip_tutorial: 'Einführung überspringen',
       language: 'Sprache', language_device: 'Gerätesprache',
       motion: 'Bewegung', motion_desc: 'Animationen, wenn die Linie eine Zahl erreicht und wenn du ein Rätsel löst.',
       motion_note: 'Auf deinem Gerät ist „Bewegung reduzieren“ aktiviert.', device: 'Gerät', on: 'An', off: 'Aus',
@@ -990,7 +991,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Größerer Text und Zahlen', large_desc: 'Größere Beschriftungen, Schaltflächen und Kontrollpunktzahlen.',
       easy: 'Leicht', medium: 'Mittel', hard: 'Schwer', solved_mark: 'gelöst', archive: 'Archiv', archive_open: 'Frühere Tagesrätsel', archive_desc: 'Spiele die Tagesrätsel, die du verpasst hast. Sie zählen nicht für deine Serie oder die Bestenlisten.', back_today: 'Zurück zu heute', archive_more: 'Anderen Tag wählen', archive_count: '{n} von {total} gelöst', prev_month: 'Vorheriger Monat', next_month: 'Nächster Monat', cal_legend: 'Ein Punkt pro gelöster Schwierigkeit', today_mark: 'heute', archive_day_aria: '{date}, {n} von 3 gelöst', link_after_tutorial: 'Beende die kurze Einführung, dann öffnet sich das geteilte Rätsel.',
       lesson1: 'Ziehe von <b>1</b> nach <b>2</b>, aber durch <b>jedes Feld</b>. Die Punkte zeigen Felder, die noch fehlen.',
-      lesson2: 'Erreiche die Zahlen <b>der Reihe nach</b>: 1, dann 2, dann 3. Lässt du los, springt die Linie zur zuletzt erreichten Zahl zurück.',
+      lesson2: 'Erreiche die Zahlen <b>der Reihe nach</b>: 1, dann 2, dann 3. Du kannst jederzeit loslassen und am Ende der Linie weitermachen.',
       lesson3: 'Dicke Balken sind <b>Wände</b>. Deine Linie kann sie nicht überqueren.',
       lesson4: 'Jetzt alles zusammen: Zahlen der Reihe nach, um die Wände herum, durch jedes Feld.',
       lesson_step: 'Lektion {n} von {total}', how_to_play: 'So wird gespielt', level_size: 'Stufe {level} · {size}×{size}',
@@ -1024,7 +1025,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
       settings: 'Réglages', settings_tab: 'Réglages', learn_desc: 'Quatre courtes leçons sur les règles.', done: 'OK', difficulty_group: 'Difficulté du jour',
       board_label: 'Grille du puzzle. Faites glisser pour tracer, ou utilisez les flèches depuis le bout de la ligne.',
-      undo: 'Annuler', hint: 'Indice', clear: 'Effacer', tap_again: 'Touchez encore', new_puzzle: 'Nouveau puzzle',
+      undo: 'Annuler', hint: 'Indice', clear: 'Effacer', tap_again: 'Touchez encore', new_puzzle: 'Nouveau puzzle', skip_tutorial: 'Passer le tutoriel',
       language: 'Langue', language_device: 'Langue de l\'appareil',
       motion: 'Animations', motion_desc: 'Animations quand la ligne atteint un nombre et quand vous terminez un puzzle.',
       motion_note: 'Votre appareil est réglé pour réduire les animations.', device: 'Appareil', on: 'Oui', off: 'Non',
@@ -1037,7 +1038,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Texte et nombres plus grands', large_desc: 'Libellés, boutons et nombres des étapes plus grands.',
       easy: 'Facile', medium: 'Moyen', hard: 'Difficile', solved_mark: 'résolu', archive: 'Archives', archive_open: 'Défis du jour passés', archive_desc: 'Jouez aux défis du jour que vous avez manqués. Ils ne comptent ni pour votre série ni pour les classements.', back_today: 'Revenir à aujourd\'hui', archive_more: 'Choisir un autre jour', archive_count: '{n} sur {total} résolus', prev_month: 'Mois précédent', next_month: 'Mois suivant', cal_legend: 'Un point par difficulté résolue', today_mark: 'aujourd\'hui', archive_day_aria: '{date}, {n} sur 3 résolus', link_after_tutorial: 'Terminez le court tutoriel, puis le puzzle partagé s\'ouvrira.',
       lesson1: 'Allez du <b>1</b> au <b>2</b>, en passant par <b>toutes les cases</b>. Les points marquent les cases restantes.',
-      lesson2: 'Passez par les nombres <b>dans l\'ordre</b> : 1, puis 2, puis 3. Si vous lâchez, la ligne revient au dernier nombre atteint.',
+      lesson2: 'Passez par les nombres <b>dans l\'ordre</b> : 1, puis 2, puis 3. Vous pouvez lâcher à tout moment et reprendre au bout de la ligne.',
       lesson3: 'Les barres épaisses sont des <b>murs</b>. Votre ligne ne peut pas les traverser.',
       lesson4: 'Maintenant tout ensemble : les nombres dans l\'ordre, autour des murs, par toutes les cases.',
       lesson_step: 'Leçon {n} sur {total}', how_to_play: 'Comment jouer', level_size: 'Niveau {level} · {size}×{size}',
@@ -1071,7 +1072,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
       settings: 'Configurações', settings_tab: 'Ajustes', learn_desc: 'Quatro lições curtas sobre as regras.', done: 'OK', difficulty_group: 'Dificuldade diária',
       board_label: 'Grade do quebra-cabeça. Arraste para desenhar ou use as setas a partir da ponta da linha.',
-      undo: 'Desfazer', hint: 'Dica', clear: 'Limpar', tap_again: 'Toque de novo', new_puzzle: 'Novo desafio',
+      undo: 'Desfazer', hint: 'Dica', clear: 'Limpar', tap_again: 'Toque de novo', new_puzzle: 'Novo desafio', skip_tutorial: 'Pular tutorial',
       language: 'Idioma', language_device: 'Idioma do aparelho',
       motion: 'Movimento', motion_desc: 'Animações quando a linha chega a um número e quando você termina um desafio.',
       motion_note: 'Seu aparelho está configurado para reduzir movimento.', device: 'Aparelho', on: 'Ligado', off: 'Desligado',
@@ -1084,7 +1085,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       large: 'Texto e números maiores', large_desc: 'Rótulos, botões e números de checkpoint maiores.',
       easy: 'Fácil', medium: 'Médio', hard: 'Difícil', solved_mark: 'resolvido', archive: 'Arquivo', archive_open: 'Desafios diários anteriores', archive_desc: 'Jogue os desafios diários que você perdeu. Eles não contam para sua sequência nem para os placares.', back_today: 'Voltar para hoje', archive_more: 'Escolher outro dia', archive_count: '{n} de {total} resolvidos', prev_month: 'Mês anterior', next_month: 'Próximo mês', cal_legend: 'Um ponto por dificuldade resolvida', today_mark: 'hoje', archive_day_aria: '{date}, {n} de 3 resolvidos', link_after_tutorial: 'Termine o tutorial rápido e o quebra-cabeça compartilhado vai abrir.',
       lesson1: 'Arraste do <b>1</b> ao <b>2</b>, passando por <b>todas as casas</b>. Os pontos marcam as casas que faltam.',
-      lesson2: 'Passe pelos números <b>em ordem</b>: 1, depois 2, depois 3. Se você soltar, a linha volta ao último número alcançado.',
+      lesson2: 'Passe pelos números <b>em ordem</b>: 1, depois 2, depois 3. Você pode soltar a qualquer momento e continuar da ponta da linha.',
       lesson3: 'Barras grossas são <b>paredes</b>. Sua linha não pode atravessá-las.',
       lesson4: 'Agora tudo junto: números em ordem, contornando as paredes, por todas as casas.',
       lesson_step: 'Lição {n} de {total}', how_to_play: 'Como jogar', level_size: 'Nível {level} · {size}×{size}',
@@ -1242,7 +1243,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // achievements, daily leaderboards and Game Stats only ever see Dailies solved on their own day.
   const ARCHIVE_START = '2026-10-01';
   let archiveDate = null;
-  const dayOf = () => archiveDate || today();
+  // The day the live puzzle on screen was loaded for. A Daily started before midnight is saved under
+  // that day, never under the new one, whose puzzle is different.
+  let liveDay = null;
+  const dayOf = () => archiveDate || liveDay || today();
   const dailyKey = (id) => (archiveDate ? 'archive:' : 'daily:') + dayOf() + ':' + (id || dailyId);
   const hintsKey = () => (archiveDate ? 'archivehints:' : 'dailyhints:') + dayOf() + ':' + dailyId;
   // Time of a day's Daily, solved live on that day or later from the archive; null if not solved.
@@ -1347,6 +1351,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   new MutationObserver(placeBanner).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
 
   function load() {
+    liveDay = today();
     if (mode !== 'daily' || archiveDate === today()) archiveDate = null;
     $('archive-strip').hidden = !archiveDate;
     if (archiveDate) $('archive-day').textContent = longDate(archiveDate);
@@ -1363,6 +1368,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
     wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn && mode !== 'endless';
+    $('new').classList.toggle('primary', !learn); // in Learn it skips the lessons, so it stays low-key
+    // First run: the other tabs wait until the lessons are done (or skipped); Settings stays open.
+    const firstRun = learn && !store.get('tutorialDone', false);
+    for (const id of ['mode-daily', 'mode-ladder', 'mode-endless']) $(id).disabled = firstRun;
     disarmSkip();
     if (learn) {
       const L = LESSONS[lesson];
@@ -1506,13 +1515,21 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     path = ln.p.slice(); elapsed = Math.max(0, +ln.e || 0);
     startTimer();
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) saveLine(); });
-
-  // Index of the last number on the line. When a drag ends, the line is trimmed back to it.
-  function lockIndex() {
-    for (let i = path.length - 1; i >= 0; i--) if (puz.nums[path[i]]) return i;
-    return -1;
+  // The clock stops while the app is in the background and picks up where it left off.
+  let paused = false;
+  function setActive(active) {
+    if (!active) {
+      if (timerId) { elapsed = Date.now() - startTime; clearInterval(timerId); timerId = null; startTime = null; paused = true; }
+      saveLine();
+      return;
+    }
+    // A new day may have started while away: today's live Daily replaces yesterday's.
+    if (mode === 'daily' && !archiveDate && liveDay !== today()) { paused = false; load(); return; }
+    if (paused && !won && path.length) { paused = false; startTimer(); }
+    paused = false;
   }
+  document.addEventListener('visibilitychange', () => setActive(!document.hidden));
+  window.zzzActive = setActive; // the Android app calls this from onPause/onResume too
 
   function reachedCount() {
     let r = 0;
@@ -1916,8 +1933,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         store.set(dailyKey(), elapsed); store.set(hintsKey(), hintsUsed); buildSizes();
         showStreak(); if (typeof pushStreak === 'function') pushStreak();
         const bridge = window.ZipZapZopAndroid;
-        if (!archiveDate && !nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
-        if (!archiveDate && bridge && bridge.dailySolved) bridge.dailySolved();
+        // Only for the live Daily of the current day (not one started before midnight and finished after).
+        const live = !archiveDate && liveDay === today();
+        if (live && !nextDaily() && bridge && bridge.dailiesDone) bridge.dailiesDone(today());
+        if (live && bridge && bridge.dailySolved) bridge.dailySolved();
       }
       if (mode === 'endless') {
         // The next seed is picked now, so leaving and coming back can't count the same puzzle twice.
@@ -2002,12 +2021,8 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   });
   const end = (e) => {
     if (!dragging) return;
-    dragging = false; clearHold();
-    const wasArmed = armed; armed = false;
-    // A cancelled touch (system gesture, call, etc.) isn't a release: leave the line alone.
-    if (!wasArmed || (e && e.type === 'pointercancel')) return;
-    const keep = lockIndex() + 1;
-    if (!won && keep < path.length) { path.length = keep; render(); }
+    // The line stays where the finger lifts; the next drag carries on from its end.
+    dragging = false; armed = false; clearHold();
   };
   board.addEventListener('pointerup', end);
   board.addEventListener('pointercancel', end);
@@ -2028,11 +2043,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
   });
 
-  // Steps back to the previous number on the line.
+  // Takes back the last square of the line.
   function undo() {
     if (won || !path.length) return;
     path.pop();
-    path.length = lockIndex() + 1;
     render();
   }
 
@@ -2200,7 +2214,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   function disarmSkip() {
     clearTimeout(skipArmed); skipArmed = null;
     const b = $('new'); b.classList.remove('confirm');
-    b.textContent = t(mode === 'endless' ? 'skip' : 'new_puzzle');
+    b.textContent = t(mode === 'endless' ? 'skip' : 'skip_tutorial');
   }
   $('new').onclick = () => {
     if (mode !== 'endless' || won || !endless.run || skipArmed) { nextPuzzle(); return; }
@@ -2614,7 +2628,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-10 · e773dca';
+  const WEB_BUILD = '2026-11-17 · 2b5a19b';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}

@@ -157,6 +157,14 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         games.onResume();
+        if (web != null) web.evaluateJavascript("window.zzzActive && window.zzzActive(true)", null); // restarts the puzzle clock
+    }
+
+    @Override
+    protected void onPause() {
+        // Stops the puzzle clock while the app is in the background (or a full-screen ad is showing).
+        if (web != null) web.evaluateJavascript("window.zzzActive && window.zzzActive(false)", null);
+        super.onPause();
     }
 
     @Override
