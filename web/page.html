@@ -184,10 +184,16 @@ button:disabled { opacity: 0.45; cursor: default; }
 .win { flex-wrap: wrap; }
 .win .actions { display: flex; gap: 8px; }
 .win button.share { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.result[hidden], .controls[hidden] { display: none; }
+/* The solved card sits under the board in place of Undo/Hint/Clear, so the finished line stays in view. */
+.result { scroll-margin-bottom: calc(84px + env(safe-area-inset-bottom)); }
+.result .win { position: static; box-shadow: 0 6px 24px rgba(10, 14, 30, 0.12); }
 .win.gate { inset: 0; background: var(--bg); flex-direction: column; justify-content: center; text-align: center; }
 .win.gate .actions { flex-wrap: wrap; justify-content: center; }
 .win.gate h2 { font-size: 1.5rem; }
 .energy { color: var(--ink); font-weight: 600; }
+.meta { align-items: baseline; }
+.meta .run { color: var(--ink); font: 800 1.15rem var(--display); }
 /* Ladder worlds: each recolours the line, the title and a soft glow behind the page. */
 :root[data-world="meadow"], .zone[data-world="meadow"] { --spark-a: #3fb950; --spark-b: #0f9d8a; --trail: rgba(63, 185, 80, 0.15); }
 :root[data-world="ocean"], .zone[data-world="ocean"] { --spark-a: #12b5cb; --spark-b: #3466ff; --trail: rgba(18, 181, 203, 0.15); }
@@ -315,6 +321,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .streak-btn { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 38px; padding: 0 12px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: 700 0.95rem var(--body); font-variant-numeric: tabular-nums; cursor: pointer; position: relative; }
 .streak-btn .flame { width: 18px; height: 18px; }
+.streak-btn #streak-n[hidden] { display: none; }
+.streak-btn.off { padding: 0 10px; }
 .streak-btn.off .flame { opacity: 0.35; filter: grayscale(1); }
 .streak-btn.todo { border-color: var(--spark-a); }
 .streak-btn .ice { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; background: #dff1ff; color: #1b6fb8; font-size: 11px; line-height: 1; border: 1px solid var(--panel); }
@@ -402,18 +410,19 @@ button:disabled { opacity: 0.45; cursor: default; }
   .wrap {
     --board: min(calc(100dvh - 24px), calc(100vw - 32px - 24px - 260px), 900px);
     max-width: none; height: 100%; display: grid; justify-content: center; align-content: stretch;
-    grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto 1fr auto auto;
+    grid-template-columns: minmax(260px, 420px) var(--board); grid-template-rows: auto auto auto auto 1fr auto;
     column-gap: 24px; row-gap: 12px;
   }
   .wrap > header { grid-column: 1; grid-row: 1; }
   .wrap > .lesson, .wrap > .archive-strip { grid-column: 1; grid-row: 2; }
   .wrap > .bar { grid-column: 1; grid-row: 3; align-self: start; }
   .wrap > .ladder { grid-column: 1; grid-row: 3; align-self: start; }
-  .wrap > .controls { grid-column: 1; grid-row: 6; }
+  /* Game buttons (or the solved card) straight under the puzzle info; the tab bar ends the column. */
+  .wrap > .controls, .wrap > .result { grid-column: 1; grid-row: 4; align-self: start; }
   .wrap { padding-bottom: 0; min-height: 0; }
   /* The banner takes the free space in the left column, above the tab bar. */
-  .wrap > .ad-slot { grid-column: 1; grid-row: 4; align-self: center; margin: 0; }
-  .wrap > .tabbar { position: static; grid-column: 1; grid-row: 5; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
+  .wrap > .ad-slot { grid-column: 1; grid-row: 5; align-self: center; margin: 0; }
+  .wrap > .tabbar { position: static; grid-column: 1; grid-row: 6; align-self: end; border: 1px solid var(--line); border-radius: 18px; padding: 4px; }
   .board-wrap { grid-column: 2; grid-row: 1 / -1; width: var(--board); align-self: center; }
 }
 /* Short, wide screens (Android Auto car displays, small phones on their side): tighter spacing and a narrower
@@ -462,7 +471,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 
   <div class="bar">
     <div class="sizes" role="group" aria-label="Daily difficulty" data-i18n-aria="difficulty_group" id="sizes"></div>
-    <div class="meta"><span id="label"></span><span class="energy" id="energy" hidden></span><span><b id="timer">0:00</b></span></div>
+    <div class="meta"><span id="label"></span><span class="energy" id="energy" hidden></span><span class="run" id="run" hidden></span><span><b id="timer">0:00</b></span></div>
   </div>
 
   <div class="ladder" id="ladder" hidden>
@@ -480,11 +489,12 @@ button:disabled { opacity: 0.45; cursor: default; }
     <svg class="overlay fx" id="fx" aria-hidden="true"><defs><linearGradient id="fxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color: var(--spark-a)"/><stop offset="1" style="stop-color: var(--spark-b)"/></linearGradient></defs></svg>
   </div>
 
+  <div class="result" id="result" aria-live="polite" hidden></div>
   <div class="controls">
     <button id="undo" data-i18n="undo">Undo</button>
     <button id="hint">Hint</button>
     <button id="clear" data-i18n="clear">Clear</button>
-    <button id="new" class="primary">Skip</button>
+    <button id="new">Skip</button>
   </div>
 
   <div class="ad-slot" id="ad-slot" aria-hidden="true" hidden></div>
@@ -658,7 +668,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   const STRINGS = {
     en: {
       endless_desc: "Endless random puzzles at every difficulty, with a record for your best run. One purchase, yours to keep.", unlock: "Unlock", unlock_price: "Unlock · {price}", msg_restored_endless: "Purchase restored. Endless is unlocked.", msg_pending_endless: "Your purchase is pending. Endless unlocks once it completes.",
-      expert: "Expert", endless: "Endless", endless_label: "Run {run} · Best {best} · {diff}", skip: "Skip", skip_confirm: "Tap again to end run", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
+      expert: "Expert", endless: "Endless", endless_label: "Run {run} · Best {best} · {diff}", skip: "Skip", skip_confirm: "Tap again to end run", hold_tip: "Hold a square on the line to cut back to it", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
       tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
       settings: 'Settings', settings_tab: 'Settings', learn_desc: 'Four short lessons on the rules.', done: 'Done', difficulty_group: 'Daily difficulty',
       board_label: 'Puzzle grid. Drag to draw, or use arrow keys from the head of the line.',
@@ -705,7 +715,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     },
     tr: {
       endless_desc: "Her zorlukta sonsuz rastgele bulmaca ve en iyi serinin rekoru. Tek seferlik satın alma, sonsuza dek senin.", unlock: "Kilidi aç", unlock_price: "Kilidi aç · {price}", msg_restored_endless: "Satın alma geri yüklendi. Sonsuz mod açıldı.", msg_pending_endless: "Satın alman beklemede. Tamamlanınca Sonsuz mod açılacak.",
-      expert: "Uzman", endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {diff}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
+      expert: "Uzman", endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {diff}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", hold_tip: "Çizgiyi oraya kadar kesmek için kareye basılı tut", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
       tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
       settings: 'Ayarlar', settings_tab: 'Ayarlar', learn_desc: 'Kurallar için dört kısa ders.', done: 'Tamam', difficulty_group: 'Günlük zorluk',
       board_label: 'Bulmaca ızgarası. Çizmek için sürükleyin veya çizginin ucundan ok tuşlarını kullanın.',
@@ -752,7 +762,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     },
     es: {
       endless_desc: "Puzles aleatorios sin fin en todas las dificultades, con un récord de tu mejor racha. Una sola compra, para siempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. Infinito está desbloqueado.", msg_pending_endless: "Tu compra está pendiente. Infinito se desbloquea cuando se complete.",
-      expert: "Experto", endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {diff}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
+      expert: "Experto", endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {diff}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", hold_tip: "Mantén pulsada una casilla de la línea para cortarla ahí", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
       tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
       settings: 'Ajustes', settings_tab: 'Ajustes', learn_desc: 'Cuatro lecciones cortas sobre las reglas.', done: 'Listo', difficulty_group: 'Dificultad diaria',
       board_label: 'Tablero del puzle. Arrastra para dibujar o usa las flechas desde el extremo de la línea.',
@@ -799,7 +809,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     },
     de: {
       endless_desc: "Endlos zufällige Rätsel in jeder Schwierigkeit, mit Rekord für deine beste Serie. Einmal kaufen, für immer behalten.", unlock: "Freischalten", unlock_price: "Freischalten · {price}", msg_restored_endless: "Kauf wiederhergestellt. Endlos ist freigeschaltet.", msg_pending_endless: "Dein Kauf steht noch aus. Endlos wird danach freigeschaltet.",
-      expert: "Experte", endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {diff}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
+      expert: "Experte", endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {diff}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", hold_tip: "Halte ein Feld der Linie gedrückt, um bis dorthin zu kürzen", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
       tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
       settings: 'Einstellungen', settings_tab: 'Optionen', learn_desc: 'Vier kurze Lektionen zu den Regeln.', done: 'Fertig', difficulty_group: 'Tägliche Schwierigkeit',
       board_label: 'Rätselgitter. Zum Zeichnen ziehen oder vom Ende der Linie aus die Pfeiltasten nutzen.',
@@ -846,7 +856,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     },
     fr: {
       endless_desc: "Des puzzles aléatoires sans fin à toutes les difficultés, avec un record pour votre meilleure série. Un seul achat, à vous pour toujours.", unlock: "Débloquer", unlock_price: "Débloquer · {price}", msg_restored_endless: "Achat restauré. Le mode Infini est débloqué.", msg_pending_endless: "Votre achat est en attente. Le mode Infini se débloque une fois terminé.",
-      expert: "Expert", endless: "Infini", endless_label: "Série {run} · Record {best} · {diff}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
+      expert: "Expert", endless: "Infini", endless_label: "Série {run} · Record {best} · {diff}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", hold_tip: "Maintenez une case de la ligne pour la couper à cet endroit", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
       tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
       settings: 'Réglages', settings_tab: 'Réglages', learn_desc: 'Quatre courtes leçons sur les règles.', done: 'OK', difficulty_group: 'Difficulté du jour',
       board_label: 'Grille du puzzle. Faites glisser pour tracer, ou utilisez les flèches depuis le bout de la ligne.',
@@ -893,7 +903,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     },
     pt: {
       endless_desc: "Quebra-cabeças aleatórios sem fim em todas as dificuldades, com recorde da sua melhor sequência. Uma compra, para sempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. O modo Infinito está desbloqueado.", msg_pending_endless: "Sua compra está pendente. O Infinito será desbloqueado quando concluir.",
-      expert: "Especialista", endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {diff}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
+      expert: "Especialista", endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {diff}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", hold_tip: "Segure uma casa da linha para cortar até ela", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
       tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
       settings: 'Configurações', settings_tab: 'Ajustes', learn_desc: 'Quatro lições curtas sobre as regras.', done: 'OK', difficulty_group: 'Dificuldade diária',
       board_label: 'Grade do quebra-cabeça. Arraste para desenhar ou use as setas a partir da ponta da linha.',
@@ -1155,14 +1165,14 @@ button:disabled { opacity: 0.45; cursor: default; }
     const slot = $('ad-slot'), wasHidden = slot.hidden;
     slot.hidden = true;
     if (LANDSCAPE.matches) {
-      // Left column: the free row between the puzzle info and the tab bar (12px grid gaps, 8px breathing room each side).
-      const above = Math.max(...[...document.querySelectorAll('.wrap > header, .wrap > .lesson, .wrap > .archive-strip, .wrap > .bar, .wrap > .ladder')]
+      // Left column: the free row between the buttons and the tab bar (12px grid gaps, 8px breathing room each side).
+      const above = Math.max(...[...document.querySelectorAll('.wrap > header, .wrap > .lesson, .wrap > .archive-strip, .wrap > .bar, .wrap > .ladder, .wrap > .controls, .wrap > .result')]
         .filter((el) => !el.hidden).map((el) => el.getBoundingClientRect().bottom));
       room = Math.floor(document.querySelector('.tabbar').getBoundingClientRect().top - above - 12 - 12 - 16);
       width = Math.floor(document.querySelector('.wrap > header').getBoundingClientRect().width);
     } else {
       // Under the buttons, down to the fixed tab bar (wrap gap, slot margin, breathing room).
-      const controls = document.querySelector('.wrap > .controls').getBoundingClientRect();
+      const controls = document.querySelector('.wrap > .controls:not([hidden]), .wrap > .result:not([hidden])').getBoundingClientRect();
       const barTop = innerHeight - document.querySelector('.tabbar').offsetHeight;
       room = Math.floor(barTop - (controls.bottom + scrollY) - 16 - 8 - 8);
       width = Math.floor($('boardWrap').getBoundingClientRect().width);
@@ -1193,7 +1203,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('lesson').hidden = !learn; $('sizes').hidden = mode !== 'daily';
     wrap.classList.toggle('learning', learn);
     $('new').hidden = !learn && mode !== 'endless';
-    $('new').classList.toggle('primary', !learn); // in Learn it skips the lessons, so it stays low-key
+    // Skip (Endless) ends the run and Skip tutorial (Learn) leaves the lessons, so it never gets the strong style.
     // First run: the other tabs wait until the lessons are done (or skipped); Settings stays open.
     const firstRun = learn && !store.get('tutorialDone', false);
     for (const id of ['mode-daily', 'mode-ladder', 'mode-endless']) $(id).disabled = firstRun;
@@ -1216,13 +1226,13 @@ button:disabled { opacity: 0.45; cursor: default; }
       }
     } else {
       const pos = ladderPos(), spec = worldSpec(pos.w, pos.l);
-      puz = E.generate(spec.n, E.hashString('zap/world/' + (pos.w + 1) + '/' + pos.l), spec.opts);
+      puz = E.generateFromKey(spec.n, 'zap/world/' + (pos.w + 1) + '/' + pos.l, spec.opts);
     }
     path = []; won = false; elapsed = 0; startTime = null;
     celebrate = false; clearTimeout(celebrateTimer); wrap.classList.remove('celebrate');
     hintsUsed = mode === 'daily' ? store.get(hintsKey(), store.get('dailyhints:' + dayOf() + ':' + dailyId, 0)) : 0;
     clearInterval(timerId); timerId = null;
-    $('label').textContent = modeLabel();
+    $('label').textContent = modeLabel(); showRun();
     bestInfo = null;
     renderLadder();
     const saved = mode === 'daily' && dayTime(dayOf(), dailyId);
@@ -1310,7 +1320,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     $('new').disabled = won && mode === 'endless'; // after a solve, Next on the card keeps the run
     hintLabel();
     $('timer').textContent = fmt(elapsed);
-    const old = wrap.querySelector('.win'); if (old) old.remove();
+    clearCards();
     clearTimeout(celebrateTimer);
     if (won && party) {
       celebrate = false;
@@ -1337,6 +1347,14 @@ button:disabled { opacity: 0.45; cursor: default; }
     if (!ln || ln.k !== lineKey() || !Array.isArray(ln.p) || !ln.p.length) return;
     const n2 = puz.n * puz.n;
     if (ln.p.some((c) => !Number.isInteger(c) || c < 0 || c >= n2) || puz.nums[ln.p[0]] !== 1) return;
+    // Only a line that still fits this board: steps between neighbours, no walls, no repeats, numbers in order.
+    let next = 1;
+    for (let i = 0; i < ln.p.length; i++) {
+      const c = ln.p[i], k = puz.nums[c];
+      if (i && (!E.neighbors(puz.n, ln.p[i - 1]).includes(c) || puz.walls.has(E.wallKey(ln.p[i - 1], c)))) return;
+      if (ln.p.indexOf(c) !== i) return;
+      if (k) { if (k !== next) return; next++; }
+    }
     path = ln.p.slice(); elapsed = Math.max(0, +ln.e || 0);
     startTimer();
   }
@@ -1449,15 +1467,36 @@ button:disabled { opacity: 0.45; cursor: default; }
   const endlessDiff = () => { const d = ENDLESS.find((x) => x.n === puz.n) || ENDLESS[0]; return `${t(d.id)} ${puz.n}×${puz.n}`; };
   function modeLabel() {
     if (mode === 'learn') return t('how_to_play');
-    if (mode === 'daily') return dayOf();
-    if (mode === 'endless') return t('endless_label', { run: endless.run, best: endless.best, diff: endlessDiff() });
+    if (mode === 'daily') return longDate(dayOf());
+    // The run itself shows larger beside the timer (#run).
+    if (mode === 'endless') return t('run_best', { n: endless.best }) + ' · ' + endlessDiff();
     return ladderLabel();
+  }
+  function showRun() {
+    $('run').hidden = mode !== 'endless';
+    if (mode === 'endless') $('run').textContent = t('run_n', { n: endless.run });
   }
   function ladderLabel() {
     const p = ladderPos();
     return t('world_level', { world: worldName(p.w), level: p.l, total: WORLD_LEVELS, size: puz.n });
   }
 
+  // Solved cards go under the board (#result) and hide the buttons; gate and lock cards cover the board.
+  const cardEl = () => document.querySelector('.wrap .win');
+  function clearCards() {
+    let had = false;
+    for (const el of document.querySelectorAll('.wrap .win')) { el.remove(); had = true; }
+    if (!$('result').hidden) { $('result').hidden = true; $('result').nextElementSibling.hidden = false; had = true; }
+    if (had) placeBanner();
+  }
+  function putResult(div) {
+    $('result').replaceChildren(div); $('result').hidden = false;
+    $('result').nextElementSibling.hidden = true; // .controls
+    // On short phones the card can sit under the tab bar: bring it into view.
+    const r = $('result').getBoundingClientRect(), bar = document.querySelector('.tabbar').getBoundingClientRect();
+    if (r.bottom > bar.top && bar.top > 0) $('result').scrollIntoView({ block: 'end', behavior: 'smooth' });
+    placeBanner();
+  }
   function showWin() {
     const div = document.createElement('div');
     div.className = 'win';
@@ -1468,7 +1507,7 @@ button:disabled { opacity: 0.45; cursor: default; }
         if (last) { finishTutorial(); return; }
         lesson++; store.set('lesson', lesson); load();
       };
-      wrap.appendChild(div);
+      putResult(div);
       return;
     }
     if (mode === 'endless') {
@@ -1478,7 +1517,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       div.querySelector('.next').onclick = nextPuzzle;
       div.querySelector('.share').onclick = share;
       prepareShare();
-      wrap.appendChild(div);
+      putResult(div);
       return;
     }
     const next = nextDaily(), pos = mode === 'ladder' && ladderPos();
@@ -1504,7 +1543,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     div.querySelector('.next').onclick = nextPuzzle;
     div.querySelector('.share').onclick = share;
     prepareShare();
-    wrap.appendChild(div);
+    putResult(div);
   }
 
   const shareWhich = () => mode === 'daily' ? t('share_daily', { date: dayOf(), label: t(daily().id) }) : mode === 'endless' ? t('share_endless', { n: endless.run }) : t('share_ladder', { world: worldName(ladderPos().w), level: ladderPos().l, total: WORLD_LEVELS });
@@ -1768,7 +1807,7 @@ button:disabled { opacity: 0.45; cursor: default; }
         bestInfo = { isNew: endless.run + 1 > endless.best && endless.best > 0 };
         endless.run++; endless.solved++; endless.best = Math.max(endless.best, endless.run);
         endless.seed = newSeed(); saveEndless();
-        $('label').textContent = modeLabel();
+        $('label').textContent = modeLabel(); showRun();
       }
       if (mode === 'ladder') {
         // Best time per level. isNew only when an earlier time was beaten, so a first solve shows no badge.
@@ -1812,9 +1851,18 @@ button:disabled { opacity: 0.45; cursor: default; }
   // A drag edits the line only when it starts at the head or on an empty cell.
   // Pressing an earlier part of the line does nothing unless held, so a stray
   // touch can't wipe progress; holding cuts the line back to that cell.
-  const HOLD_MS = 450;
-  let dragging = false, armed = false, holdTimer = null, holdCell = -1;
+  // A drag that starts on the 1 and moves to another square draws the line again from the start.
+  // Pressing an earlier square without holding shows how to cut there (the first few times).
+  const HOLD_MS = 450, HOLD_TIPS = 3;
+  let dragging = false, armed = false, holdTimer = null, holdCell = -1, fromOne = false, holdTip = false;
   const clearHold = () => { clearTimeout(holdTimer); holdTimer = null; holdCell = -1; };
+  function tipHold() {
+    if (!holdTip) return;
+    holdTip = false;
+    const n = store.get('holdTips', 0);
+    if (n >= HOLD_TIPS) return;
+    store.set('holdTips', n + 1); toast(t('hold_tip'));
+  }
   board.addEventListener('pointerdown', (e) => {
     if (won) return;
     const cell = cellAt(e.clientX, e.clientY);
@@ -1823,11 +1871,11 @@ button:disabled { opacity: 0.45; cursor: default; }
     dragging = true; board.setPointerCapture(e.pointerId);
     const at = path.indexOf(cell);
     if (at >= 0 && at < path.length - 1) {
-      armed = false; holdCell = cell;
+      armed = false; holdCell = cell; fromOne = at === 0; holdTip = !fromOne;
       holdTimer = setTimeout(() => {
         holdTimer = null;
         if (!dragging || won) return;
-        path.length = at + 1; armed = true; render();
+        path.length = at + 1; armed = true; fromOne = false; holdTip = false; render();
         const c = cells[cell];
         c.classList.remove('hint'); void c.offsetWidth; c.classList.add('hint');
         if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
@@ -1841,13 +1889,24 @@ button:disabled { opacity: 0.45; cursor: default; }
   board.addEventListener('pointermove', (e) => {
     if (!dragging) return;
     const cell = cellAt(e.clientX, e.clientY);
-    if (!armed) { if (holdTimer && cell !== holdCell) clearHold(); return; }
+    if (!armed) {
+      if (cell < 0 || cell === holdCell || !holdTimer) return;
+      if (fromOne) {
+        // Moved off the 1 before the hold: start the line over from the 1 and carry on drawing.
+        clearHold(); fromOne = false; armed = true; path.length = 1;
+        dragTo(cell); render();
+        return;
+      }
+      clearHold(); tipHold();
+      return;
+    }
     if (dragTo(cell)) render();
   });
   const end = (e) => {
     if (!dragging) return;
     // The line stays where the finger lifts; the next drag carries on from its end.
-    dragging = false; armed = false; clearHold();
+    if (!armed && holdTimer) tipHold();
+    dragging = false; armed = false; fromOne = false; holdTip = false; clearHold();
   };
   board.addEventListener('pointerup', end);
   board.addEventListener('pointercancel', end);
@@ -2331,6 +2390,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   function showStreak() {
     const s = streakInfo(), btn = $('streak-open');
     $('streak-n').textContent = s.current;
+    $('streak-n').hidden = !s.current; // just the flame until there is a streak
     btn.classList.toggle('off', !s.current);
     btn.classList.toggle('todo', s.current > 0 && !s.today);
     $('streak-ice').hidden = !s.freezeReady || !s.current;
@@ -2440,15 +2500,15 @@ button:disabled { opacity: 0.45; cursor: default; }
       $('lesson-step').textContent = t('lesson_step', { n: lesson + 1, total: LESSONS.length });
       $('lesson-text').innerHTML = t(LESSONS[lesson].text);
     }
-    $('label').textContent = modeLabel();
+    $('label').textContent = modeLabel(); showRun();
     if (archiveDate) $('archive-day').textContent = longDate(archiveDate);
     if (!archiveSheet.hidden) renderArchive();
     renderLadder();
     if (window.zzzAdsState && lastAdsState) window.zzzAdsState(lastAdsState);
     if (window.zzzGamesState && lastGamesState) window.zzzGamesState(lastGamesState);
     hintLabel(); showEnergy(); disarmSkip(); showStreak();
-    const card = wrap.querySelector('.win');
-    if (card) { card.remove(); if (card.classList.contains('lock')) showEndlessLock(); else if (card.classList.contains('gate')) showGate(); else showWin(); }
+    const card = cardEl();
+    if (card) { clearCards(); if (card.classList.contains('lock')) showEndlessLock(); else if (card.classList.contains('gate')) showGate(); else showWin(); }
     applyA11y();
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,

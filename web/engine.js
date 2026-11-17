@@ -151,6 +151,17 @@ const ZapEngine = (() => {
     return puz;
   }
 
+  // A puzzle that is the same for everyone, from a text key. If that seed can't be tightened to one
+  // solution, salted keys (key#1, key#2, ...) are tried in order, so the result is still fixed per key.
+  function generateFromKey(n, key, opts, tries = 8) {
+    let puz;
+    for (let k = 0; k < tries; k++) {
+      puz = generate(n, hashString(k ? key + '#' + k : key), opts);
+      if (puz.unique) break;
+    }
+    return puz;
+  }
+
   // Validate a player path against the rules (not against the stored solution).
   function isSolved(puz, path) {
     const { n, nums, walls } = puz;
@@ -170,6 +181,6 @@ const ZapEngine = (() => {
     return next === K + 1 && nums[path[path.length - 1]] === K;
   }
 
-  return { generate, solve, isSolved, neighbors, wallKey, hashString, mulberry32 };
+  return { generate, generateFromKey, solve, isSolved, neighbors, wallKey, hashString, mulberry32 };
 })();
 if (typeof module !== 'undefined') module.exports = ZapEngine;
