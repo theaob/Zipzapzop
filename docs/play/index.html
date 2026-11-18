@@ -2409,7 +2409,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // rewarded ad opens ARCHIVE_STEP more days further back, and Remove ads opens the whole archive. zap:archiveFrom
   // keeps the earliest day an ad opened, so those days stay open as the free week moves on (every day from there
   // to today is open). A day with a solve stays open too. The browser version and builds without ads have it all.
-  const ARCHIVE_FREE = 7, ARCHIVE_STEP = 7;
+  const ARCHIVE_FREE = 5, ARCHIVE_STEP = 5;
   const LOCK_SVG = '<svg class="lk" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h6V8a3 3 0 0 0-6 0v2z"/></svg>';
   const archiveMetered = () => !!lastAdsState && lastAdsState.available && !lastAdsState.adsRemoved;
   const addDays = (s, k) => { const d = parseDay(s); d.setDate(d.getDate() + k); return ymd(d); };
@@ -2801,7 +2801,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-17 · 905a1fe';
+  const WEB_BUILD = '2026-11-18 · 336d815';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
