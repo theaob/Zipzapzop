@@ -180,6 +180,19 @@ svg.fx { z-index: 1; }
 .controls button.confirm { border-color: var(--spark-b); color: var(--spark-b); }
 .controls button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+/* Sky buttons: the filled main buttons show the real sky outside (see updateSky). The script sets data-sky and the
+   --sky-* colours; high contrast keeps the plain solid buttons. --sky-stars and --sky-moon are "none" by day. */
+:root[data-sky] :is(.controls button.primary, .win button:not(.share), .cal-unlock button:not(.share), .map-head button,
+  .streak-play, .sheet-head button, #ads-buy, #games-signin) {
+  background: var(--sky-moon), var(--sky-stars), linear-gradient(180deg, var(--sky-a), var(--sky-b) 55%, var(--sky-c));
+  background-color: var(--sky-b); color: var(--sky-ink); border-color: transparent; text-shadow: var(--sky-glow);
+}
+:root[data-sky="night"] :is(.controls button.primary, .win button:not(.share), .cal-unlock button:not(.share), .map-head button,
+  .streak-play, .sheet-head button, #ads-buy, #games-signin) { padding-right: 32px; } /* room for the moon */
+:root[data-sky] .tabbar button[aria-pressed="true"] svg, :root[data-sky] .switch input:checked + span.track {
+  background: var(--sky-stars), linear-gradient(180deg, var(--sky-a), var(--sky-b) 55%, var(--sky-c)); background-color: var(--sky-b);
+}
+:root[data-sky] .tabbar button[aria-pressed="true"] svg { color: var(--sky-ink); }
 button:disabled { opacity: 0.45; cursor: default; }
 .lesson { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
 .lesson small { color: var(--muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -577,6 +590,10 @@ button:disabled { opacity: 0.45; cursor: default; }
         <label><input type="radio" name="theme" value="dark" id="theme-dark"><span data-i18n="dark">Dark</span></label>
       </div>
     </fieldset>
+    <label class="switch" for="opt-sky">
+      <span class="txt"><b data-i18n="sky">Sky buttons</b><small><span data-i18n="sky_desc">Main buttons follow the real sky: dawn, daylight, sunset, and at night stars with the current moon phase. Uses your time zone, not your location.</span> <span id="sky-note"></span></small></span>
+      <input type="checkbox" id="opt-sky"><span class="track" aria-hidden="true"></span>
+    </label>
     <label class="switch" for="opt-contrast">
       <span class="txt"><b data-i18n="contrast">High contrast</b><small data-i18n="contrast_desc">Darker grid lines and text, thicker walls, no checkerboard.</small></span>
       <input type="checkbox" id="opt-contrast"><span class="track" aria-hidden="true"></span>
@@ -872,6 +889,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const LANGS = { en: 'English', tr: 'Türkçe', es: 'Español', de: 'Deutsch', fr: 'Français', pt: 'Português' };
   const STRINGS = {
     en: {
+      sky: "Sky buttons", sky_desc: "Main buttons follow the real sky: dawn, daylight, sunset, and at night stars with the current moon phase. Uses your time zone, not your location.", sky_times: "Today near {place}: sunrise {rise}, sunset {set}.", sky_hc: "Paused while High contrast is on.",
       endless_desc: "Endless random puzzles at every difficulty, with a record for your best run. One purchase, yours to keep.", unlock: "Unlock", unlock_price: "Unlock · {price}", msg_restored_endless: "Purchase restored. Endless is unlocked.", msg_pending_endless: "Your purchase is pending. Endless unlocks once it completes.",
       expert: "Expert", endless: "Endless", endless_label: "Run {run} · Best {best} · {diff}", skip: "Skip", skip_confirm: "Tap again to end run", hold_tip: "Hold a square on the line to cut back to it", run_over: "Run over", run_n: "Run {n}", run_best_new: "New best run!", run_best: "Best run {n}", next_puzzle: "Next puzzle", share_endless: "Endless · run {n}", run_ended: "Your run ended at {n}.",
       tag: 'One line. Every cell. Numbers in order.', mode_group: 'Mode', daily: 'Daily', ladder: 'Ladder', learn: 'Learn',
@@ -919,6 +937,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       msg_play_unreachable: "Couldn't reach Google Play. Try again later.",
     },
     tr: {
+      sky: "Gökyüzü düğmeleri", sky_desc: "Ana düğmeler gerçek gökyüzünü izler: şafak, gündüz, gün batımı ve gece yıldızlarla ayın şu anki evresi. Konumunu değil, saat dilimini kullanır.", sky_times: "Bugün {place} civarında: gün doğumu {rise}, gün batımı {set}.", sky_hc: "Yüksek kontrast açıkken kapalı.",
       endless_desc: "Her zorlukta sonsuz rastgele bulmaca ve en iyi serinin rekoru. Tek seferlik satın alma, sonsuza dek senin.", unlock: "Kilidi aç", unlock_price: "Kilidi aç · {price}", msg_restored_endless: "Satın alma geri yüklendi. Sonsuz mod açıldı.", msg_pending_endless: "Satın alman beklemede. Tamamlanınca Sonsuz mod açılacak.",
       expert: "Uzman", endless: "Sonsuz", endless_label: "Seri {run} · En iyi {best} · {diff}", skip: "Geç", skip_confirm: "Seriyi bitirmek için tekrar dokun", hold_tip: "Çizgiyi oraya kadar kesmek için kareye basılı tut", run_over: "Seri bitti", run_n: "Seri {n}", run_best_new: "Yeni rekor seri!", run_best: "En iyi seri {n}", next_puzzle: "Sonraki bulmaca", share_endless: "Sonsuz · seri {n}", run_ended: "Serin {n} ile bitti.",
       tag: 'Tek çizgi. Her kare. Sayılar sırayla.', mode_group: 'Mod', daily: 'Günlük', ladder: 'Merdiven', learn: 'Öğren',
@@ -966,6 +985,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       msg_play_unreachable: 'Google Play\'e ulaşılamadı. Daha sonra tekrar deneyin.',
     },
     es: {
+      sky: "Botones de cielo", sky_desc: "Los botones principales siguen el cielo real: amanecer, día, atardecer y, de noche, estrellas con la fase actual de la luna. Usa tu zona horaria, no tu ubicación.", sky_times: "Hoy cerca de {place}: sale el sol a las {rise}, se pone a las {set}.", sky_hc: "En pausa mientras el alto contraste está activado.",
       endless_desc: "Puzles aleatorios sin fin en todas las dificultades, con un récord de tu mejor racha. Una sola compra, para siempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. Infinito está desbloqueado.", msg_pending_endless: "Tu compra está pendiente. Infinito se desbloquea cuando se complete.",
       expert: "Experto", endless: "Infinito", endless_label: "Racha {run} · Mejor {best} · {diff}", skip: "Saltar", skip_confirm: "Toca otra vez para terminar la racha", hold_tip: "Mantén pulsada una casilla de la línea para cortarla ahí", run_over: "Racha terminada", run_n: "Racha {n}", run_best_new: "¡Nueva mejor racha!", run_best: "Mejor racha {n}", next_puzzle: "Siguiente puzle", share_endless: "Infinito · racha {n}", run_ended: "Tu racha terminó en {n}.",
       tag: 'Una línea. Todas las casillas. Números en orden.', mode_group: 'Modo', daily: 'Diario', ladder: 'Escalera', learn: 'Aprender',
@@ -1013,6 +1033,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       msg_play_unreachable: 'No se pudo conectar con Google Play. Inténtalo más tarde.',
     },
     de: {
+      sky: "Himmel-Buttons", sky_desc: "Die Haupt-Buttons folgen dem echten Himmel: Morgengrauen, Tag, Sonnenuntergang und nachts Sterne mit der aktuellen Mondphase. Nutzt deine Zeitzone, nicht deinen Standort.", sky_times: "Heute bei {place}: Sonnenaufgang {rise}, Sonnenuntergang {set}.", sky_hc: "Pausiert, solange Hoher Kontrast an ist.",
       endless_desc: "Endlos zufällige Rätsel in jeder Schwierigkeit, mit Rekord für deine beste Serie. Einmal kaufen, für immer behalten.", unlock: "Freischalten", unlock_price: "Freischalten · {price}", msg_restored_endless: "Kauf wiederhergestellt. Endlos ist freigeschaltet.", msg_pending_endless: "Dein Kauf steht noch aus. Endlos wird danach freigeschaltet.",
       expert: "Experte", endless: "Endlos", endless_label: "Serie {run} · Rekord {best} · {diff}", skip: "Passen", skip_confirm: "Nochmal tippen beendet die Serie", hold_tip: "Halte ein Feld der Linie gedrückt, um bis dorthin zu kürzen", run_over: "Serie vorbei", run_n: "Serie {n}", run_best_new: "Neuer Serienrekord!", run_best: "Beste Serie {n}", next_puzzle: "Nächstes Rätsel", share_endless: "Endlos · Serie {n}", run_ended: "Deine Serie endete bei {n}.",
       tag: 'Eine Linie. Jedes Feld. Zahlen der Reihe nach.', mode_group: 'Modus', daily: 'Täglich', ladder: 'Leiter', learn: 'Lernen',
@@ -1060,6 +1081,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       msg_play_unreachable: 'Google Play ist nicht erreichbar. Versuche es später erneut.',
     },
     fr: {
+      sky: "Boutons ciel", sky_desc: "Les boutons principaux suivent le vrai ciel : aube, jour, coucher du soleil et, la nuit, des étoiles avec la phase actuelle de la lune. Utilise votre fuseau horaire, pas votre position.", sky_times: "Aujourd'hui près de {place} : lever du soleil {rise}, coucher {set}.", sky_hc: "En pause tant que le contraste élevé est activé.",
       endless_desc: "Des puzzles aléatoires sans fin à toutes les difficultés, avec un record pour votre meilleure série. Un seul achat, à vous pour toujours.", unlock: "Débloquer", unlock_price: "Débloquer · {price}", msg_restored_endless: "Achat restauré. Le mode Infini est débloqué.", msg_pending_endless: "Votre achat est en attente. Le mode Infini se débloque une fois terminé.",
       expert: "Expert", endless: "Infini", endless_label: "Série {run} · Record {best} · {diff}", skip: "Passer", skip_confirm: "Touchez encore pour finir la série", hold_tip: "Maintenez une case de la ligne pour la couper à cet endroit", run_over: "Série terminée", run_n: "Série {n}", run_best_new: "Nouveau record de série !", run_best: "Meilleure série {n}", next_puzzle: "Puzzle suivant", share_endless: "Infini · série {n}", run_ended: "Votre série s'est arrêtée à {n}.",
       tag: 'Une ligne. Toutes les cases. Les nombres dans l\'ordre.', mode_group: 'Mode', daily: 'Du jour', ladder: 'Échelle', learn: 'Apprendre',
@@ -1107,6 +1129,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       msg_play_unreachable: 'Impossible de joindre Google Play. Réessayez plus tard.',
     },
     pt: {
+      sky: "Botões de céu", sky_desc: "Os botões principais seguem o céu real: amanhecer, dia, pôr do sol e, à noite, estrelas com a fase atual da lua. Usa seu fuso horário, não sua localização.", sky_times: "Hoje perto de {place}: nascer do sol {rise}, pôr do sol {set}.", sky_hc: "Pausado enquanto o alto contraste está ativado.",
       endless_desc: "Quebra-cabeças aleatórios sem fim em todas as dificuldades, com recorde da sua melhor sequência. Uma compra, para sempre.", unlock: "Desbloquear", unlock_price: "Desbloquear · {price}", msg_restored_endless: "Compra restaurada. O modo Infinito está desbloqueado.", msg_pending_endless: "Sua compra está pendente. O Infinito será desbloqueado quando concluir.",
       expert: "Especialista", endless: "Infinito", endless_label: "Sequência {run} · Recorde {best} · {diff}", skip: "Pular", skip_confirm: "Toque de novo para encerrar a sequência", hold_tip: "Segure uma casa da linha para cortar até ela", run_over: "Sequência encerrada", run_n: "Sequência {n}", run_best_new: "Nova melhor sequência!", run_best: "Melhor sequência {n}", next_puzzle: "Próximo quebra-cabeça", share_endless: "Infinito · sequência {n}", run_ended: "Sua sequência terminou em {n}.",
       tag: 'Uma linha. Todas as casas. Números em ordem.', mode_group: 'Modo', daily: 'Diário', ladder: 'Escada', learn: 'Aprender',
@@ -1297,7 +1320,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const rootEl = document.documentElement;
   const hostTheme = rootEl.getAttribute('data-theme');
   const motionQuery = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
-  const a11y = Object.assign({ motion: 'system', theme: 'system', contrast: false, large: false }, store.get('a11y', {}));
+  const a11y = Object.assign({ motion: 'system', theme: 'system', contrast: false, large: false, sky: true }, store.get('a11y', {}));
   const reducedMotion = () => rootEl.dataset.motion === 'reduced';
   const nodeSize = () => (a11y.large ? { r: 0.36, f: 0.4 } : { r: 0.3, f: 0.32 });
 
@@ -1310,8 +1333,135 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (a11y.contrast) rootEl.dataset.contrast = 'high'; else delete rootEl.dataset.contrast;
     if (a11y.large) rootEl.dataset.text = 'large'; else delete rootEl.dataset.text;
     $('motion-note').textContent = systemReduced ? t('motion_note') : '';
+    updateSky();
     if (puz) render();
   }
+
+  // Sky buttons. The sun's height comes from the real time and a rough location: the device's time zone mapped to
+  // its main city (TZ_COORDS, from tzdata via tz-coords.py; no location permission). Colours blend between key skies by
+  // sun altitude, with separate morning and evening palettes; below the horizon stars fade in with the moon at its
+  // current phase. Button text picks white or dark ink and the stops are nudged until it reads at 4.5:1 or better.
+  const TZ_COORDS = 'Africa:Abidjan 5 -4,Accra 6 0,Addis_Ababa 9 39,Algiers 37 3,Asmara 15 39,Asmera 15 39,Bamako 13 -8,Bangui 4 19,Banjul 13 -17,Bissau 12 -16,Blantyre -16 35,Brazzaville -4 15,Bujumbura -3 29,Cairo 30 31,Casablanca 34 -8,Ceuta 36 -5,Conakry 10 -14,Dakar 15 -17,Dar_es_Salaam -7 39,Djibouti 12 43,Douala 4 10,El_Aaiun 27 -13,Freetown 8 -13,Gaborone -25 26,Harare -18 31,Johannesburg -26 28,Juba 5 32,Kampala 0 32,Khartoum 16 33,Kigali -2 30,Kinshasa -4 15,Lagos 6 3,Libreville 0 9,Lome 6 1,Luanda -9 13,Lubumbashi -12 27,Lusaka -15 28,Malabo 4 9,Maputo -26 33,Maseru -29 28,Mbabane -26 31,Mogadishu 2 45,Monrovia 6 -11,Nairobi -1 37,Ndjamena 12 15,Niamey 14 2,Nouakchott 18 -16,Ouagadougou 12 -2,Porto-Novo 6 3,Sao_Tome 0 7,Timbuktu 13 -8,Tripoli 33 13,Tunis 37 10,Windhoek -23 17|America:Adak 52 -177,Anchorage 61 -150,Anguilla 18 -63,Antigua 17 -62,Araguaina -7 -48,Aruba 12 -70,Asuncion -25 -58,Atikokan 49 -92,Atka 52 -177,Bahia -13 -39,Bahia_Banderas 21 -105,Barbados 13 -60,Belem -1 -48,Belize 18 -88,Blanc-Sablon 51 -57,Boa_Vista 3 -61,Bogota 5 -74,Boise 44 -116,Buenos_Aires -35 -58,Cambridge_Bay 69 -105,Campo_Grande -20 -55,Cancun 21 -87,Caracas 10 -67,Catamarca -28 -66,Cayenne 5 -52,Cayman 19 -81,Chicago 42 -88,Chihuahua 29 -106,Ciudad_Juarez 32 -106,Coral_Harbour 49 -92,Cordoba -31 -64,Costa_Rica 10 -84,Coyhaique -46 -72,Creston 49 -117,Cuiaba -16 -56,Curacao 12 -69,Danmarkshavn 77 -19,Dawson 64 -139,Dawson_Creek 56 -120,Denver 40 -105,Detroit 42 -83,Dominica 15 -61,Edmonton 54 -113,Eirunepe -7 -70,El_Salvador 14 -89,Ensenada 33 -117,Fort_Nelson 59 -123,Fort_Wayne 40 -86,Fortaleza -4 -38,Glace_Bay 46 -60,Godthab 64 -52,Goose_Bay 53 -60,Grand_Turk 21 -71,Grenada 12 -62,Guadeloupe 16 -62,Guatemala 15 -91,Guayaquil -2 -80,Guyana 7 -58,Halifax 45 -64,Havana 23 -82,Hermosillo 29 -111,Indianapolis 40 -86,Inuvik 68 -134,Iqaluit 64 -68,Jamaica 18 -77,Jujuy -24 -65,Juneau 58 -134,Knox_IN 41 -87,Kralendijk 12 -68,La_Paz -16 -68,Lima -12 -77,Los_Angeles 34 -118,Louisville 38 -86,Lower_Princes 18 -63,Maceio -10 -36,Managua 12 -86,Manaus -3 -60,Marigot 18 -63,Martinique 15 -61,Matamoros 26 -98,Mazatlan 23 -106,Mendoza -33 -69,Menominee 45 -88,Merida 21 -90,Metlakatla 55 -132,Mexico_City 19 -99,Miquelon 47 -56,Moncton 46 -65,Monterrey 26 -100,Montevideo -35 -56,Montreal 44 -79,Montserrat 17 -62,Nassau 25 -77,New_York 41 -74,Nipigon 44 -79,Nome 64 -165,Noronha -4 -32,Nuuk 64 -52,Ojinaga 30 -104,Panama 9 -80,Pangnirtung 64 -68,Paramaribo 6 -55,Phoenix 33 -112,Port-au-Prince 19 -72,Port_of_Spain 11 -62,Porto_Acre -10 -68,Porto_Velho -9 -64,Puerto_Rico 18 -66,Punta_Arenas -53 -71,Rainy_River 50 -97,Rankin_Inlet 63 -92,Recife -8 -35,Regina 50 -105,Resolute 75 -95,Rio_Branco -10 -68,Rosario -31 -64,Santa_Isabel 33 -117,Santarem -2 -55,Santiago -33 -71,Santo_Domingo 18 -70,Sao_Paulo -24 -47,Scoresbysund 70 -22,Shiprock 40 -105,Sitka 57 -135,St_Barthelemy 18 -63,St_Johns 48 -53,St_Kitts 17 -63,St_Lucia 14 -61,St_Thomas 18 -65,St_Vincent 13 -61,Swift_Current 50 -108,Tegucigalpa 14 -87,Thule 77 -69,Thunder_Bay 44 -79,Tijuana 33 -117,Toronto 44 -79,Tortola 18 -65,Vancouver 49 -123,Virgin 18 -65,Whitehorse 61 -135,Winnipeg 50 -97,Yakutat 60 -140,Yellowknife 54 -113|America/Argentina:Buenos_Aires -35 -58,Catamarca -28 -66,ComodRivadavia -28 -66,Cordoba -31 -64,Jujuy -24 -65,La_Rioja -29 -67,Mendoza -33 -69,Rio_Gallegos -52 -69,Salta -25 -65,San_Juan -32 -69,San_Luis -33 -66,Tucuman -27 -65,Ushuaia -55 -68|America/Indiana:Indianapolis 40 -86,Knox 41 -87,Marengo 38 -86,Petersburg 38 -87,Tell_City 38 -87,Vevay 39 -85,Vincennes 39 -88,Winamac 41 -87|America/Kentucky:Louisville 38 -86,Monticello 37 -85|America/North_Dakota:Beulah 47 -102,Center 47 -101,New_Salem 47 -101|Antarctica:Casey -66 111,Davis -69 78,DumontDUrville -67 140,Macquarie -54 159,Mawson -68 63,McMurdo -78 167,Palmer -65 -64,Rothera -68 -68,South_Pole -78 167,Syowa -69 40,Troll -72 3,Vostok -78 107|Arctic:Longyearbyen 78 16|Asia:Aden 13 45,Almaty 43 77,Amman 32 36,Anadyr 65 177,Aqtau 45 50,Aqtobe 50 57,Ashgabat 38 58,Ashkhabad 38 58,Atyrau 47 52,Baghdad 33 44,Bahrain 26 51,Baku 40 50,Bangkok 14 101,Barnaul 53 84,Beirut 34 36,Bishkek 43 75,Brunei 5 115,Calcutta 23 88,Chita 52 113,Choibalsan 48 107,Chongqing 31 121,Chungking 31 121,Colombo 7 80,Dacca 24 90,Damascus 34 36,Dhaka 24 90,Dili -9 126,Dubai 25 55,Dushanbe 39 69,Famagusta 35 34,Gaza 32 34,Harbin 31 121,Hebron 32 35,Ho_Chi_Minh 11 107,Hong_Kong 22 114,Hovd 48 92,Irkutsk 52 104,Istanbul 41 29,Jakarta -6 107,Jayapura -3 141,Jerusalem 32 35,Kabul 35 69,Kamchatka 53 159,Karachi 25 67,Kashgar 44 88,Kathmandu 28 85,Katmandu 28 85,Khandyga 63 136,Kolkata 23 88,Krasnoyarsk 56 93,Kuala_Lumpur 3 102,Kuching 2 110,Kuwait 29 48,Macao 22 114,Macau 22 114,Magadan 60 151,Makassar -5 119,Manila 15 121,Muscat 24 59,Nicosia 35 33,Novokuznetsk 54 87,Novosibirsk 55 83,Omsk 55 73,Oral 51 51,Phnom_Penh 12 105,Pontianak 0 109,Pyongyang 39 126,Qatar 25 52,Qostanay 53 64,Qyzylorda 45 65,Rangoon 17 96,Riyadh 25 47,Saigon 11 107,Sakhalin 47 143,Samarkand 40 67,Seoul 38 127,Shanghai 31 121,Singapore 1 104,Srednekolymsk 67 154,Taipei 25 122,Tashkent 41 69,Tbilisi 42 45,Tehran 36 51,Tel_Aviv 32 35,Thimbu 27 90,Thimphu 27 90,Tokyo 36 140,Tomsk 56 85,Ujung_Pandang -5 119,Ulaanbaatar 48 107,Ulan_Bator 48 107,Urumqi 44 88,Ust-Nera 65 143,Vientiane 18 103,Vladivostok 43 132,Yakutsk 62 130,Yangon 17 96,Yekaterinburg 57 61,Yerevan 40 44|Atlantic:Azores 38 -26,Bermuda 32 -65,Canary 28 -15,Cape_Verde 15 -24,Faeroe 62 -7,Faroe 62 -7,Jan_Mayen 60 11,Madeira 33 -17,Reykjavik 64 -22,South_Georgia -54 -37,St_Helena -16 -6,Stanley -52 -58|Australia:ACT -34 151,Adelaide -35 139,Brisbane -27 153,Broken_Hill -32 141,Canberra -34 151,Currie -43 147,Darwin -12 131,Eucla -32 129,Hobart -43 147,LHI -32 159,Lindeman -20 149,Lord_Howe -32 159,Melbourne -38 145,NSW -34 151,North -12 131,Perth -32 116,Queensland -27 153,South -35 139,Sydney -34 151,Tasmania -43 147,Victoria -38 145,West -32 116,Yancowinna -32 141|Brazil:Acre -10 -68,DeNoronha -4 -32,East -24 -47,West -3 -60|Canada:Atlantic 45 -64,Central 50 -97,Eastern 44 -79,Mountain 54 -113,Newfoundland 48 -53,Pacific 49 -123,Saskatchewan 50 -105,Yukon 61 -135|Chile:Continental -33 -71,EasterIsland -27 -109|:Cuba 23 -82,Egypt 30 31,Eire 53 -6,GB 52 0,GB-Eire 52 0,Hongkong 22 114,Iceland 64 -22,Iran 36 51,Israel 32 35,Jamaica 18 -77,Japan 36 140,Kwajalein 9 167,Libya 33 13,NZ -37 175,NZ-CHAT -44 -177,Navajo 40 -105,PRC 31 121,Poland 52 21,Portugal 39 -9,ROC 25 122,ROK 38 127,Singapore 1 104,Turkey 41 29,W-SU 56 38|Europe:Amsterdam 52 5,Andorra 42 2,Astrakhan 46 48,Athens 38 24,Belfast 52 0,Belgrade 45 20,Berlin 52 13,Bratislava 48 17,Brussels 51 4,Bucharest 44 26,Budapest 48 19,Busingen 48 9,Chisinau 47 29,Copenhagen 56 13,Dublin 53 -6,Gibraltar 36 -5,Guernsey 49 -3,Helsinki 60 25,Isle_of_Man 54 -4,Istanbul 41 29,Jersey 49 -2,Kaliningrad 55 20,Kiev 50 31,Kirov 59 50,Kyiv 50 31,Lisbon 39 -9,Ljubljana 46 15,London 52 0,Luxembourg 50 6,Madrid 40 -4,Malta 36 15,Mariehamn 60 20,Minsk 54 28,Monaco 44 7,Moscow 56 38,Nicosia 35 33,Oslo 60 11,Paris 49 2,Podgorica 42 19,Prague 50 14,Riga 57 24,Rome 42 12,Samara 53 50,San_Marino 44 12,Sarajevo 44 18,Saratov 52 46,Simferopol 45 34,Skopje 42 21,Sofia 43 23,Stockholm 59 18,Tallinn 59 25,Tirane 41 20,Tiraspol 47 29,Ulyanovsk 54 48,Uzhgorod 50 31,Vaduz 47 10,Vatican 42 12,Vienna 48 16,Vilnius 55 25,Volgograd 49 44,Warsaw 52 21,Zagreb 46 16,Zaporozhye 50 31,Zurich 47 9|Indian:Antananarivo -19 48,Chagos -7 72,Christmas -10 106,Cocos -12 97,Comoro -12 43,Kerguelen -49 70,Mahe -5 55,Maldives 4 74,Mauritius -20 58,Mayotte -13 45,Reunion -21 55|Mexico:BajaNorte 33 -117,BajaSur 23 -106,General 19 -99|Pacific:Apia -14 -172,Auckland -37 175,Bougainville -6 156,Chatham -44 -177,Chuuk 7 152,Easter -27 -109,Efate -18 168,Enderbury -3 -172,Fakaofo -9 -171,Fiji -18 178,Funafuti -9 179,Galapagos -1 -90,Gambier -23 -135,Guadalcanal -10 160,Guam 13 145,Honolulu 21 -158,Johnston 21 -158,Kanton -3 -172,Kiritimati 2 -157,Kosrae 5 163,Kwajalein 9 167,Majuro 7 171,Marquesas -9 -140,Midway 28 -177,Nauru -1 167,Niue -19 -170,Norfolk -29 168,Noumea -22 166,Pago_Pago -14 -171,Palau 7 134,Pitcairn -25 -130,Pohnpei 7 158,Ponape 7 158,Port_Moresby -10 147,Rarotonga -21 -160,Saipan 15 146,Samoa -14 -171,Tahiti -18 -150,Tarawa 1 173,Tongatapu -21 -175,Truk 7 152,Wake 19 167,Wallis -13 -176,Yap 7 152|US:Alaska 61 -150,Aleutian 52 -177,Arizona 33 -112,Central 42 -88,East-Indiana 40 -86,Eastern 41 -74,Hawaii 21 -158,Indiana-Starke 41 -87,Michigan 42 -83,Mountain 40 -105,Pacific 34 -118,Samoa -14 -171';
+  let tzTable = null;
+  function skyPlace() {
+    let zone = '';
+    try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (_) {}
+    if (!tzTable) {
+      tzTable = {};
+      for (const grp of TZ_COORDS.split('|')) {
+        const at = grp.indexOf(':'), area = grp.slice(0, at);
+        for (const row of grp.slice(at + 1).split(',')) { const [city, lat, lon] = row.split(' '); tzTable[(area ? area + '/' : '') + city] = [+lat, +lon]; }
+      }
+    }
+    const hit = tzTable[zone];
+    if (hit) return { lat: hit[0], lon: hit[1], name: zone.split('/').pop().replace(/_/g, ' ') };
+    // Unknown zone: longitude from the UTC offset, a mid-northern latitude.
+    return { lat: 40, lon: -new Date().getTimezoneOffset() / 4, name: '' };
+  }
+  const RAD = Math.PI / 180;
+  // Low-precision solar and lunar positions (good to well under a degree, plenty for colours and phases).
+  function astro(ms) {
+    const d = ms / 86400000 - 10957.5; // days from J2000.0
+    const g = (357.529 + 0.98560028 * d) * RAD;
+    const sunLon = (280.459 + 0.98564736 * d + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * RAD;
+    const eps = (23.439 - 0.00000036 * d) * RAD;
+    const ra = Math.atan2(Math.cos(eps) * Math.sin(sunLon), Math.cos(sunLon));
+    const dec = Math.asin(Math.sin(eps) * Math.sin(sunLon));
+    const gmst = (280.46061837 + 360.98564736629 * d) * RAD;
+    const mL = 218.316 + 13.176396 * d, mM = (134.963 + 13.064993 * d) * RAD, mD = (297.85 + 12.190749 * d) * RAD;
+    const moonLon = (mL + 6.289 * Math.sin(mM) - 1.274 * Math.sin(mM - 2 * mD) + 0.658 * Math.sin(2 * mD)) * RAD;
+    let phase = ((moonLon - sunLon) / (2 * Math.PI)) % 1; if (phase < 0) phase += 1;
+    return { ra, dec, gmst, phase };
+  }
+  function sunAlt(ms, lat, lon) {
+    const a = astro(ms), ha = a.gmst + lon * RAD - a.ra;
+    return Math.asin(Math.sin(lat * RAD) * Math.sin(a.dec) + Math.cos(lat * RAD) * Math.cos(a.dec) * Math.cos(ha)) / RAD;
+  }
+  // Sunrise and sunset for the local day (null when the sun stays up or down), stepping in 5 minutes.
+  function sunTimes(now, lat, lon) {
+    const start = new Date(now); start.setHours(0, 0, 0, 0);
+    let rise = null, set = null, prev = sunAlt(start.getTime(), lat, lon) + 0.833;
+    for (let m = 5; m <= 1440; m += 5) {
+      const ms = start.getTime() + m * 60000, cur = sunAlt(ms, lat, lon) + 0.833;
+      const at = new Date(ms - 300000 * (cur / (cur - prev)));
+      if (prev < 0 && cur >= 0 && !rise) rise = at;
+      if (prev >= 0 && cur < 0 && !set) set = at;
+      prev = cur;
+    }
+    return { rise, set };
+  }
+  // Key skies by sun altitude, [top, middle, bottom].
+  const SKY_NIGHT = [-18, '#070b1f', '#0e1638', '#18234d'];
+  const SKY_RISE = [SKY_NIGHT, [-12, '#0f1640', '#232a63', '#3d3a78'], [-6, '#26306e', '#6b5a9c', '#d98a8e'],
+    [-1, '#5a76bf', '#e7a0a0', '#ffc58f'], [4, '#7fb2e6', '#ffd0b0', '#ffe6b5'], [12, '#3d8fe0', '#78bbf2', '#c4e6ff']];
+  const SKY_SET = [SKY_NIGHT, [-12, '#10143d', '#2a215c', '#4a2e66'], [-6, '#2a2766', '#7d3b78', '#d7604e'],
+    [-1, '#4b4e9e', '#de6a68', '#ffa257'], [4, '#6ea6e0', '#ffbf86', '#ffb073'], [12, '#3d8fe0', '#78bbf2', '#c4e6ff']];
+  const hexRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const rgbHex = (c) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+  const mix = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
+  const lum = (c) => { const l = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  function skyStops(alt, rising) {
+    const keys = rising ? SKY_RISE : SKY_SET;
+    let i = 0; while (i < keys.length - 1 && alt > keys[i + 1][0]) i++;
+    const a = keys[i], b = keys[Math.min(i + 1, keys.length - 1)];
+    const k = b === a ? 0 : Math.max(0, Math.min(1, (alt - a[0]) / (b[0] - a[0])));
+    return [1, 2, 3].map((j) => mix(hexRgb(a[j]), hexRgb(b[j]), k));
+  }
+  // Pick the ink that needs the least change to reach 4.5:1 on every stop, then darken or lighten the stops until it does.
+  function readable(stops) {
+    const inks = [[[255, 255, 255], [0, 0, 0]], [[20, 24, 43], [255, 255, 255]]];
+    let best = null;
+    for (const [ink, toward] of inks) {
+      let cost = 0;
+      const out = stops.map((c) => { let k = 0; while (k < 1 && contrast(mix(c, toward, k), ink) < 4.5) k += 0.04; cost += k; return mix(c, toward, Math.min(k, 1)); });
+      if (!best || cost < best.cost) best = { cost, ink, out };
+    }
+    return best;
+  }
+  function moonSvg(phase, south) {
+    const r = 9, c = Math.cos(2 * Math.PI * phase), waxing = phase < 0.5, rx = (Math.abs(c) * r).toFixed(2);
+    const lit = `M12 3A9 9 0 0 ${waxing ? 1 : 0} 12 21A${rx} 9 0 0 ${waxing ? (c > 0 ? 0 : 1) : (c > 0 ? 1 : 0)} 12 3Z`;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g${south ? " transform='matrix(-1 0 0 1 24 0)'" : ''}><circle cx='12' cy='12' r='9' fill='rgba(255,255,255,0.13)'/><path d='${lit}' fill='#f5f1dc'/></g></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}") right 9px center / 14px 14px no-repeat`;
+  }
+  // Fixed star field kept to the left and right ends and the top and bottom edges, away from the label.
+  const STARS = [[6, 22, 1], [13, 68, 0.7], [20, 34, 0.55], [9, 84, 0.5], [30, 14, 0.45], [42, 88, 0.4], [58, 10, 0.45],
+    [70, 86, 0.4], [80, 24, 0.7], [86, 70, 0.55], [93, 40, 0.5], [50, 12, 0.35], [36, 90, 0.35]];
+  let skyTimer = null, skyCache = '';
+  function updateSky(nowMs) {
+    const now = nowMs || Date.now();
+    const on = a11y.sky !== false && !a11y.contrast;
+    const note = $('sky-note');
+    if (!on) {
+      delete rootEl.dataset.sky; clearInterval(skyTimer); skyTimer = null;
+      if (note) note.textContent = a11y.sky !== false && a11y.contrast ? t('sky_hc') : '';
+      return;
+    }
+    if (!skyTimer) skyTimer = setInterval(() => updateSky(), 60000);
+    const p = skyPlace();
+    const alt = sunAlt(now, p.lat, p.lon), rising = sunAlt(now + 600000, p.lat, p.lon) > alt;
+    const dark = rootEl.getAttribute('data-theme') === 'dark' || (rootEl.getAttribute('data-theme') !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    let stops = skyStops(alt, rising);
+    if (dark) stops = stops.map((c) => mix(c, [16, 19, 29], 0.18)); // a little dimmer so daytime buttons don't glare in dark mode
+    const r = readable(stops), night = Math.max(0, Math.min(1, (-alt - 4) / 8));
+    const ph = astro(now).phase;
+    const stars = night > 0 ? STARS.map(([x, y, a]) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,${(a * night).toFixed(2)}) 0 0.8px, transparent 1.4px)`).join(', ') : 'none';
+    const vars = {
+      '--sky-a': rgbHex(r.out[0]), '--sky-b': rgbHex(r.out[1]), '--sky-c': rgbHex(r.out[2]), '--sky-ink': rgbHex(r.ink),
+      '--sky-glow': r.ink[0] > 128 ? '0 1px 2px rgba(0,0,0,0.25)' : 'none',
+      '--sky-stars': stars, '--sky-moon': night > 0.35 ? moonSvg(ph, p.lat < 0) : 'none',
+    };
+    const key = JSON.stringify(vars);
+    if (key !== skyCache) { skyCache = key; for (const k in vars) rootEl.style.setProperty(k, vars[k]); }
+    rootEl.dataset.sky = night > 0.35 ? 'night' : alt < 4 ? (rising ? 'dawn' : 'dusk') : 'day';
+    if (note) {
+      const st = sunTimes(now, p.lat, p.lon), hm = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      note.textContent = st.rise && st.set && p.name ? t('sky_times', { place: p.name, rise: hm(st.rise), set: hm(st.set) }) : '';
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) updateSky(); });
+  if (window.matchMedia) { const dq = matchMedia('(prefers-color-scheme: dark)'); if (dq.addEventListener) dq.addEventListener('change', () => updateSky()); }
 
   function announce(msg) { const el = $('announce'); el.textContent = ''; setTimeout(() => (el.textContent = msg), 30); }
 
@@ -2324,7 +2474,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const sheet = $('a11y');
   function openA11y() {
     for (const k of ['motion', 'theme']) $(k + '-' + a11y[k]).checked = true;
-    $('opt-contrast').checked = a11y.contrast; $('opt-large').checked = a11y.large;
+    $('opt-contrast').checked = a11y.contrast; $('opt-large').checked = a11y.large; $('opt-sky').checked = a11y.sky !== false;
     sheet.hidden = false;
     sheet.querySelector('input:checked').focus();
   }
@@ -2361,6 +2511,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   sheet.querySelectorAll('input[type=radio]').forEach((r) => r.addEventListener('change', () => { a11y[r.name] = r.value; saveA11y(); }));
   $('opt-contrast').onchange = (e) => { a11y.contrast = e.target.checked; saveA11y(); };
   $('opt-large').onchange = (e) => { a11y.large = e.target.checked; saveA11y(); };
+  $('opt-sky').onchange = (e) => { a11y.sky = e.target.checked; saveA11y(); };
 
   // Daily archive: a month calendar of past days from ARCHIVE_START to yesterday. A dot per difficulty solved
   // that day (live or from the archive); picking a day plays its Dailies. Today goes back to the live Daily.
@@ -2792,7 +2943,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-18 · 336d815';
+  const WEB_BUILD = '2026-11-18 · 774105d';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
