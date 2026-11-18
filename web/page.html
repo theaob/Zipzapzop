@@ -189,6 +189,10 @@ button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 }
 :root[data-sky="night"] :is(.controls button.primary, .win button:not(.share), .cal-unlock button:not(.share), .map-head button,
   .streak-play, .sheet-head button, #ads-buy, #games-signin) { padding-right: 32px; } /* room for the moon */
+:root[data-sky] .tabbar button[aria-pressed="true"] svg, :root[data-sky] .switch input:checked + span.track {
+  background: var(--sky-stars), linear-gradient(180deg, var(--sky-a), var(--sky-b) 55%, var(--sky-c)); background-color: var(--sky-b);
+}
+:root[data-sky] .tabbar button[aria-pressed="true"] svg { color: var(--sky-ink); }
 button:disabled { opacity: 0.45; cursor: default; }
 .lesson { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
 .lesson small { color: var(--muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
