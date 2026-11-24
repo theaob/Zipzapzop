@@ -156,6 +156,10 @@ svg.overlay { position: absolute; inset: 2px; width: calc(100% - 4px); height: c
 @keyframes nodePop { 45% { transform: scale(1.35); } }
 /* Checkpoint hit: drawn on its own layer so later redraws don't cut it short. */
 svg.fx { z-index: 1; }
+/* Hold or rest on an earlier square of the line: a ring fills around it, then the line is cut back there. */
+.fx .cut-ring { fill: none; stroke: var(--focus); stroke-width: 0.07; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transform: rotate(-90deg); animation: cutFill var(--ms, 450ms) linear forwards; }
+@keyframes cutFill { to { stroke-dashoffset: 0; } }
+[data-motion="reduced"] .fx .cut-ring { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; opacity: 0.8; }
 .fx * { transform-box: fill-box; transform-origin: center; }
 .fx .hit-node { animation: hitPop 520ms cubic-bezier(.3, 1.7, .5, 1) forwards; }
 .fx .hit-node text { fill: #fff; font-family: var(--display); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
@@ -2462,21 +2466,35 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     return rr * n + c;
   }
 
-  // Step through intermediate cells when a fast drag skips over some.
+  // While drawing, the line only goes back the way it came: moving onto the square just before
+  // the head takes back one square, so tracing back along the line erases it step by step. Crossing
+  // an older part of the line leaves it alone (a finger brushing over the line, a diagonal or a fast
+  // swipe no longer cuts it). Resting on an older square for CUT_MS cuts back to it, with a ring
+  // filling around that square so the player sees it coming and can move off to cancel.
   function dragTo(cell) {
     if (cell < 0) return false;
     let changed = false;
     for (let guard = 0; guard < 64; guard++) {
       if (!path.length) return moveTo(cell) || changed;
-      const head = path[path.length - 1];
+      const len = path.length, head = path[len - 1];
       if (cell === head) break;
-      if (path.includes(cell) || E.neighbors(puz.n, head).includes(cell)) return moveTo(cell) || changed;
+      const at = path.indexOf(cell);
+      if (at >= 0) {
+        if (at === len - 2) { path.length = len - 1; return true; }
+        // Cutting a corner while tracing back: a diagonal jump two squares back along the line.
+        if (at === len - 3 && Math.abs(cell % puz.n - head % puz.n) === 1 && Math.abs(Math.floor(cell / puz.n) - Math.floor(head / puz.n)) === 1) {
+          path.length = len - 2; return true;
+        }
+        return changed;
+      }
+      if (E.neighbors(puz.n, head).includes(cell)) return moveTo(cell) || changed;
+      // A fast drag skipped some squares: fill them in, but only over empty squares.
       const n = puz.n, hr = Math.floor(head / n), hc = head % n, tr = Math.floor(cell / n), tc = cell % n;
       const dr = tr - hr, dc = tc - hc;
       const step = Math.abs(dr) >= Math.abs(dc) ? head + Math.sign(dr) * n : head + Math.sign(dc);
       const alt = Math.abs(dr) >= Math.abs(dc) ? (dc ? head + Math.sign(dc) : -1) : (dr ? head + Math.sign(dr) * n : -1);
-      if (moveTo(step)) { changed = true; continue; }
-      if (alt >= 0 && moveTo(alt)) { changed = true; continue; }
+      if (!path.includes(step) && moveTo(step)) { changed = true; continue; }
+      if (alt >= 0 && !path.includes(alt) && moveTo(alt)) { changed = true; continue; }
       break;
     }
     return changed;
@@ -2487,9 +2505,42 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // touch can't wipe progress; holding cuts the line back to that cell.
   // A drag that starts on the 1 and moves to another square draws the line again from the start.
   // Pressing an earlier square without holding shows how to cut there (the first few times).
-  const HOLD_MS = 450, HOLD_TIPS = 3;
+  const HOLD_MS = 450, CUT_MS = 600, HOLD_TIPS = 3;
   let dragging = false, armed = false, holdTimer = null, holdCell = -1, fromOne = false, holdTip = false;
-  const clearHold = () => { clearTimeout(holdTimer); holdTimer = null; holdCell = -1; };
+  let cutTimer = null, cutCell = -1, lastX = 0, lastY = 0, lastCell = -1;
+  // The filling ring on the square a hold or rest will cut back to.
+  function showRing(cell, ms) {
+    hideRing();
+    const fx = $('fx'), n = puz.n;
+    fx.setAttribute('viewBox', `0 0 ${n} ${n}`);
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('class', 'cut-ring'); c.id = 'cutRing';
+    c.setAttribute('cx', (cell % n) + 0.5); c.setAttribute('cy', Math.floor(cell / n) + 0.5); c.setAttribute('r', 0.42);
+    c.setAttribute('pathLength', 1); c.style.setProperty('--ms', ms + 'ms');
+    fx.appendChild(c);
+  }
+  function hideRing() { const r = $('cutRing'); if (r) r.remove(); }
+  function cutTo(cell) {
+    const at = path.indexOf(cell);
+    if (at < 0) return;
+    path.length = at + 1; render();
+    const c = cells[cell];
+    c.classList.remove('hint'); void c.offsetWidth; c.classList.add('hint');
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+  }
+  const clearHold = () => { clearTimeout(holdTimer); holdTimer = null; holdCell = -1; hideRing(); };
+  const clearCut = () => { clearTimeout(cutTimer); cutTimer = null; cutCell = -1; hideRing(); };
+  // While drawing: start, keep or cancel the rest-to-cut on the square under the finger.
+  function restOn(cell) {
+    const at = path.indexOf(cell);
+    if (at < 0 || at >= path.length - 1) { if (cutTimer) clearCut(); return; }
+    if (cell === cutCell) return;
+    clearCut(); cutCell = cell; showRing(cell, CUT_MS);
+    cutTimer = setTimeout(() => {
+      const c = cutCell; cutTimer = null; cutCell = -1; hideRing();
+      if (dragging && armed && !won) cutTo(c);
+    }, CUT_MS);
+  }
   function tipHold() {
     if (!holdTip) return;
     holdTip = false;
@@ -2503,16 +2554,15 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (cell < 0) return;
     if (!path.length && puz.nums[cell] !== 1) return;
     dragging = true; board.setPointerCapture(e.pointerId);
+    lastX = e.clientX; lastY = e.clientY; lastCell = cell;
     const at = path.indexOf(cell);
     if (at >= 0 && at < path.length - 1) {
       armed = false; holdCell = cell; fromOne = at === 0; holdTip = !fromOne;
+      if (!fromOne) showRing(cell, HOLD_MS);
       holdTimer = setTimeout(() => {
-        holdTimer = null;
+        holdTimer = null; hideRing();
         if (!dragging || won) return;
-        path.length = at + 1; armed = true; fromOne = false; holdTip = false; render();
-        const c = cells[cell];
-        c.classList.remove('hint'); void c.offsetWidth; c.classList.add('hint');
-        if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+        armed = true; fromOne = false; holdTip = false; cutTo(cell);
       }, HOLD_MS);
       return;
     }
@@ -2524,6 +2574,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (!dragging) return;
     const cell = cellAt(e.clientX, e.clientY);
     if (!armed) {
+      lastX = e.clientX; lastY = e.clientY; lastCell = cell;
       if (cell < 0 || cell === holdCell || !holdTimer) return;
       if (fromOne) {
         // Moved off the 1 before the hold: start the line over from the 1 and carry on drawing.
@@ -2534,13 +2585,26 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       clearHold(); tipHold();
       return;
     }
-    if (dragTo(cell)) render();
+    // Walk the finger's track in quarter-square steps, so a fast swipe visits every square it
+    // passed over in order (and tracing back along the line erases it square by square).
+    const r = board.getBoundingClientRect(), size = r.width / puz.n;
+    const steps = Math.min(64, Math.max(1, Math.ceil(Math.hypot(e.clientX - lastX, e.clientY - lastY) / (size / 4))));
+    let changed = false;
+    for (let k = 1; k <= steps; k++) {
+      const c = cellAt(lastX + ((e.clientX - lastX) * k) / steps, lastY + ((e.clientY - lastY) * k) / steps);
+      if (c === lastCell) continue;
+      lastCell = c;
+      if (dragTo(c)) changed = true;
+    }
+    lastX = e.clientX; lastY = e.clientY;
+    if (changed) render();
+    restOn(cell);
   });
   const end = (e) => {
     if (!dragging) return;
     // The line stays where the finger lifts; the next drag carries on from its end.
     if (!armed && holdTimer) tipHold();
-    dragging = false; armed = false; fromOne = false; holdTip = false; clearHold();
+    dragging = false; armed = false; fromOne = false; holdTip = false; clearHold(); clearCut();
   };
   board.addEventListener('pointerup', end);
   board.addEventListener('pointercancel', end);
@@ -3222,7 +3286,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-24 · 429b16a';
+  const WEB_BUILD = '2026-11-24 · 3418110';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
