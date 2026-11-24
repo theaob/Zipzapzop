@@ -374,6 +374,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .freeze p { margin: 2px 0 0; color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
 .streak-play { height: 44px; border-radius: 12px; border: 0; background: var(--ink); color: var(--bg); font: 600 0.95rem var(--body); cursor: pointer; }
 .streak-play[hidden] { display: none; }
+.streak-play:disabled { opacity: 0.55; cursor: default; }
 .win .streak-line { color: var(--ink); font-weight: 600; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .sheet {
@@ -410,6 +411,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .switch input:checked + span.track { background: var(--ok); }
 .switch input:checked + span.track::after { transform: translateX(20px); }
 .opt[hidden], .desc[hidden] { display: none; }
+.share-prev { position: relative; align-self: center; width: min(100%, calc(52vh * 0.8)); aspect-ratio: 4 / 5; border-radius: 12px; overflow: hidden; background: var(--bg); }
+.share-prev video, .share-prev img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.share-prev p { position: absolute; inset: auto 0 0; margin: 0; padding: 10px; text-align: center; font-weight: 600; font-size: 0.9rem; color: var(--ink); background: color-mix(in srgb, var(--panel) 85%, transparent); }
+.share-prev [hidden], .seg label.off { display: none; }
 .time-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; }
 .time-row input { font: 600 1rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
 .time-row input:disabled { opacity: 0.5; }
@@ -565,6 +570,18 @@ button:disabled { opacity: 0.45; cursor: default; }
     <div><b class="week-title" data-i18n="streak_week">This week</b><ul class="week" id="streak-week"></ul></div>
     <div class="freeze" id="freeze"><span class="ice" aria-hidden="true">❄</span><div><b data-i18n="freeze">Streak freeze</b><p id="freeze-desc"></p></div></div>
     <button class="streak-play" id="streak-play" data-i18n="play_today">Play today's puzzle</button>
+  </div>
+</div>
+
+<div class="sheet" id="sharesheet" role="dialog" aria-modal="true" aria-labelledby="share-title" hidden>
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="share-title" data-i18n="share_title">Share your result</h2><button id="share-close" data-i18n="done">Done</button></div>
+    <div class="seg" role="radiogroup" aria-labelledby="share-title">
+      <label id="share-video-opt"><input type="radio" name="sharekind" value="video" id="share-video"><span data-i18n="share_video">Video</span></label>
+      <label><input type="radio" name="sharekind" value="picture" id="share-picture"><span data-i18n="share_picture">Picture</span></label>
+    </div>
+    <div class="share-prev"><video id="share-vid" muted loop playsinline autoplay hidden></video><img id="share-img" alt="" hidden><p id="share-wait" hidden></p></div>
+    <button class="streak-play" id="share-go"></button>
   </div>
 </div>
 
@@ -924,7 +941,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Levels', soon: 'More levels coming soon', soon_desc: 'New worlds are on their way.', unlock_after: 'Finish {world} to unlock', level_of: 'Level {level} of {total}', replay: 'Replay', overall: '{n}/{total} overall', best: 'Best {time}', new_best: 'New best!', current: 'next up',
       play_games: 'Google Play Games', games_on: 'Achievements and leaderboard times are saved to your Play Games profile.', games_failed: "Couldn't connect to Play Games. Check that you're signed in to Google Play, then try again.",
       games_off: 'Sign in to earn achievements and compare your times on leaderboards.', games_signin: 'Sign in', achievements: 'Achievements', leaderboards: 'Leaderboards',
-      hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', share_preparing: 'Preparing video…', copied: 'Result copied', share_cta: 'Can you beat it?', share_store: 'Free on Google Play',
+      hints_none: 'no hints', hints_one: '1 hint', hints_many: '{n} hints', share_preparing: 'Preparing video…', share_title: 'Share your result', share_video: 'Video', share_picture: 'Picture', share_go_video: 'Share video', share_go_picture: 'Share picture', copied: 'Result copied', share_cta: 'Can you beat it?', share_store: 'Free on Google Play',
       missed: 'Almost! The line must cover every square. {n} left.', reached: 'Reached {k} of {total}', solved_announce: 'Solved in {time}',
       msg_store_unavailable: "Remove ads isn't available yet. Purchases only work when the app is installed from Google Play.",
       msg_billing_unavailable: "Google Play purchases aren't available on this device or account.",
@@ -972,7 +989,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Seviyeler', soon: 'Yeni seviyeler çok yakında', soon_desc: 'Yeni dünyalar yolda.', unlock_after: 'Açmak için {world} dünyasını bitir', level_of: 'Seviye {level} / {total}', replay: 'Tekrar', overall: 'Toplam {n}/{total}', best: 'En iyi {time}', new_best: 'Yeni rekor!', current: 'sıradaki',
       play_games: 'Google Play Oyunlar', games_on: 'Başarımların ve sıralama sürelerin Play Oyunlar profiline kaydedilir.', games_failed: 'Play Oyunlar\'a bağlanılamadı. Google Play\'de oturum açtığından emin olup tekrar dene.',
       games_off: 'Başarım kazanmak ve sürelerini sıralamalarda karşılaştırmak için oturum aç.', games_signin: 'Oturum aç', achievements: 'Başarımlar', leaderboards: 'Sıralamalar',
-      hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', share_preparing: 'Video hazırlanıyor…', copied: 'Sonuç kopyalandı', share_cta: 'Sen geçebilir misin?', share_store: 'Google Play\'de ücretsiz',
+      hints_none: 'ipucusuz', hints_one: '1 ipucu', hints_many: '{n} ipucu', share_preparing: 'Video hazırlanıyor…', share_title: 'Sonucunu paylaş', share_video: 'Video', share_picture: 'Resim', share_go_video: 'Videoyu paylaş', share_go_picture: 'Resmi paylaş', copied: 'Sonuç kopyalandı', share_cta: 'Sen geçebilir misin?', share_store: 'Google Play\'de ücretsiz',
       missed: 'Az kaldı! Çizgi her kareden geçmeli. {n} kare kaldı.', reached: '{k} / {total} sayıya ulaşıldı', solved_announce: '{time} sürede çözüldü',
       msg_store_unavailable: 'Reklamları kaldırma henüz kullanılamıyor. Satın almalar yalnızca uygulama Google Play\'den yüklendiğinde çalışır.',
       msg_billing_unavailable: 'Bu cihazda veya hesapta Google Play satın almaları kullanılamıyor.',
@@ -1020,7 +1037,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Niveles', soon: 'Pronto habrá más niveles', soon_desc: 'Nuevos mundos en camino.', unlock_after: 'Completa {world} para desbloquear', level_of: 'Nivel {level} de {total}', replay: 'Repetición', overall: '{n}/{total} en total', best: 'Mejor {time}', new_best: '¡Nuevo récord!', current: 'siguiente',
       play_games: 'Google Play Juegos', games_on: 'Tus logros y tiempos de las clasificaciones se guardan en tu perfil de Play Juegos.', games_failed: 'No se pudo conectar con Play Juegos. Comprueba que has iniciado sesión en Google Play y vuelve a intentarlo.',
       games_off: 'Inicia sesión para conseguir logros y comparar tus tiempos en las clasificaciones.', games_signin: 'Iniciar sesión', achievements: 'Logros', leaderboards: 'Clasificaciones',
-      hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', share_preparing: 'Preparando vídeo…', copied: 'Resultado copiado', share_cta: '¿Puedes superarlo?', share_store: 'Gratis en Google Play',
+      hints_none: 'ninguna pista', hints_one: '1 pista', hints_many: '{n} pistas', share_preparing: 'Preparando vídeo…', share_title: 'Comparte tu resultado', share_video: 'Vídeo', share_picture: 'Imagen', share_go_video: 'Compartir vídeo', share_go_picture: 'Compartir imagen', copied: 'Resultado copiado', share_cta: '¿Puedes superarlo?', share_store: 'Gratis en Google Play',
       missed: '¡Casi! La línea debe pasar por todas las casillas. Faltan {n}.', reached: 'Número {k} de {total} alcanzado', solved_announce: 'Resuelto en {time}',
       msg_store_unavailable: 'Quitar anuncios aún no está disponible. Las compras solo funcionan si la app se instaló desde Google Play.',
       msg_billing_unavailable: 'Las compras de Google Play no están disponibles en este dispositivo o cuenta.',
@@ -1068,7 +1085,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Stufen', soon: 'Weitere Stufen folgen bald', soon_desc: 'Neue Welten sind unterwegs.', unlock_after: 'Schließe {world} ab, um freizuschalten', level_of: 'Stufe {level} von {total}', replay: 'Wiederholung', overall: '{n}/{total} gesamt', best: 'Bestzeit {time}', new_best: 'Neue Bestzeit!', current: 'als Nächstes',
       play_games: 'Google Play Spiele', games_on: 'Erfolge und Bestenlisten-Zeiten werden in deinem Play Spiele-Profil gespeichert.', games_failed: 'Keine Verbindung zu Play Spiele. Prüfe, ob du bei Google Play angemeldet bist, und versuche es noch einmal.',
       games_off: 'Melde dich an, um Erfolge zu sammeln und deine Zeiten in Bestenlisten zu vergleichen.', games_signin: 'Anmelden', achievements: 'Erfolge', leaderboards: 'Bestenlisten',
-      hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', share_preparing: 'Video wird erstellt…', copied: 'Ergebnis kopiert', share_cta: 'Schaffst du das?', share_store: 'Kostenlos bei Google Play',
+      hints_none: 'ohne Tipp', hints_one: '1 Tipp', hints_many: '{n} Tipps', share_preparing: 'Video wird erstellt…', share_title: 'Ergebnis teilen', share_video: 'Video', share_picture: 'Bild', share_go_video: 'Video teilen', share_go_picture: 'Bild teilen', copied: 'Ergebnis kopiert', share_cta: 'Schaffst du das?', share_store: 'Kostenlos bei Google Play',
       missed: 'Fast! Die Linie muss durch jedes Feld gehen. Noch {n} übrig.', reached: '{k} von {total} erreicht', solved_announce: 'Gelöst in {time}',
       msg_store_unavailable: 'Werbung entfernen ist noch nicht verfügbar. Käufe funktionieren nur, wenn die App aus Google Play installiert wurde.',
       msg_billing_unavailable: 'Google-Play-Käufe sind auf diesem Gerät oder Konto nicht verfügbar.',
@@ -1116,7 +1133,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Niveaux', soon: 'D\'autres niveaux arrivent bientôt', soon_desc: 'De nouveaux mondes sont en route.', unlock_after: 'Terminez {world} pour débloquer', level_of: 'Niveau {level} sur {total}', replay: 'Rejeu', overall: '{n}/{total} au total', best: 'Record {time}', new_best: 'Nouveau record !', current: 'à suivre',
       play_games: 'Google Play Jeux', games_on: 'Vos succès et vos temps de classement sont enregistrés dans votre profil Play Jeux.', games_failed: 'Impossible de se connecter à Play Jeux. Vérifiez que vous êtes connecté à Google Play, puis réessayez.',
       games_off: 'Connectez-vous pour obtenir des succès et comparer vos temps dans les classements.', games_signin: 'Se connecter', achievements: 'Succès', leaderboards: 'Classements',
-      hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', share_preparing: 'Préparation de la vidéo…', copied: 'Résultat copié', share_cta: 'Ferez-vous mieux ?', share_store: 'Gratuit sur Google Play',
+      hints_none: 'aucun indice', hints_one: '1 indice', hints_many: '{n} indices', share_preparing: 'Préparation de la vidéo…', share_title: 'Partager votre résultat', share_video: 'Vidéo', share_picture: 'Image', share_go_video: 'Partager la vidéo', share_go_picture: "Partager l'image", copied: 'Résultat copié', share_cta: 'Ferez-vous mieux ?', share_store: 'Gratuit sur Google Play',
       missed: 'Presque ! La ligne doit passer par toutes les cases. Encore {n}.', reached: '{k} sur {total} atteint', solved_announce: 'Résolu en {time}',
       msg_store_unavailable: 'Supprimer les pubs n\'est pas encore disponible. Les achats ne fonctionnent que si l\'appli vient de Google Play.',
       msg_billing_unavailable: 'Les achats Google Play ne sont pas disponibles sur cet appareil ou ce compte.',
@@ -1164,7 +1181,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       levels: 'Níveis', soon: 'Mais níveis em breve', soon_desc: 'Novos mundos a caminho.', unlock_after: 'Conclua {world} para desbloquear', level_of: 'Nível {level} de {total}', replay: 'Repetindo', overall: '{n}/{total} no total', best: 'Recorde {time}', new_best: 'Novo recorde!', current: 'próximo',
       play_games: 'Google Play Games', games_on: 'Suas conquistas e tempos dos placares ficam salvos no seu perfil do Play Games.', games_failed: 'Não foi possível conectar ao Play Games. Confira se você entrou no Google Play e tente de novo.',
       games_off: 'Entre para ganhar conquistas e comparar seus tempos nos placares.', games_signin: 'Entrar', achievements: 'Conquistas', leaderboards: 'Placares',
-      hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', share_preparing: 'Preparando vídeo…', copied: 'Resultado copiado', share_cta: 'Consegue superar?', share_store: 'Grátis no Google Play',
+      hints_none: 'nenhuma dica', hints_one: '1 dica', hints_many: '{n} dicas', share_preparing: 'Preparando vídeo…', share_title: 'Compartilhe seu resultado', share_video: 'Vídeo', share_picture: 'Imagem', share_go_video: 'Compartilhar vídeo', share_go_picture: 'Compartilhar imagem', copied: 'Resultado copiado', share_cta: 'Consegue superar?', share_store: 'Grátis no Google Play',
       missed: 'Quase! A linha precisa passar por todas as casas. Faltam {n}.', reached: '{k} de {total} alcançado', solved_announce: 'Resolvido em {time}',
       msg_store_unavailable: 'Remover anúncios ainda não está disponível. Compras só funcionam se o app foi instalado pelo Google Play.',
       msg_billing_unavailable: 'Compras do Google Play não estão disponíveis neste aparelho ou conta.',
@@ -1871,7 +1888,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       const sub = isNew ? t('run_best_new') : t('run_best', { n: endless.best });
       div.innerHTML = `<div><h2>${t('run_n', { n: endless.run })}</h2><p>${t('solved_in', { what: endlessDiff(), time: fmt(elapsed) })} · ${sub}</p></div><div class="actions"><button class="share">${t('share')}</button><button class="next">${t('next_puzzle')}</button></div>`;
       div.querySelector('.next').onclick = nextPuzzle;
-      div.querySelector('.share').onclick = share;
+      div.querySelector('.share').onclick = openShare;
       prepareShare();
       putResult(div);
       return;
@@ -1897,7 +1914,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
     div.innerHTML = `<div><h2>${title}</h2><p>${t('solved_in', { what, time: fmt(elapsed) })}${best}</p>${soon}</div><div class="actions"><button class="share">${t('share')}</button><button class="next">${nextLabel}</button></div>`;
     div.querySelector('.next').onclick = nextPuzzle;
-    div.querySelector('.share').onclick = share;
+    div.querySelector('.share').onclick = openShare;
     prepareShare();
     putResult(div);
   }
@@ -1924,31 +1941,43 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const shareUrl = () => mode === 'daily' ? DAILY_LINK + '?d=' + dayOf() + '&p=' + dailyId : SHARE_URL;
   let shareCard = null; // Promise<canvas|null> for the puzzle just solved, drawn when the win card appears
 
-  // The share card: 1080×1350 in the current theme and world colours. As a picture the board shows the numbers
-  // and walls under an even colour wash, never the route, so it can't give a puzzle away. As a video it replays
-  // the player's winning line square by square while the clock counts up to their time.
+  // The share card: 1080×1350, drawn with the player's own colours (theme, world, high contrast), the board looking
+  // as it does in their game. As a picture it shows the solved board without the line, so it can't give a puzzle
+  // away. As a video it replays the player's winning line square by square while the clock counts up to their time.
   const CARD_W = 1080, CARD_H = 1350, VIDEO_FPS = 30;
-  // Today's Daily shares the picture (its link invites friends to play that same puzzle today); past days,
-  // Ladder and Endless share the video.
-  const shareAsVideo = () => !(mode === 'daily' && !archiveDate);
+  // Today's Daily video never shows the route (its link invites friends to play that same puzzle today): the numbers
+  // light up in order at the player's pace and colour ripples out from each. Past days, Ladder and Endless replay the line.
+  const spoilerFree = () => mode === 'daily' && !archiveDate;
 
-  // Loads the fonts once and returns paint(g, f): f.route = squares of the line drawn so far (fractional, null =
-  // picture without a line), f.clock = time shown (ms), f.glow = 0..1 finish flash.
+  // Loads the fonts once and returns paint(g, f): f.route = squares of the line drawn so far (fractional), or
+  // f.wave = 0..1 progress of the spoiler-free fill (both null = the picture), f.clock = time shown (ms), f.glow = 0..1 finish flash.
   async function cardPainter() {
     // Everything about the solved puzzle is read now, before any wait, so the next puzzle can't leak in.
-    const W = CARD_W, H = CARD_H, P = puz, n = P.n, route = path.slice(), total = elapsed, thick = a11y.contrast ? 0.14 : 0.1;
+    const W = CARD_W, H = CARD_H, P = puz, n = P.n, route = path.slice(), total = elapsed, thick = a11y.contrast ? 0.14 : 0.09;
     const cs = getComputedStyle(rootEl), v = (k) => cs.getPropertyValue(k).trim();
     const rgb = (c) => { const h = c.replace('#', ''); return h.length === 6 ? [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)) : null; };
     const lerp = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t)), css = (c) => `rgb(${c.join(',')})`;
     const display = v('--display') || 'system-ui', body = v('--body') || 'system-ui';
     const A = v('--spark-a'), B = v('--spark-b'), ca = rgb(A), cb = rgb(B);
-    const cell = rgb(v('--cell')), alt = rgb(v('--cell-alt')) || cell;
-    const colors = { bg: v('--bg'), ink: v('--ink'), muted: v('--muted'), line: v('--line'), wall: v('--wall'), node: v('--node'), nodeInk: v('--node-ink'), cell: v('--cell') };
+    // Squares as the board paints them, empty and with the line on them, read from a hidden board square.
+    const probe = document.createElement('div'); probe.className = 'cell'; probe.style.cssText = 'position:absolute;visibility:hidden;width:1px;height:1px;transition:none;animation:none';
+    document.body.appendChild(probe);
+    const cellBg = getComputedStyle(probe).backgroundColor; probe.className = 'cell on';
+    const cellOn = getComputedStyle(probe).backgroundColor; probe.remove();
+    const colors = { bg: v('--bg'), ink: v('--ink'), muted: v('--muted'), line: v('--line'), wall: v('--wall'), ok: v('--ok') || v('--wall'), node: v('--node'), nodeInk: v('--node-ink'), cell: cellBg, on: cellOn };
     const which = shareWhich(), hints = `${shareHints()} · ${t('share_cta')}`, store = t('share_store'), ns = nodeSize();
     const segColor = (k) => (ca && cb ? css(lerp(ca, cb, k / (n * n - 1 || 1))) : A);
     const S = 780, bx = (W - S) / 2, by = 250, c = S / n, r = 30;
     const ctr = (i) => [bx + (i % n + 0.5) * c, by + (Math.floor(i / n) + 0.5) * c];
     const order = new Map(route.map((x, i) => [x, i]));
+    // Spoiler-free fill: each number lights when the player reached it and colour spreads from it by distance,
+    // never along the line; the whole board is full by the end.
+    const lit = Object.keys(P.nums).map((ci) => ({ r: Math.floor(+ci / n), c: +ci % n, at: (order.get(+ci) || 0) / (route.length - 1 || 1) }));
+    const ripple = (i, p) => {
+      const row = Math.floor(i / n), col = i % n; let best = 0;
+      for (const L of lit) if (p >= L.at) best = Math.max(best, Math.min(1, (p - L.at) * n * 2.2 - Math.hypot(row - L.r, col - L.c) + 1));
+      return Math.max(0, best, Math.min(1, (p - 0.8) / 0.2));
+    };
     try {
       await Promise.race([
         Promise.all([document.fonts.load(`800 96px ${display}`), document.fonts.load(`600 40px ${body}`)]),
@@ -1957,7 +1986,8 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     } catch { /* system fonts will do */ }
     const paint = (g, f) => {
       const grad = (x0, y0, x1, y1) => { const q = g.createLinearGradient(x0, y0, x1, y1); q.addColorStop(0, A); q.addColorStop(1, B); return q; };
-      const drawn = f.route == null ? -1 : f.route;
+      const drawn = f.route == null ? -1 : f.route, wave = f.wave == null ? -1 : f.wave;
+      const reached = (i) => (drawn >= 0 ? order.get(i) <= drawn : wave >= 0 ? order.get(i) <= wave * (route.length - 1) : true);
       g.fillStyle = colors.bg; g.fillRect(0, 0, W, H);
       g.fillStyle = grad(0, 0, W, 0); g.fillRect(0, 0, W, 14);
       g.textBaseline = 'alphabetic';
@@ -1970,14 +2000,15 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       g.textAlign = 'center';
       g.font = `600 38px ${body}`; g.fillStyle = colors.muted;
       g.fillText(which, W / 2, 200, W - 120);
-      // Board: the picture washes every square evenly; the video tints squares as the line reaches them.
+      // Board, as in the game: squares light up as the line covers them (the picture shows the solved board,
+      // every square lit; the spoiler-free video lights them by the ripple).
       g.save();
       g.beginPath(); g.roundRect ? g.roundRect(bx, by, S, S, r) : g.rect(bx, by, S, S); g.clip();
       for (let i = 0; i < n * n; i++) {
-        const row = Math.floor(i / n), col = i % n, base = (row + col) % 2 ? alt : cell;
-        const tint = f.route == null ? 0.2 : order.get(i) <= drawn ? 0.16 : 0;
-        g.fillStyle = base && ca && cb ? css(lerp(base, lerp(ca, cb, (row + col) / (2 * n - 2 || 1)), tint)) : colors.cell;
-        g.fillRect(bx + col * c, by + row * c, c, c);
+        const row = Math.floor(i / n), col = i % n;
+        const on = wave >= 0 ? ripple(i, wave) : f.route == null ? 1 : order.get(i) <= drawn ? 1 : 0;
+        g.fillStyle = colors.cell; g.fillRect(bx + col * c, by + row * c, c, c);
+        if (on > 0) { g.globalAlpha = on; g.fillStyle = colors.on; g.fillRect(bx + col * c, by + row * c, c, c); g.globalAlpha = 1; }
       }
       g.strokeStyle = colors.line; g.lineWidth = 2;
       for (let k = 1; k < n; k++) {
@@ -2011,12 +2042,14 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       }
       if (f.glow) { g.fillStyle = `rgba(255,255,255,${0.22 * f.glow})`; g.fillRect(bx, by, S, S); }
       g.restore();
-      g.strokeStyle = colors.wall; g.lineWidth = 6;
+      // The frame turns to the solved colour once the board is full, like the game's.
+      const full = f.route == null && f.wave == null || (drawn >= 0 ? drawn >= route.length - 1 : wave >= 1);
+      g.strokeStyle = full ? colors.ok : colors.wall; g.lineWidth = 5;
       g.beginPath(); g.roundRect ? g.roundRect(bx, by, S, S, r) : g.rect(bx, by, S, S); g.stroke();
       // Numbers: reached ones turn to the spark gradient, as on the board.
       g.textBaseline = 'middle';
       for (const [cellIdx, k] of Object.entries(P.nums)) {
-        const [cx, cy] = ctr(+cellIdx), done = drawn >= 0 && order.get(+cellIdx) <= drawn;
+        const [cx, cy] = ctr(+cellIdx), done = reached(+cellIdx);
         g.fillStyle = done ? grad(cx - ns.r * c, cy - ns.r * c, cx + ns.r * c, cy + ns.r * c) : colors.node;
         g.beginPath(); g.arc(cx, cy, ns.r * c, 0, Math.PI * 2); g.fill();
         g.fillStyle = done ? '#fff' : colors.nodeInk; g.font = `800 ${Math.round(ns.f * c)}px ${display}`;
@@ -2046,7 +2079,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
 
   // The replay: a beat on the empty board, the line drawn at an even pace (about 2 to 4.5 seconds) with the clock
   // counting up to the player's time, a flash as the last square fills, then the finished board held.
-  function videoTimeline(cells, total) {
+  function videoTimeline(cells, total, safe) {
     const intro = 0.6, draw = Math.min(4.5, Math.max(2.2, cells * 0.09)), flash = 0.5, hold = 1.6;
     const frames = Math.round((intro + draw + flash + hold) * VIDEO_FPS);
     const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2) * 0.35 + x * 0.65;
@@ -2055,7 +2088,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
       at(i) {
         const s = i / VIDEO_FPS, p = Math.min(1, Math.max(0, (s - intro) / draw)), q = ease(p);
         const after = s - intro - draw;
-        return { route: q * (cells - 1), clock: total * q, glow: after > 0 && after < flash ? 1 - after / flash : 0 };
+        return { route: safe ? null : q * (cells - 1), wave: safe ? q : null, clock: total * q, glow: after > 0 && after < flash ? 1 - after / flash : 0 };
       },
     };
   }
@@ -2063,10 +2096,10 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // MP4 (H.264) for the widest set of apps. WebCodecs encodes faster than real time and muxMp4 below writes a
   // plain MP4 with the index first. Browsers without WebCodecs H.264 record the canvas in real time instead,
   // if they can record MP4. Resolves to a Blob, or null when neither works (the picture is shared then).
-  async function recordShareVideo(painter) {
+  async function recordShareVideo(painter, safe) {
     const paint = await painter;
     if (paint.cells < 2) return null;
-    const tl = videoTimeline(paint.cells, paint.total);
+    const tl = videoTimeline(paint.cells, paint.total, safe);
     const cv = document.createElement('canvas'); cv.width = CARD_W; cv.height = CARD_H;
     const g = cv.getContext('2d'); if (!g) return null;
     if (typeof VideoEncoder === 'function' && typeof VideoFrame === 'function') {
@@ -2175,7 +2208,8 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     const painter = cardPainter();
     shareCard = drawShareCard(painter).catch(() => null);
     // The video starts after the win celebration so it doesn't stutter it; Share waits for it if tapped sooner.
-    shareVideo = shareAsVideo() ? new Promise((r) => setTimeout(r, 1200)).then(() => recordShareVideo(painter)).catch(() => null) : null;
+    const safe = spoilerFree();
+    shareVideo = new Promise((r) => setTimeout(r, 1200)).then(() => recordShareVideo(painter, safe)).catch(() => null);
   }
 
   const blobBase64 = (blob) => new Promise((resolve, reject) => {
@@ -2184,29 +2218,72 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     fr.readAsDataURL(blob);
   });
 
-  // The video if it is ready within a few seconds, else null. The Share button says it's preparing meanwhile.
-  async function videoForShare(btn) {
-    if (!shareVideo) return null;
-    let label = null;
-    const slow = setTimeout(() => { if (btn) { label = btn.textContent; btn.textContent = t('share_preparing'); btn.disabled = true; } }, 150);
-    const video = await Promise.race([shareVideo, new Promise((r) => setTimeout(() => r(null), 12000))]);
-    clearTimeout(slow);
-    if (btn && label != null) { btn.textContent = label; btn.disabled = false; }
-    return video;
-  }
+  // Share opens a sheet to pick Video or Picture (remembered), with a preview of exactly what will be sent.
+  // The video may still be encoding: its preview says so and Share waits. Devices that can't make one get Picture only.
+  const shareSheet = $('sharesheet'), shareVid = $('share-vid'), shareImg = $('share-img'), shareWait = $('share-wait'), shareGo = $('share-go');
+  let shareKind = store.get('shareKind', 'video') === 'picture' ? 'picture' : 'video', shareUrlObj = null, shareOpenId = 0;
+  let shareBlob = null, shareFallback = null; // the video once ready; the opener to refocus
 
-  // Android app: native share sheet with the video (or picture). Browsers: Web Share with the file where files
-  // can be shared, else text only, then the clipboard, then the text shown to copy by hand. The link rides in the text.
-  async function share(e) {
-    const btn = e && e.currentTarget, text = shareText() + '\n' + shareUrl();
-    if (btn && btn.disabled) return;
+  function openShare(e) {
+    shareFallback = e && e.currentTarget;
+    const id = ++shareOpenId;
     if (!shareCard) prepareShare();
+    shareBlob = null;
+    $('share-video-opt').classList.remove('off');
+    shareSheet.hidden = false;
+    showShareKind();
+    shareCard.then((cv) => { if (id === shareOpenId && cv) { shareImg.src = cv.toDataURL('image/png'); showShareKind(); } });
+    (shareVideo || Promise.resolve(null)).then((blob) => {
+      if (id !== shareOpenId || shareSheet.hidden) return;
+      if (!blob) { $('share-video-opt').classList.add('off'); shareKind = 'picture'; showShareKind(); return; }
+      shareBlob = blob;
+      if (shareUrlObj) URL.revokeObjectURL(shareUrlObj);
+      shareUrlObj = URL.createObjectURL(blob); shareVid.src = shareUrlObj;
+      showShareKind();
+    });
+    $(shareKind === 'video' ? 'share-video' : 'share-picture').focus();
+  }
+  function showShareKind() {
+    const video = shareKind === 'video' && !$('share-video-opt').classList.contains('off');
+    if (!video && shareKind === 'video') shareKind = 'picture';
+    $('share-video').checked = video; $('share-picture').checked = !video;
+    const ready = !video || !!shareBlob;
+    shareVid.hidden = !video || !shareBlob; shareImg.hidden = video && !!shareBlob;
+    if (video && shareBlob) { try { shareVid.play().catch(() => {}); } catch { /* preview only */ } } else shareVid.pause();
+    shareWait.hidden = ready; shareWait.textContent = t('share_preparing');
+    shareGo.disabled = !ready;
+    shareGo.textContent = t(video ? 'share_go_video' : 'share_go_picture');
+  }
+  function closeShare() {
+    shareSheet.hidden = true; shareOpenId++; shareVid.pause();
+    if (shareFallback && shareFallback.isConnected) shareFallback.focus();
+  }
+  shareSheet.querySelectorAll('input[name=sharekind]').forEach((r) => r.addEventListener('change', () => {
+    shareKind = r.value; store.set('shareKind', shareKind); showShareKind();
+  }));
+  $('share-close').onclick = closeShare;
+  shareSheet.addEventListener('click', (e) => { if (e.target === shareSheet) closeShare(); });
+  shareSheet.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeShare(); }
+    if (e.key === 'Tab') {
+      const f = [...shareSheet.querySelectorAll('button:not([disabled]), input:checked')], first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  shareGo.onclick = async () => {
+    const video = shareKind === 'video' && shareBlob;
+    closeShare();
+    await sendShare(video || null);
+  };
+
+  // Android app: native share sheet with the file. Browsers: Web Share with the file where files can be shared;
+  // without that, the result text is copied (or shown to copy by hand). The text with the link goes with the file.
+  async function sendShare(video) {
+    const text = shareText() + '\n' + shareUrl();
     const app = window.ZipZapZopAndroid;
     if (app) {
-      if (app.shareVideo) {
-        const video = await videoForShare(btn);
-        if (video) { try { app.shareVideo(text, await blobBase64(video)); return; } catch { /* picture below */ } }
-      }
+      if (video && app.shareVideo) { try { app.shareVideo(text, await blobBase64(video)); return; } catch { /* picture below */ } }
       if (app.shareImage) {
         const cv = await shareCard;
         if (cv) { try { app.shareImage(text, cv.toDataURL('image/png').split(',')[1]); return; } catch { /* plain text below */ } }
@@ -2215,7 +2292,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     }
     if (navigator.share) {
       const canFile = (f) => f && navigator.canShare && navigator.canShare({ files: [f] });
-      const video = await videoForShare(btn);
       let file = video && typeof File === 'function' && new File([video], 'zipzapzop.mp4', { type: 'video/mp4' });
       if (!canFile(file)) {
         const cv = await shareCard;
@@ -2226,8 +2302,6 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
         try { await navigator.share({ files: [file], text }); return; }
         catch (err) { if (err && err.name === 'AbortError') return; }
       }
-      try { await navigator.share({ text }); return; }
-      catch (err) { if (err && err.name === 'AbortError') return; }
     }
     try { await navigator.clipboard.writeText(text); toast(t('copied')); }
     catch { toast(text, true); }
@@ -2690,6 +2764,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   const BACK_EXIT_MS = 2000;
   let backArmedAt = 0;
   window.zzzBack = () => {
+    if (!shareSheet.hidden) { closeShare(); return 'handled'; }
     if (!sheet.hidden) { closeA11y(); return 'handled'; }
     if (!streakSheet.hidden) { closeStreak(); return 'handled'; }
     if (!levelsSheet.hidden) { closeLevels(); return 'handled'; }
@@ -3147,7 +3222,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-24 · b0a8d33';
+  const WEB_BUILD = '2026-11-24 · 429b16a';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
