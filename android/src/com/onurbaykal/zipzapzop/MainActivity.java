@@ -357,13 +357,19 @@ public class MainActivity extends Activity {
 
         // Result picture (base64 PNG drawn by the page) plus text with the store link, through ShareProvider.
         @JavascriptInterface
-        public void shareImage(final String text, final String pngBase64) {
+        public void shareImage(final String text, final String pngBase64) { shareFile(text, pngBase64, ShareProvider.PNG); }
+
+        // Replay of the winning line (base64 MP4 encoded by the page), the same way.
+        @JavascriptInterface
+        public void shareVideo(final String text, final String mp4Base64) { shareFile(text, mp4Base64, ShareProvider.MP4); }
+
+        private void shareFile(final String text, final String base64, final String name) {
             final Uri uri;
             try {
-                byte[] png = Base64.decode(pngBase64, Base64.DEFAULT);
-                FileOutputStream out = new FileOutputStream(ShareProvider.file(MainActivity.this));
-                try { out.write(png); } finally { out.close(); }
-                uri = ShareProvider.uri(MainActivity.this);
+                byte[] data = Base64.decode(base64, Base64.DEFAULT);
+                FileOutputStream out = new FileOutputStream(ShareProvider.file(MainActivity.this, name));
+                try { out.write(data); } finally { out.close(); }
+                uri = ShareProvider.uri(MainActivity.this, name);
             } catch (IOException | IllegalArgumentException e) {
                 share(text);
                 return;
@@ -372,7 +378,7 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     Intent send = new Intent(Intent.ACTION_SEND);
-                    send.setType("image/png");
+                    send.setType(ShareProvider.type(name));
                     send.putExtra(Intent.EXTRA_STREAM, uri);
                     send.putExtra(Intent.EXTRA_TEXT, text);
                     // ClipData carries the read grant through the chooser to the app picked, and shows a preview.
