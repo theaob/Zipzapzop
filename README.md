@@ -13,6 +13,7 @@ A path-drawing puzzle: draw one line through every cell, pass the numbers in ord
 | `web/test-ladder.js` | Checks that all 100 Ladder levels have exactly one solution (`node web/test-ladder.js`; also runs in CI). |
 | `web/build.sh` | Inlines the engine into `web/index.html`, the single-file playable page. Run it after editing either source. |
 | `android/` | WebView wrapper that bundles the same game for offline play. |
+| `docs/index.html` | Home page (English and Turkish), with screenshots in `docs/img/`. Hand-written. |
 | `docs/privacy.html` | Privacy policy, served by GitHub Pages from `docs/` on `main`. |
 | `docs/terms.html` | Terms of service, served the same way. Both are linked at the bottom of Settings. |
 | `web/link.html` | Landing page for shared Daily links; `web/build.sh` writes it to `docs/daily/index.html` (served at `theaob.github.io/Zipzapzop/daily/?d=<date>&p=<difficulty>`). |

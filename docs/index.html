@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZipZapZop: draw one line through every square</title>
+<meta name="description" content="ZipZapZop is a calm, quick logic puzzle for Android. Draw one line through every square, hit the numbers in order, and never cross a wall. Three new puzzles every day.">
+<meta property="og:title" content="ZipZapZop">
+<meta property="og:description" content="Draw one line through every square and hit the numbers in order. Three new puzzles every day.">
+<meta property="og:image" content="https://theaob.github.io/Zipzapzop/img/og.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<!-- Home page, served by GitHub Pages at https://theaob.github.io/Zipzapzop/. Hand-written (not made by web/build.sh).
+     English and Turkish: the language follows the browser and the switch at the top. -->
+<style>
+:root {
+  --bg: #eef1f6; --panel: #ffffff; --line: #d7dce6; --ink: #161b2e; --muted: #5d6680;
+  --spark-a: #ff8a1f; --spark-b: #e8336d; --focus: #3466ff; --cell: #ffffff; --wall: #161b2e;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #10131d; --panel: #181c29; --line: #2d3346; --ink: #eef1f8; --muted: #9aa3bb; --focus: #7d9bff; --cell: #1c2130; --wall: #eef1f8; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+main { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+.top { display: flex; justify-content: flex-end; }
+.langs { display: flex; gap: 4px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); border-radius: 999px; padding: 3px; }
+.langs button { font: 600 14px var(--body); border: 0; background: none; color: var(--muted); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.hero { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; padding: 28px 0 36px; }
+@media (min-width: 760px) { .hero { grid-template-columns: 1.1fr 0.9fr; padding: 48px 0 56px; } }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand img { width: 64px; height: 64px; border-radius: 16px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 8vw, 56px); letter-spacing: -0.02em; line-height: 1; margin: 0; }
+h1 span, .grad { background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tag { font-family: var(--display); font-weight: 600; font-size: clamp(22px, 4vw, 28px); line-height: 1.2; margin: 22px 0 10px; letter-spacing: -0.01em; }
+.lead { color: var(--muted); margin: 0 0 22px; max-width: 34em; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+a.btn { display: inline-block; padding: 14px 20px; border-radius: 14px; font-weight: 600; font-size: 17px; text-decoration: none; color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
+a.btn.primary { color: #fff; background: linear-gradient(90deg, var(--spark-a), var(--spark-b)); box-shadow: none; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.board { width: min(100%, 340px); aspect-ratio: 1; justify-self: center; border: 3px solid var(--wall); border-radius: 18px; overflow: hidden; background: var(--cell); }
+.board svg { display: block; width: 100%; height: 100%; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 28px; letter-spacing: -0.01em; margin: 0 0 16px; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 44px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+.card h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 0 0 6px; }
+.card p { margin: 0; color: var(--muted); }
+.shots { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-bottom: 44px; }
+.shots img { flex: 0 0 auto; width: min(62vw, 220px); height: auto; aspect-ratio: 540 / 1020; border-radius: 18px; border: 1px solid var(--line); scroll-snap-align: start; background: var(--panel); }
+@media (min-width: 960px) { .shots { overflow: visible; justify-content: space-between; } .shots img { width: 220px; } }
+footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: 15px; display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+footer a { color: var(--ink); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="langs" role="group" aria-label="Language / Dil">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="tr" aria-pressed="false">Türkçe</button>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div class="brand">
+        <img src="img/icon.png" alt="" width="64" height="64">
+        <h1>Zip<span>Zap</span>Zop</h1>
+      </div>
+      <p class="tag" data-t="tag">Draw one line through every square.</p>
+      <p class="lead" data-t="lead">A calm, quick logic puzzle. Pass the numbers in order, finish on the highest one and never cross a wall. Every puzzle has exactly one solution.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.onurbaykal.zipzapzop" data-t="store">Get it on Google Play</a>
+        <a class="btn" href="play/" data-t="web">Play in your browser</a>
+      </div>
+    </div>
+    <div class="board" aria-hidden="true">
+      <!-- A solved 5x5: the line snakes through every square and passes 1 to 5 in order. -->
+      <svg viewBox="0 0 500 500">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#e8336d"/></linearGradient>
+        </defs>
+        <g stroke="var(--line)" stroke-width="2">
+          <path d="M100 0V500M200 0V500M300 0V500M400 0V500M0 100H500M0 200H500M0 300H500M0 400H500"/>
+        </g>
+        <path d="M50 50H450V150H50V250H450V350H50V450H450" fill="none" stroke="url(#g)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+        <g stroke="var(--wall)" stroke-width="10" stroke-linecap="round"><path d="M100 100H300M200 300H400"/></g>
+        <g font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="800" font-size="40" text-anchor="middle">
+          <circle cx="50" cy="50" r="34" fill="var(--wall)"/><text x="50" y="64" fill="var(--cell)">1</text>
+          <circle cx="250" cy="150" r="34" fill="var(--wall)"/><text x="250" y="164" fill="var(--cell)">2</text>
+          <circle cx="350" cy="250" r="34" fill="var(--wall)"/><text x="350" y="264" fill="var(--cell)">3</text>
+          <circle cx="150" cy="350" r="34" fill="var(--wall)"/><text x="150" y="364" fill="var(--cell)">4</text>
+          <circle cx="450" cy="450" r="34" fill="var(--wall)"/><text x="450" y="464" fill="var(--cell)">5</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <h2 data-t="what">What's inside</h2>
+  <div class="features">
+    <div class="card"><h3 data-t="f1h">Three new puzzles every day</h3><p data-t="f1">Easy, Medium and Hard daily challenges, the same for everyone on the same date. Keep your streak going and share your times with friends.</p></div>
+    <div class="card"><h3 data-t="f2h">The Ladder</h3><p data-t="f2">Climb five themed worlds of 20 levels each, from Meadow 4×4 to Volcano 8×8. Fewer numbers and more walls the higher you go.</p></div>
+    <div class="card"><h3 data-t="f3h">Endless mode</h3><p data-t="f3">Random puzzles with no limit, from Easy 5×5 to Expert 8×8. Solve as many in a row as you can and chase your best run.</p></div>
+    <div class="card"><h3 data-t="f4h">Learn in a minute</h3><p data-t="f4">Four short interactive lessons teach the rules by playing. Hints and Undo help when you're stuck.</p></div>
+    <div class="card"><h3 data-t="f5h">Achievements and leaderboards</h3><p data-t="f5">Sign in to Google Play Games, if you like, to collect achievements and compare times. The game works the same without it.</p></div>
+    <div class="card"><h3 data-t="f6h">Play your way</h3><p data-t="f6">Light and dark themes, high contrast, larger text, reduced motion and an optional daily reminder. Puzzles play offline, and there's no account to make.</p></div>
+  </div>
+
+  <div class="shots" aria-label="Screenshots">
+    <img src="img/daily.webp" alt="A daily puzzle in progress" data-alt="s1" loading="lazy" width="540" height="1020">
+    <img src="img/ladder.webp" alt="The Ladder's five worlds" data-alt="s2" loading="lazy" width="540" height="1020">
+    <img src="img/endless.webp" alt="Endless mode in the dark theme" data-alt="s3" loading="lazy" width="540" height="1020">
+    <img src="img/streak.webp" alt="A daily streak" data-alt="s4" loading="lazy" width="540" height="1020">
+  </div>
+
+  <footer>
+    <span data-t="by">Made by Onur Baykal</span>
+    <nav>
+      <a href="privacy.html" data-t="privacy">Privacy policy</a>
+      <a href="terms.html" data-t="terms">Terms of service</a>
+      <a href="mailto:theaob@gmail.com" data-t="contact">Contact</a>
+    </nav>
+  </footer>
+</main>
+<script>
+(() => {
+  const TR = {
+    tag: 'Her kareden geçen tek bir çizgi çiz.',
+    lead: 'Sakin ve kısa bir mantık bulmacası. Sayılardan sırayla geç, en büyüğünde bitir ve hiçbir duvarı aşma. Her bulmacanın tek bir çözümü var.',
+    store: "Google Play'den indir", web: 'Tarayıcıda oyna', what: 'Neler var',
+    f1h: 'Her gün üç yeni bulmaca', f1: 'Kolay, Orta ve Zor günlük bulmacalar, aynı gün herkes için aynı. Serini sürdür ve sürelerini arkadaşlarınla paylaş.',
+    f2h: 'Merdiven', f2: 'Her biri 20 seviyelik beş temalı dünyayı tırman: Çayır 4×4\'ten Volkan 8×8\'e. Yükseldikçe sayılar azalır, duvarlar artar.',
+    f3h: 'Sonsuz mod', f3: 'Kolay 5×5\'ten Uzman 8×8\'e sınırsız rastgele bulmaca. Art arda olabildiğince çok çöz ve en iyi serini geç.',
+    f4h: 'Bir dakikada öğren', f4: 'Dört kısa etkileşimli ders kuralları oynayarak öğretir. Takıldığında ipucu ve Geri al yardım eder.',
+    f5h: 'Başarımlar ve skor tabloları', f5: 'İstersen Google Play Games\'e giriş yap, başarımları topla ve sürelerini karşılaştır. Oyun girişsiz de aynı çalışır.',
+    f6h: 'Kendi tarzınla oyna', f6: 'Açık ve koyu tema, yüksek kontrast, büyük yazı, azaltılmış hareket ve isteğe bağlı günlük hatırlatıcı. Bulmacalar çevrimdışı çalışır, hesap açman gerekmez.',
+    s1: 'Devam eden bir günlük bulmaca', s2: 'Merdiven\'in beş dünyası', s3: 'Koyu temada Sonsuz mod', s4: 'Günlük seri',
+    by: 'Yapımcı: Onur Baykal', privacy: 'Gizlilik politikası', terms: 'Kullanım koşulları', contact: 'İletişim'
+  };
+  const EN = {};
+  document.querySelectorAll('[data-t]').forEach(el => { EN[el.dataset.t] = el.textContent; });
+  document.querySelectorAll('[data-alt]').forEach(el => { EN[el.dataset.alt] = el.alt; });
+  const EN_TITLE = document.title, TR_TITLE = 'ZipZapZop: her kareden geçen tek bir çizgi çiz';
+  function set(lang) {
+    const s = lang === 'tr' ? TR : EN;
+    document.documentElement.lang = lang;
+    document.title = lang === 'tr' ? TR_TITLE : EN_TITLE;
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = s[el.dataset.t]; });
+    document.querySelectorAll('[data-alt]').forEach(el => { el.alt = s[el.dataset.alt]; });
+    document.querySelectorAll('.langs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+    try { localStorage.setItem('zap:siteLang', lang); } catch (_) {}
+  }
+  document.querySelectorAll('.langs button').forEach(b => { b.onclick = () => set(b.dataset.lang); });
+  let saved = null;
+  try { saved = localStorage.getItem('zap:siteLang'); } catch (_) {}
+  const q = new URLSearchParams(location.search).get('lang');
+  const lang = q || saved || ((navigator.language || '').toLowerCase().startsWith('tr') ? 'tr' : 'en');
+  if (lang === 'tr') set('tr');
+})();
+</script>
+</body>
+</html>
