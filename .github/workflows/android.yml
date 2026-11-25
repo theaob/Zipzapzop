@@ -78,6 +78,24 @@ jobs:
           VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew --no-daemon assembleDebug bundleRelease
 
+      - name: Check app permissions
+        # Lists every permission in the release manifest with the library that added it (from the manifest merger's
+        # report), and fails if a "Nearby devices" permission (Bluetooth, Wi-Fi scanning, UWB) slips back in.
+        run: |
+          MANIFEST=build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
+          [ -f "$MANIFEST" ] || MANIFEST="$(find build/intermediates -path '*release*' -name AndroidManifest.xml | grep merged_manifest | head -1)"
+          echo "Release manifest: $MANIFEST"
+          tr '\n' ' ' < "$MANIFEST" | grep -oE '<uses-permission[^>]*' | grep -oE 'android:name="[^"]*"' | sed 's/android:name=//; s/"//g' | sort -u
+          REPORT=build/outputs/logs/manifest-merger-release-report.txt
+          if [ -f "$REPORT" ]; then
+            echo "--- Where each permission comes from ---"
+            grep -A3 -E '^uses-permission' "$REPORT" || true
+          fi
+          if grep -E 'android:name="android\.permission\.(BLUETOOTH[A-Z_]*|NEARBY_WIFI_DEVICES|UWB_RANGING)"' "$MANIFEST"; then
+            echo "::error::The release manifest asks for a Nearby devices permission (see the list above). Remove it in AndroidManifest.xml with tools:node=\"remove\"."
+            exit 1
+          fi
+
       - name: Show the test APK's signing certificate
         run: |
           APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
