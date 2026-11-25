@@ -3125,7 +3125,9 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
     if (done > 0 || dates.length) unlock('first_steps');
     WORLDS.forEach((w, i) => { if (done >= (i + 1) * WORLD_LEVELS) unlock(w.id + '_complete'); });
     if (dates.some((d) => DAILY.every((x) => days[d].has(x.id)))) unlock('daily_trio');
-    if (dailyStreaks(days).best >= 7) unlock('week_streak');
+    const bestStreak = dailyStreaks(days).best;
+    [[7, 'week_streak'], [30, 'month_streak'], [60, 'two_month_streak'], [180, 'half_year_streak'], [365, 'year_streak']]
+      .forEach(([n, key]) => { if (bestStreak >= n) unlock(key); });
     if (dates.some((d) => days[d].has('hard') && store.get('dailyhints:' + d + ':hard', null) === 0)) unlock('unassisted');
     if (done > 0) bridge.gamesScore('ladder', done);
     DAILY.forEach((d) => { const ms = store.get('daily:' + today() + ':' + d.id, null); if (ms != null) bridge.gamesScore('daily_' + d.id, ms); });
@@ -3135,7 +3137,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   // Daily streak: days in a row with a Daily solved on its own day (archive solves are stored elsewhere and
   // never count). Each Monday-to-Sunday week has one streak freeze: a single missed day is covered if its
   // week's freeze is unused. A covered day keeps the run going but doesn't add to it. Everything is worked
-  // out from the saved solves, so the shown streak, the Week streak achievement and the dailyStreak stat agree.
+  // out from the saved solves, so the shown streak, the streak achievements and the dailyStreak stat agree.
   const dayNum = (d) => Date.parse(d + 'T00:00:00Z') / 864e5;
   const dayStr = (n) => new Date(n * 864e5).toISOString().slice(0, 10);
   const weekOf = (n) => Math.floor((n + 3) / 7); // weeks start on Monday (day 0, 1970-01-01, was a Thursday)
@@ -3295,7 +3297,7 @@ if (typeof module !== 'undefined') module.exports = ZapEngine;
   }
   // Version line at the bottom of Settings: the app's version and build number on Android,
   // otherwise the date and commit that build.sh stamps into WEB_BUILD.
-  const WEB_BUILD = '2026-11-24 · 3418110';
+  const WEB_BUILD = '2026-11-25 · b0a8310';
   function showVersion() {
     let v = '';
     try { if (bridge && bridge.appVersion) v = t('version', { v: bridge.appVersion() }); } catch (_) {}
